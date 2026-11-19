@@ -1,0 +1,29 @@
+Please carefully read completely and internalized your operating instructions in the attached/pasted text.
+Now, please refresh your local workspace using `git pull` (or run `git clone https://github.com/nordeim/home-furnishing-store.git` if your local workspace has been reset) , then meticulously review the included `AGENTS.md` , `CLAUDE.md` , `README.md` , `Project_Architecture_Document.md` and `home-furnishing-store_SKILL.md` to have a good understanding of the purpose of the project and its current codebase design and architecture. Next, meticulously plan to review the included `docs/plans/2026-11-18-task119-remediation-plan.md` , `worklog.md` and `docs/session_6.md` , then meticulously validate your deep understanding against the codebase to check for alignment to confirm the current project status. The repo included `skills/` folder is to be excluded from code checking, testing and compilation.
+
+Install and configure/setup local postgresql db for the repo codebase using the repo included skill `skills/rootless-postgresql/SKILL.md`.
+Next, meticulously plan to audit and validate the current codebase, particularly on the recent code changes, use the repo skill `skills/web-application/SKILL.md` and other appropriate skills from the repo included `skills/` folder to help you with the code review and audit (refer to the repo included `skills/skills-catalog.md` to look for the relevant skills). Proceed with your best decisions and judgment on any open decisions. Use GitHub repo `https://github.com/nordeim/homenest-store-s.git` (review `AGENTS.md`, `CLAUDE.md`, `Project_Architecture_Document.md` and `homenest-store-s_SKILL.md` from repo `https://github.com/nordeim/homenest-store-s.git` for the tech stacks and model architecture) as the tech stack patterns. There are also skills in the `skills/` folder in the `https://github.com/nordeim/homenest-store-s.git` repo that may be relevant and helpful (refer to `https://github.com/nordeim/homenest-store-s/blob/main/skills/skills-catalog.md` to find relevant skills).
+
+Meticulously plan to use 'agent-brower' tool and other available browsing tools and scripts to check for any visual and functionality gaps. Proceed with your best recommendations on decisions regarding any open questions during planning.
+
+Pay particular attention to compare the mobile navigation menu to ensure that the mobile menu is working as expected. Look out for possible TailwindCSS v4 related bug. The solution can be found in the Tailwind CSS v4 related skills in the repo `skill/` folder (check out the repo `skills/skills-catalog.md for the relevant skills for help). Also consider using `skills/clone-app-pat-pro`, `skills/agent-browser`, and `skills/tdd`.
+
+Add vitest and playwright test suite by modifying the respective config files in the repo.
+
+Check for Sitemap implementation and SEO optimization.
+
+Next, meticulously plan to create a comprehensive remediation plan with a detailed ToDo list to fix the identified codebase issues, bugs and gaps. Next, review and validate the remediation plan against the codebase again to ensure alignment before executing it meticulously. Use TDD approach to make code changes. Look for appropriate skills in the repo included `skills/` folder to help you in the planning (refer to the included `skills/skills-catalog.md` to look for suitable skills)
+
+Capture some screenshots for the dev server running the remediated codebase, save the screen captures as image files under the `docs/screenshots/` folder in the new `home-furnishing-store` repo. Also, create a working `.env.example` that matches the codebase, include the `.env.example` in the git commit.
+
+Next, update the relevant documentation to ensure alignment with the remediated codebase. Also create `home-furnishing-store_SKILL.md` using repo skills `skills/distill-codebase-skill` and `skills/to-distill-project-into-skill`
+
+Finally, please `git commit` and then `git push` the root of the remediated codebase to my GitHub repo `git@github.com:nordeim/home-furnishing-store.git` using the ssh key below and wrapper script `https://github.com/nordeim/home-furnishing-store/blob/main/docs/ssh_git_wrapper_v3.py`.  refer to `https://github.com/nordeim/home-furnishing-store/blob/main/docs/how-to-git-push-using-ssh-wrapper_SKILL.md` for instruction to use ssh wrapper script for `git push`.
+
+Do not create any new git branch. All git commits must be to the main branch.
+
+SSH key for `git push`:
+```
+
+```
+

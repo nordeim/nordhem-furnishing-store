@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+PG_ROOT="${PG_ROOT:-/home/z/my-project/pg/pgroot}"
+PG_DATA="${PG_DATA:-/home/z/my-project/pg/pgdata}"
+PG_PORT="${PG_PORT:-5432}"
+PGBIN="${PG_ROOT}/usr/lib/postgresql/17/bin"
+export PATH="${PGBIN}:${PATH}"
+pg_ctl -D "$PG_DATA" status
+pg_isready -h 127.0.0.1 -p "$PG_PORT" && echo "[pg] accepting connections" || echo "[pg] not ready"
+
+export PATH=/home/project/pg/pgroot/usr/lib/postgresql/17/bin:$PATH; psql -h 127.0.0.1 -p 5432 -U postgres -d app_db -c "\dt" && cd /Home1/project/home-furnishing-store && npm run lint 2>&1 | tail -3
