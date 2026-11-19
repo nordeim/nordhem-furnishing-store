@@ -1,23 +1,8 @@
-// S87-2 canonical config — restored by scripts/ensure-build-configs.mjs when
-// missing or empty (the gated npm scripts run that bootstrap first; keep the
-// CONFIG_FALLBACKS registry in sync — pinned by build-config-resilience.test.ts).
 import { defineConfig, globalIgnores } from "eslint/config";
-import nextPlugin from "eslint-config-next";
-
-const nextConfig = Array.isArray(nextPlugin) ? nextPlugin : [nextPlugin];
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 
 export default defineConfig([
-  ...nextConfig,
-  globalIgnores([
-    "node_modules/**",
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-    "playwright-report/**",
-    "test-results/**",
-    "skills/**",
-    "docs/**",
-    "prisma/seed.ts",
-  ]),
+  // Keep the starter on the flat config export that actually runs under the pinned ESLint/Next toolchain.
+  ...nextCoreWebVitals,
+  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);

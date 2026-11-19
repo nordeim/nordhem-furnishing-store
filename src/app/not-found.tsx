@@ -1,57 +1,14 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { connection } from "next/server";
-import { Sparkles } from "lucide-react";
+import { AppLink } from "@/components/ui/app-link";
 
-export const metadata: Metadata = {
-  title: "Page Not Found",
-  robots: { index: false },
-};
-
-// ---------------------------------------------------------------------------
-// Root 404 — rendered inside the root layout (no storefront chrome), so the
-// card is centered on the warm cream background with its own full-height shell.
-//
-// `await connection()` is REQUIRED (S69-2): the CSP proxy stamps a
-// per-request nonce on every response, but a PRERENDERED 404 shell bakes
-// no/build-time nonces into its script tags — the browser silently refuses
-// them, hydration never happens, and every hard 404 logged a burst of CSP
-// violations to the console (the exact class the (auth) layout documents).
-// The page has no forms, but without hydration its Links degrade to full
-// page loads and the app shell never comes alive on this route.
-// ---------------------------------------------------------------------------
-
-export default async function NotFound() {
-  await connection();
+export default function NotFound() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-16">
-      <div className="w-full max-w-md rounded-3xl border border-border bg-card p-8 text-center shadow-sm sm:p-10">
-        {/* S75-12 (L-3): a beauty-appropriate glyph — the kitchen pot was
-            the scaffold's last visible brand residual. */}
-        <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-primary">
-          <Sparkles className="h-7 w-7" aria-hidden />
-        </span>
-        <p className="mt-5 font-display text-6xl font-bold tracking-tight text-primary">404</p>
-        <h1 className="mt-2 font-display text-2xl font-bold">Page Not Found</h1>
-        <p className="mt-3 text-sm leading-6 text-muted-foreground">
-          The page you&apos;re looking for may have been moved, renamed, or never existed. Let&apos;s get
-          you back to the good stuff.
-        </p>
-        <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href="/"
-            className="inline-flex h-11 w-full items-center justify-center rounded-lg bg-primary px-6 text-sm font-semibold text-primary-foreground shadow transition-colors hover:bg-primary/90 sm:w-auto"
-          >
-            Go Home
-          </Link>
-          <Link
-            href="/shop"
-            className="inline-flex h-11 w-full items-center justify-center rounded-lg border border-primary/30 px-6 text-sm font-semibold text-primary transition-colors hover:bg-accent sm:w-auto"
-          >
-            Browse Products
-          </Link>
-        </div>
-      </div>
+    <div className="page-x mx-auto max-w-2xl py-24 text-center">
+      <p className="text-sm font-bold text-ink-soft">404</p>
+      <h1 className="mt-2 text-3xl font-bold">We couldn’t find that page</h1>
+      <p className="mt-3 text-ink-soft">The link may be outdated, or the product may no longer be available.</p>
+      <AppLink href="/" className="btn btn-dark mt-8">
+        Back to start page
+      </AppLink>
     </div>
   );
 }

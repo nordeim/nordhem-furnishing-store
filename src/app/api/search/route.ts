@@ -1,74 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-
-import { parseImages } from "@/lib/products";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
-import { clampSearchTerm } from "@/lib/validation";
+import { getSuggestions } from "@/lib/catalog";
+import { clientKey, json, rateLimited } from "@/lib/http";
+import { normaliseQuery } from "@/lib/paths";
+import { createRateLimiter } from "@/lib/rate-limit";
+import { guard } from "@/lib/route";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/search?q=… — typeahead search over active products. */
-export async function GET(request: NextRequest) {
-  try {
-    // Typeahead fires per keystroke — generous but metered (120/min per IP) so
-    // a scripted client can't hammer the catalog for free (session-5 S5-8).
-    const ipLimit = rateLimit(`search:${clientIp(request.headers)}`, 120, 60_000);
-    if (!ipLimit.ok) {
-      return NextResponse.json({ error: "Too many requests. Please slow down." }, { status: 429, headers: { "Retry-After": String(ipLimit.retryAfterSec ?? 60) } });
-    }
+const limiter = createRateLimiter({ limit: 90, windowMs: 60_000 });
+const MIN_QUERY_LENGTH = 2;
 
-    // Same 100-char cap every search surface applies via clampSearchTerm
-    // (session-9 S9-7; single-sourced in validation.ts since S15-4) — an
-    // oversized term feeds three LIKE clauses for nothing. S78-2 (D-2,
-    // measured live): the floor is ONE character — the reference returns
-    // its capped 8-row set for a 1-char query ("e"); clampSearchTerm's
-    // trim means the only short-circuit left is emptiness.
-    const q = clampSearchTerm(request.nextUrl.searchParams.get("q") ?? "");
-    if (!q) return NextResponse.json({ results: [] });
+export function GET(request: Request) {
+  return guard("api.search", async () => {
+    const limit = limiter.check(clientKey(request));
+    if (!limit.ok) return rateLimited(limit);
 
-    const products = await db.product.findMany({
-      where: {
-        isActive: true,
-        // S95-1 (resync, measured live): the reference's overlay matches
-        // title + short_description + tags ONLY — "Silkfare" and "Nano"
-        // (words that appear ONLY in descriptions) return ZERO rows there,
-        // while "spa-like" (short_description) and "bastseller" (tag)
-        // match. S77-4's description clause was measured against the
-        // reference's THEN-content (the paragraphs lived in `description`);
-        // the owner has since moved them to short_description, and the
-        // clause would now over-match the resynced content. The contains
-        // clauses are substring matches on SQLite ("silk" hits "silky").
-        OR: [
-          { name: { contains: q } },
-          { shortDescription: { contains: q } },
-          { tags: { contains: q } },
-        ],
-      },
-      orderBy: {
-        // S77-4 (D-4): the authored catalog order (the seed's backdated
-        // createdAt renders index 0 first) — the reference's result order,
-        // not a rating sort.
-        createdAt: "desc",
-      },
-      take: 8,
-    });
-
-    return NextResponse.json({
-      results: products.map((p) => ({
-        id: p.id,
-        name: p.name,
-        image: parseImages(p.images)[0] ?? "/images/placeholder.svg",
-        price: p.price,
-        // S77-3 (D-2): the row's visible copy is the shortDescription
-        // ("" renders no line — the reference's no-copy products show name +
-        // price only; this is NOT the metadata fallback, which uses the
-        // long copy). The category label is gone from the rows.
-        description: p.shortDescription,
-      })),
-    });
-  } catch {
-    // Sibling-consistent error shape (session-7 S7-11): a failed query is a
-    // JSON { error } 500, never Next's generic error page.
-    return NextResponse.json({ error: "Something went wrong searching. Please try again." }, { status: 500 });
-  }
+    const q = normaliseQuery(new URL(request.url).searchParams.get("q"));
+    if (q.length < MIN_QUERY_LENGTH) return json({ products: [], categories: [] });
+    return json(await getSuggestions(q));
+  });
 }

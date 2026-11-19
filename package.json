@@ -1,75 +1,35 @@
 {
-  "name": "ely-beauty",
-  "version": "1.0.0",
-  "description": "ElyBeauty — production-grade premium-skincare storefront + admin (Next.js 16 + React 19 + Prisma/SQLite)",
+  "name": "nextjs-postgresql-template",
   "private": true,
   "scripts": {
-    "dev": "node scripts/ensure-build-configs.mjs && next dev -p 3000 2>&1 | tee dev.log",
-    "build": "node scripts/ensure-build-configs.mjs && next build && mkdir -p public && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/",
-    "start": "NODE_ENV=production node .next/standalone/server.js 2>&1 | tee server.log",
-    "lint": "node scripts/ensure-build-configs.mjs && eslint .",
-    "db:push": "prisma db push --accept-data-loss",
-    "db:generate": "prisma generate",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:setup": "prisma db push --accept-data-loss && tsx prisma/seed.ts",
-    "test": "node scripts/ensure-build-configs.mjs && vitest run",
-    "test:watch": "vitest",
-    "test:e2e": "node scripts/ensure-build-configs.mjs && playwright test",
-    "typecheck": "node scripts/ensure-build-configs.mjs && tsc --noEmit",
-    "typecheck:tests": "node scripts/ensure-build-configs.mjs && tsc -p tsconfig.tests.json --noEmit"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@prisma/client": "^6.19.3",
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-label": "^2.1.7",
-    "@radix-ui/react-select": "^2.2.5",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-toast": "^1.3.0",
-    "@stripe/react-stripe-js": "^7.0.0",
-    "@stripe/stripe-js": "^10.1.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.525.0",
-    "next": "^16.1.1",
-    "prisma": "^6.19.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "recharts": "^3.1.0",
-    "stripe": "^23.0.0",
-    "tailwind-merge": "^3.3.1",
-    "zod": "^4.6.7"
+    "@fontsource/noto-sans": "5.3.0",
+    "dotenv": "17.3.1",
+    "drizzle-orm": "0.45.2",
+    "next": "16.4.2",
+    "pg": "8.20.0",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "zod": "4.6.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.0",
-    "@tailwindcss/postcss": "^4",
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.3",
-    "@types/node": "^22",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "@vitejs/plugin-react": "^5.1.1",
-    "eslint": "^9",
-    "eslint-config-next": "^16.1.1",
-    "jsdom": "^29.1.1",
-    "tailwindcss": "^4",
-    "tsx": "^4.19.2",
-    "tw-animate-css": "^1.3.5",
-    "typescript": "^5",
-    "vitest": "^4.1.12"
-  },
-  "overrides": {
-    "@typescript-eslint/typescript-estree": {
-      "minimatch": "^11.0.5"
-    },
-    "@prisma/config": {
-      "deepmerge-ts": "^8.0.2"
-    }
-  },
-  "allowScripts": {
-    "esbuild@0.28.2": true,
-    "unrs-resolver@1.12.2": true,
-    "@prisma/client@6.19.3": true,
-    "prisma@6.19.3": true,
-    "@prisma/engines@6.19.3": true
+    "@tailwindcss/postcss": "4.1.17",
+    "@types/node": "22.19.15",
+    "@types/pg": "8.18.0",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "drizzle-kit": "0.31.10",
+    "eslint": "9.39.4",
+    "eslint-config-next": "16.4.2",
+    "postcss": "8.5.23",
+    "tailwindcss": "4.1.17",
+    "typescript": "5.9.3",
+    "vitest": "5.1.0"
   }
 }

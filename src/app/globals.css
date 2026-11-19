@@ -1,177 +1,148 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
-/* S76 candidate-scan guard: prose is not a render surface. Tailwind v4's
- * automatic source detection reads EVERY non-gitignored text file in the
- * project — .md prose included. The run-75 docs sweep wrote the banner
- * class into four doc files with a colon (`md:aspect-[3:1]`), the scan
- * compiled that candidate to `aspect-ratio:3:1` (invalid CSS), and the
- * clean production build died in PostCSS ("Missed semicolon") — masked
- * at the time by Turbopack's stale CSS cache. docs/ (session logs and
- * plans quote utility class names verbatim), skills/ (excluded from
- * compilation by operator contract — its SKILL.md examples were also
- * leaking dead rules like .text-\[clamp(...)\] into the bundle), tests/
- * and scripts/ (pins assert class strings, never render them), and every
- * .md/.mdx file are therefore excluded from the scan. Render classes
- * live in src/ only. NOTE: the every-markdown-file exclusion spans src/
- * too — zero .md/.mdx files exist under src/ today; if markdown content
- * is ever introduced as a render surface there, revisit this guard.
- * Pinned by tests/unit/tailwind-scan-guard.test.ts. */
-@source not "../../docs";
-@source not "../../skills";
-@source not "../../tests";
-@source not "../../scripts";
-@source not "../../**/*.md";
-@source not "../../**/*.mdx";
+/* Prose (README, docs) and scraped content JSON must never feed Tailwind's class scanner. */
+@source not "../../README.md";
+@source not "../content";
 
-@custom-variant dark (&:is(.dark *));
-
-/* Tailwind v4 trap (ecommerce-store trap-log #11): v4's default `hover`
- * variant wraps every hover-family utility in `@media (hover: hover)`;
- * the reference applies :hover rules unconditionally (v3 semantics).
- * Restoring a bare `&:hover` keeps touch/hybrid contexts identical. */
-@custom-variant hover (&:hover);
-
-/* ---------------------------------------------------------------------------
- * ElyBeauty — Tailwind v4 CSS-first theme, pinned to the reference app's
- * computed values (recon: ely-beauty.base44.app, sampled live on 2026-11-08;
- * see docs/reference-investigation.md §1).
- *
- * Tailwind v4 trap-log pins applied here:
- *  1. Theme colors are FULL hsl() values — never bare `H S% L%` triplets,
- *     which silently resolve to transparent under `@theme inline`.
- *  2. `--shadow-sm` is pinned to the v3 geometry: v4 moved v3's `shadow-sm`
- *     up to `shadow` and inserted a heavier `shadow-sm`.
- *  3. Radius scale pinned to the reference's editorial geometry: the
- *     reference ships --radius .25rem (4px) — sharp corners everywhere.
- *  4. Display utilities are NEVER JS-toggled at runtime (the v4
- *     display-utility cascade-order bug, tailwindlabs/tailwindcss#15884):
- *     the mobile menu mounts/unmounts via React state instead.
- * ------------------------------------------------------------------------- */
-
+/* Tokens measured from ikea.com/sg main stylesheet (--colour-* custom properties). */
 @theme inline {
-  /* ElyBeauty palette (verified computed values from the live reference). */
-  --color-background: hsl(30 20% 97%);
-  --color-foreground: hsl(0 0% 10%);
-  --color-card: hsl(30 20% 97%);
-  --color-card-foreground: hsl(0 0% 10%);
-  --color-popover: hsl(0 0% 100%);
-  --color-popover-foreground: hsl(0 0% 10%);
-  --color-primary: hsl(30 12% 48%);
-  --color-primary-foreground: hsl(30 20% 97%);
-  --color-secondary: hsl(30 15% 93%);
-  --color-secondary-foreground: hsl(0 0% 10%);
-  --color-muted: hsl(30 10% 94%);
-  --color-muted-foreground: hsl(0 0% 40%);
-  --color-accent: hsl(30 15% 93%);
-  --color-accent-foreground: hsl(0 0% 10%);
-  --color-destructive: hsl(0 84.2% 60.2%);
-  --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(30 10% 88%);
-  --color-input: hsl(30 10% 88%);
-  --color-ring: hsl(30 12% 48%);
-  --color-success: hsl(140 20% 33%);
-  --color-success-foreground: hsl(0 0% 98%);
-  /* Badge pills: BESTSELLER (near-black) + SALE (reference red). */
-  --color-badge-sale: hsl(0 84.2% 60.2%);
-  --color-badge-featured: hsl(0 0% 10%);
+  --font-sans: "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
 
-  /* Radius scale pinned to the reference's measured sharp geometry. */
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
-  --radius-2xl: 0.75rem;
-  --radius-3xl: 1rem;
+  --color-ink: #111111;
+  --color-ink-soft: #484848;
+  --color-mute: #767676;
+  --color-line: #dfdfdf;
+  --color-line-strong: #929292;
+  --color-surface: #f5f5f5;
+  --color-brand: #0058a3;
+  --color-brand-hover: #004f93;
+  --color-brand-press: #003e72;
+  --color-yellow: #ffdb00;
+  --color-sale: #cc0008;
+  --color-positive: #0a8a00;
+  --color-negative: #e00751;
+  --color-caution: #ca5008;
+  --color-family: #007cc1;
 
-  /* v3 shadow-scale pin. */
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --breakpoint-xs: 30rem;
+  --container-page: 1760px;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+  html {
+    scroll-behavior: smooth;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    color: var(--color-ink);
+    background: #fff;
+    -webkit-font-smoothing: antialiased;
   }
-  ::selection {
-    @apply bg-primary/20;
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 2px;
+    border-radius: 2px;
   }
-}
-
-@layer utilities {
-  /* S75-1 (D-2, measured): the reference's UNIVERSAL page gutter —
-   * `max-w-7xl mx-auto px-6 lg:px-16` on every surface (header inner,
-   * home sections, /shop, product, footer — captured live 2026-11-08).
-   * 1440px viewport → 1152px of content. No sm step: the reference is
-   * 24px below lg and 64px above it. Element-level px-* overrides on a
-   * container-page consumer LOSE to this rule (utilities resolve in
-   * stylesheet order — the run-75 mobile-panel bug class), so consumers
-   * must not redeclare horizontal padding. */
-  .container-page {
-    @apply mx-auto w-full max-w-7xl px-6 lg:px-16;
-  }
-  /* Cormorant Garamond display headings — the reference's signature
-   * typographic voice (light weight, tight tracking). */
-  .font-display {
-    font-family: var(--font-cormorant), ui-serif, Georgia, serif;
-  }
-  .text-balance {
-    text-wrap: balance;
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-/* The reference's micro-label: Inter 12px/500, 1.2px tracking, uppercase
- * (S73-6: 1.2px @ 12px = 0.1em — measured live on the reference's nav,
- * hero CTA, and panel links; the 0.12em the utility shipped was a pinning
- * miss against the same comment's own "1.2px" claim).
- * Declared with @utility (NOT @layer utilities) so `@apply` can reference
- * it from .link-cta — the v4 rule: custom classes in @layer utilities are
- * NOT apply-able candidates (trap-log class). */
-@utility eyebrow-label {
-  @apply text-xs font-medium uppercase tracking-[0.1em];
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-/* The reference's prominent text CTAs (SHOP THE COLLECTION, DISCOVER SETS,
- * EXPLORE OUR PRODUCTS — S74-9, measured 2026-11-08): 14px uppercase
- * 0.1em-tracking links whose underline is a full-width BOTTOM BORDER
- * (border-b pb-1) spanning the text AND the trailing arrow — not a
- * text-decoration underline hugging the glyphs. Call sites pair it with
- * the surface colors: `text-white border-white/60 hover:border-white` on
- * dark surfaces, `text-foreground border-foreground/40
- * hover:border-foreground` on light ones. */
-@utility link-cta {
-  @apply inline-flex items-center gap-2 border-b pb-1 text-sm font-normal uppercase tracking-[0.1em] transition-colors;
+@utility page-x {
+  padding-inline: 1.25rem;
+  @media (min-width: 48rem) {
+    padding-inline: 2.5rem;
+  }
+  @media (min-width: 80rem) {
+    padding-inline: 3.5rem;
+  }
 }
 
-/* S84-1b (measured live this cycle — pixel-cluster evidence at the input's
- * right edge, x300-309 @390px): Chromium renders a native clear glyph on
- * typed search inputs. The reference's search input is a plain text field
- * and renders nothing between the typed text and the Close icon. The
- * overlay's input keeps type="search" (the searchbox role the e2e pins
- * target); the Close button stays the sheet's only close affordance, so
- * the glyph is suppressed. S85-4 scope note: the rule is deliberately
- * app-wide — the admin GET-form search inputs (products, orders,
- * payments) also use type="search" and lose the glyph (accepted:
- * admin-only surfaces, never parity-measured; keyboard clearing still
- * works). */
-input[type="search"]::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-  appearance: none;
-  display: none;
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+  &:disabled,
+  &[aria-disabled="true"] {
+    cursor: not-allowed;
+    background: var(--color-line);
+    color: var(--color-line-strong);
+    border-color: transparent;
+  }
 }
 
-/* Motion hygiene: honor prefers-reduced-motion. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+@utility btn-primary {
+  background: var(--color-brand);
+  color: #fff;
+  &:hover:not(:disabled) {
+    background: var(--color-brand-hover);
+  }
+  &:active:not(:disabled) {
+    background: var(--color-brand-press);
+  }
+}
+
+@utility btn-dark {
+  background: var(--color-ink);
+  color: #fff;
+  &:hover:not(:disabled) {
+    background: #333;
+  }
+}
+
+@utility btn-light {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  &:hover:not(:disabled) {
+    background: var(--color-line);
+  }
+}
+
+@utility btn-outline {
+  background: #fff;
+  color: var(--color-ink);
+  border: 1px solid var(--color-line-strong);
+  &:hover:not(:disabled) {
+    border-color: var(--color-ink);
+  }
+}
+
+@utility field {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.5rem 0.875rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 0.25rem;
+  background: #fff;
+  font-size: 0.875rem;
+  &:hover {
+    border-color: var(--color-ink);
+  }
+  &[aria-invalid="true"] {
+    border-color: var(--color-negative);
   }
 }

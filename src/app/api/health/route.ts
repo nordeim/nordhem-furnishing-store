@@ -1,14 +1,13 @@
-import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
+import { db } from "@/db";
+import { sql } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/health — liveness + DB roundtrip for the standalone deploy. */
 export async function GET() {
   try {
-    await db.$queryRaw`SELECT 1`;
-    return NextResponse.json({ status: "ok", db: "up", timestamp: new Date().toISOString() });
+    await db.execute(sql`select 1`);
+    return Response.json({ ok: true });
   } catch {
-    return NextResponse.json({ status: "degraded", db: "down", timestamp: new Date().toISOString() }, { status: 503 });
+    return Response.json({ ok: false }, { status: 500 });
   }
 }

@@ -1,421 +1,65 @@
 import { z } from "zod";
+import { MAX_LINE_QUANTITY } from "@/lib/cart-math";
 
-import { MAX_CART_QUANTITY } from "@/lib/cart-quantity";
+const productId = z.number().int().positive();
+const quantity = z.number().int().min(1).max(MAX_LINE_QUANTITY);
 
-// ---------------------------------------------------------------------------
-// Validation — every external input (server actions, API routes) is parsed
-// through these schemas before it touches the database. SQLite has no enums,
-// so the status/role vocabularies live here.
-// ---------------------------------------------------------------------------
-
-export const ORDER_STATUSES = ["pending", "processing", "shipped", "delivered", "cancelled"] as const;
-// S73-1: the shipping-method vocabulary moved to `shippingMethodForCity`
-// (src/lib/order-money.ts) — the tier is derived from the address city, so
-// the checkout schema no longer accepts (or exports) a client-sent method.
-export const PAYMENT_METHODS = ["card", "cod"] as const;
-
-// S86-2 (the zod 3→4 migration): the top-level z.email replaces the
-// deprecated .email() method (removed-ward in v5). The pipe preserves the
-// exact v3 order — trim → required → email → lowercase — probe-verified
-// message-identical on the full battery (empty/whitespace/invalid/valid).
-export const emailSchema = z
-  .string()
-  .trim()
-  .min(1, "Email is required")
-  .pipe(z.email("Enter a valid email address"))
-  .transform((v) => v.toLowerCase());
-
-export const passwordSchema = z
-  .string()
-  .min(8, "Password must be at least 8 characters")
-  .max(128, "Password must be at most 128 characters");
-
-export const registerSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters").max(80),
-  email: emailSchema,
-  password: passwordSchema,
+export const cartAddSchema = z.object({
+  productId,
+  quantity: quantity.default(1),
 });
 
-export const loginSchema = z.object({
-  email: emailSchema,
-  password: z.string().min(1, "Password is required"),
-});
+export const cartSetSchema = z.object({ productId, quantity });
+export const cartRemoveSchema = z.object({ productId });
+export const favouriteSchema = z.object({ productId });
 
-// S92-2b: the account password-change boundary. The NEW password rides the
-// register passwordSchema (8–128 chars) so the two surfaces can never drift;
-// the CURRENT password only needs to be present — its correctness is
-// verified by the action against the stored scrypt hash, not by shape.
-export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Enter your current password."),
-  newPassword: passwordSchema,
-});
-
-export const profileSchema = z.object({
-  name: z.string().trim().min(2, "Name must be at least 2 characters").max(80),
-  phone: z.string().trim().max(40).optional().or(z.literal("")),
-});
-
-export const addressSchema = z.object({
-  label: z.string().trim().max(40).default("Home"),
-  fullName: z.string().trim().min(2, "Full name is required").max(80),
-  phone: z.string().trim().min(7, "Phone is required").max(40),
-  line1: z.string().trim().min(4, "Street address is required").max(120),
-  line2: z.string().trim().max(120).optional().or(z.literal("")),
-  city: z.string().trim().min(2, "City is required").max(60),
-  // ElyBeauty (run-72): the reference's BD checkout has no state field and
-  // an optional ZIP — both are now optional (empty allowed); the checkout
-  // back-fills state from the city when absent.
-  state: z.string().trim().max(60).optional().or(z.literal("")),
-  postalCode: z.string().trim().max(20).optional().or(z.literal("")),
-  country: z.string().trim().min(2).max(60).default("Bangladesh"), // S74-12 (F-2): the BD store default — the dialog + checkout client already pin Bangladesh
-});
-
-/**
- * Session-8 S8-1: PATCH /api/addresses only SETS a default (unsetting
- * happens implicitly by defaulting another address, mirroring the checkout
- * saveAddress invariant) — so `isDefault` is a literal true.
- */
-export const addressDefaultSchema = z.object({
-  id: z.string().min(1),
-  isDefault: z.literal(true),
-});
-
-export const cartMutateSchema = z.object({
-  productId: z.string().min(1),
-  quantity: z.number().int().min(1).max(MAX_CART_QUANTITY, `Quantity is limited to ${MAX_CART_QUANTITY} per item.`),
-  // ElyBeauty variant selection (run-72): the color/size chosen on the
-  // detail page. "" = no variant. Part of the line identity.
-  variant: z.string().trim().max(60).optional().default(""),
-});
-
-/**
- * Session-8 S8-6: one request for "Add All to Cart" — the sequential
- * per-item POST loop fought the shared 60/min cart limiter on large
- * wishlists. Bounded at 100 lines (the wishlist cap); per-line quantities
- * obey the same 1..99 ceiling the single-add path enforces.
- */
-export const cartBulkSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        productId: z.string().min(1),
-        quantity: z.number().int().min(1).max(MAX_CART_QUANTITY, `Quantity is limited to ${MAX_CART_QUANTITY} per item.`),
-        variant: z.string().trim().max(60).optional().default(""),
-      }),
-    )
-    .min(1, "No items to add.")
-    .max(100),
-});
-
-/**
- * Session-16 S16-2: hoisted from route-local definitions so every external
- * body parses through the same single-source boundary module. The wishlist
- * toggle guards `/api/wishlist` POST; the cart-line PATCH schema keeps the
- * PATCH-specific 0-deletes-line floor (the POST schema above requires ≥ 1 —
- * a zero quantity on POST is meaningless, on PATCH it removes the line).
- */
-export const wishlistToggleSchema = z.object({
-  productId: z.string().min(1),
-});
-
-export const cartLinePatchSchema = z.object({
-  lineId: z.string().min(1),
-  quantity: z.number().int().min(0).max(MAX_CART_QUANTITY, `Quantity is limited to ${MAX_CART_QUANTITY} per item.`),
-});
-
-/** Mirrors the 40-char coupon cap of `checkoutSchema.couponCode`. */
-export const couponApplySchema = z.object({
-  code: z.string().trim().min(1, "Enter a coupon code").max(40, "That code is too long"),
-});
+const trimmed = (min: number, max: number) => z.string().trim().min(min).max(max);
 
 export const checkoutSchema = z.object({
-  email: emailSchema,
-  customerName: z.string().trim().min(2, "Full name is required").max(80),
-  // S73-1: NO shippingMethod here — the tier is SERVER-DERIVED from the
-  // address city (shippingMethodForCity) inside the placement transaction.
-  // A client-sent value is stripped by zod and can never influence the
-  // charged tier. (Run-72 regression: the body field was trusted verbatim.)
-  paymentMethod: z.enum(PAYMENT_METHODS),
-  couponCode: z.string().trim().max(40).optional().or(z.literal("")),
-  saveAddress: z.boolean().optional(),
-  // ElyBeauty (run-72): the checkout's optional Order Notes field.
-  notes: z.string().trim().max(500, "Notes are too long").optional().or(z.literal("")),
-  // Client-generated (crypto.randomUUID). A retry that carries the same key
-  // returns the already-placed order instead of double-ordering.
-  idempotencyKey: z.string().trim().min(16, "Invalid idempotency key").max(64).optional(),
-  address: addressSchema,
+  name: trimmed(2, 80),
+  email: z.string().trim().toLowerCase().email().max(120),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\+?[0-9 ()-]{8,20}$/, "Enter a valid phone number"),
+  address: trimmed(5, 200),
+  postalCode: z.string().trim().regex(/^\d{6}$/, "Singapore postal codes have 6 digits"),
+  method: z.enum(["delivery", "click-collect"]),
 });
 
-/** Public order tracking: order number PLUS the purchase email (anti-enumeration). */
+export const familySchema = z.object({
+  name: trimmed(2, 80),
+  email: z.string().trim().toLowerCase().email().max(120),
+  marketingConsent: z.boolean().default(false),
+});
+
+export const ORDER_NO_PATTERN = /^IKSG-\d{10}$/;
+
 export const trackOrderSchema = z.object({
-  number: z
-    .string()
-    .trim()
-    .min(4, "Order number is required")
-    .max(40)
-    .transform((v) => v.toUpperCase()),
-  email: emailSchema,
+  orderNo: z.string().trim().toUpperCase().regex(ORDER_NO_PATTERN, "Order numbers look like IKSG-0123456789"),
+  email: z.string().trim().toLowerCase().email().max(120),
 });
 
-export const orderStatusSchema = z.object({
-  orderId: z.string().min(1),
-  status: z.enum(ORDER_STATUSES),
-  note: z.string().trim().max(280).optional().or(z.literal("")),
-});
+export const SORT_OPTIONS = ["relevance", "price-asc", "price-desc", "name-asc", "rating"] as const;
+export type SortOption = (typeof SORT_OPTIONS)[number];
 
-export const reviewSchema = z.object({
-  productId: z.string().min(1),
-  rating: z.number().int().min(1, "Select a rating").max(5),
-  title: z.string().trim().max(120).default(""),
-  comment: z.string().trim().min(10, "Review must be at least 10 characters").max(2000),
-  author: z.string().trim().min(2, "Name is required").max(80),
-});
+export const PAGE_SIZE = 24;
 
-export const newsletterSchema = z.object({
-  email: emailSchema,
-});
-
-export const contactSchema = z.object({
-  name: z.string().trim().min(2, "Name is required").max(80),
-  email: emailSchema,
-  subject: z.string().trim().max(120).default(""),
-  message: z.string().trim().min(10, "Message must be at least 10 characters").max(4000),
-});
-
-// Product image source: root-relative store path ONLY (no protocol-relative
-// "//", no absolute http(s)). The production CSP is `img-src 'self' data:` —
-// session-7 S7-6: an absolute http(s) URL passed validation but silently
-// never rendered (blocked by the CSP at runtime), a confusing admin trap.
-// Self-hosted root-relative paths are the only source the CSP serves, so the
-// boundary now agrees exactly with the CSP (session-5 S5-9 introduced the
-// scheme gate; S7-6 removed the never-renderable http(s) branch). Serving
-// external hosts is a deliberate CSP-widening decision, not a schema edit.
-export const imageUrlSchema = z
+const optionalDollars = z
   .string()
-  .trim()
-  .min(1)
-  .max(500)
-  .regex(/^(\/(?!\/)[^\s]*)$/, "Image must be an internal path starting with / (self-hosted under public/)");
-
-/** Upper money bound shared by price/compareAtPrice (session-7 S7-7): $1M keeps every value inside Prisma's Int32 far below 2^31 cents. */
-const MAX_PRICE_CENTS = 100_000_000;
-
-export const productInputSchema = z.object({
-  name: z.string().trim().min(2, "Name is required").max(120),
-  slug: z
-    .string()
-    .trim()
-    .min(2)
-    .max(120)
-    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, dashes"),
-  shortDescription: z.string().trim().max(1000).default(""),
-  // S95-2: the reference ships 3 null-description products (their detail
-  // pages render no Description section) — the run-72-era min(10) rejected
-  // the admin edit of exactly those products. Empty is valid; the upper
-  // bound stays.
-  description: z.string().trim().max(8000).default(""),
-  // S81-1: the many-to-many display-category memberships — zero valid (the
-  // reference has six uncategorized products), duplicates rejected, bounded.
-  categoryIds: z
-    .array(z.string().min(1))
-    .max(10, "A product can belong to at most 10 categories")
-    .refine((ids) => new Set(ids).size === ids.length, "Duplicate categories selected")
-    .default([]),
-  // S81-1: the reference's template category string — drives the detail
-  // eyebrow and the nav/footer template filters. Optional (admin-created
-  // products may carry none; the eyebrow falls back to the first display
-  // category).
-  templateCategory: z.enum(["skincare", "lip_care", "body_care"]).nullable().optional(),
-  price: z
-    .number()
-    .int()
-    .min(1, "Price must be positive")
-    .max(MAX_PRICE_CENTS, "Price must be under ৳1,000,000"),
-  compareAtPrice: z
-    .number()
-    .int()
-    .min(1)
-    .max(MAX_PRICE_CENTS, "Compare-at price must be under ৳1,000,000")
-    .nullable()
-    .optional(),
-  sku: z.string().trim().min(2).max(60),
-  stock: z.number().int().min(0).max(100000),
-  images: z
-    .array(imageUrlSchema)
-    .min(1, "At least one image is required"),
-  // ElyBeauty variants (run-72; admin-editable since S73-12 — the docs
-  // always claimed "products CRUD (+ colors/sizes)"). Bounds chosen so any
-  // composed "Color / Size" label (src/lib/variants.ts, S73-7) stays inside
-  // the cart's 60-char variant bound: 28 + 3 + 28 = 59.
-  colorOptions: z
-    .array(
-      z.object({
-        name: z.string().trim().min(1, "Color name is required").max(28, "Color names must be 28 characters or fewer"),
-        hex: z.string().trim().regex(/^#[0-9a-fA-F]{6}$/, "Hex color must look like #AABBCC"),
-      }),
-    )
-    .max(12, "At most 12 colors")
-    .default([]),
-  sizes: z.array(z.string().trim().min(1, "Size labels cannot be blank").max(28, "Size labels must be 28 characters or fewer")).max(12, "At most 12 sizes").default([]),
-  tags: z.array(z.string().trim().min(1).max(40)).max(12).default([]),
-  specs: z
-    .array(z.object({ label: z.string().trim().min(1).max(80), value: z.string().trim().min(1).max(80) }))
-    .max(24)
-    .default([]),
-  badge: z.string().trim().max(40).nullable().optional(),
-  isFeatured: z.boolean().default(false),
-  isNewArrival: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-});
-
-export const categoryInputSchema = z.object({
-  name: z.string().trim().min(2).max(60),
-  slug: z
-    .string()
-    .trim()
-    .min(2)
-    .max(60)
-    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, dashes"),
-  description: z.string().trim().max(500).default(""),
-  icon: z.string().trim().min(2).max(40).default("package"),
-  iconGradient: z.string().trim().max(80).default("from-stone-400 to-stone-600"), // S74-12 (F-3): neutral — matches schema.prisma + the dialog (S73-10)
-  sortOrder: z.number().int().min(0).max(999).default(0),
-  isActive: z.boolean().default(true),
-});
-
-// Session-19 S19-5 — the admin coupon-management boundary schema. The code
-// charset mirrors the redemption lookup's normalization space (letters,
-// digits, dashes — the ACTION uppercases, exactly like `findActiveCoupon`).
-// `value` is percent 1..100 or integer cents ≥ 1 (the percent ceiling is the
-// superRefinement); `minSubtotal` and fixed `value` share the product price
-// cap. `expiresAt` is a parseable date STRING or null — the caller owns the
-// instant (the dialog sends end-of-day UTC for a date-only pick), the action
-// converts to Date once, after the schema has guaranteed parseability.
-export const couponInputSchema = z
-  .object({
-    code: z
-      .string()
-      .trim()
-      .min(3, "Code must be at least 3 characters")
-      .max(40, "Code must be 40 characters or fewer")
-      .regex(/^[A-Za-z0-9-]+$/, "Code can only contain letters, numbers and dashes"),
-    type: z.enum(["percent", "fixed", "free_shipping"], { error: "Choose a discount type" }),
-    value: z
-      .number()
-      .int("Value must be a whole number")
-      .min(0, "Value must be zero or positive")
-      .max(MAX_PRICE_CENTS, "Value must be under ৳1,000,000"),
-    description: z.string().trim().max(200).default(""),
-    minSubtotal: z
-      .number()
-      .int("Minimum subtotal must be a whole number")
-      .min(0, "Minimum subtotal cannot be negative")
-      .max(MAX_PRICE_CENTS, "Minimum subtotal must be under ৳1,000,000")
-      .default(0),
-    isActive: z.boolean().default(true),
-    expiresAt: z
-      .string()
-      .trim()
-      .max(40)
-      .nullable()
-      .default(null)
-      .refine((s) => s === null || !Number.isNaN(Date.parse(s)), "Expiry must be a valid date"),
-    maxRedemptions: z
-      .number()
-      .int("Redemption cap must be a whole number")
-      .min(1, "Redemption cap must be at least 1")
-      .max(1_000_000, "Redemption cap must be under 1,000,000")
-      .nullable()
-      .default(null),
-  })
-  .superRefine((data, ctx) => {
-    if (data.type === "percent" && (data.value > 100 || data.value < 1)) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["value"],
-        message: data.value > 100 ? "Percent discounts are limited to 100%." : "Percent discounts must be positive (1–100%).",
-      });
-    }
-    if (data.type === "fixed" && data.value < 1) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["value"],
-        message: "Fixed discounts must be a positive amount.",
-      });
-    }
-    if (data.type === "free_shipping" && data.value !== 0) {
-      // Session-20 S20-6: the free_shipping benefit has no value component —
-      // the seed/admin dialog always sends 0.
-      ctx.addIssue({
-        code: "custom",
-        path: ["value"],
-        message: "Free shipping coupons take no value.",
-      });
-    }
+  .optional()
+  .transform((value) => {
+    if (value === undefined || value.trim() === "") return undefined;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) : undefined;
   });
 
-// NOTE: no re-exports from "@/lib/coupons" here — validation.ts is imported
-// by client islands, and coupons.ts reaches the server-only db client; one
-// transitive edge would pull @prisma/client (node:fs) into a browser chunk
-// (the Turbopack "does not support external modules" panic). The display
-// label lives in coupons.ts; import it from there directly.
-
-// Internal path (no protocol-relative "//") or absolute http(s) URL — blocks
-// `javascript:`/`data:`-style injection through the admin carousel form.
-export const safeLinkSchema = z
-  .string()
-  .trim()
-  .min(1)
-  .max(200)
-  .regex(
-    /^(\/(?!\/)[^\s]*|https?:\/\/[^\s]+)$/i,
-    "Link must be an internal path (starting with /) or an http(s) URL",
-  );
-
-export const carouselSlideInputSchema = z.object({
-  title: z.string().trim().min(2).max(80),
-  subtitle: z.string().trim().max(200).default(""),
-  image: imageUrlSchema,
-  ctaText: z.string().trim().min(2).max(40).default("Shop Now"),
-  ctaLink: safeLinkSchema.default("/shop"),
-  sortOrder: z.number().int().min(0).max(99).default(0),
-  isActive: z.boolean().default(true),
+/** Lenient parser for URL query strings: bad values fall back to defaults instead of erroring. */
+export const listingQuerySchema = z.object({
+  sort: z.enum(SORT_OPTIONS).catch("relevance").default("relevance"),
+  page: z.coerce.number().int().min(1).max(500).catch(1).default(1),
+  min: optionalDollars,
+  max: optionalDollars,
 });
 
-export const trackingSchema = z.object({
-  orderId: z.string().min(1),
-  carrier: z.string().trim().min(2, "Carrier is required").max(60),
-  trackingNumber: z.string().trim().min(4, "Tracking number is required").max(60),
-});
-
-/** Flatten a ZodError to a single first-error message (action return shape). */
-export function firstError(error: z.ZodError): string {
-  return error.issues[0]?.message ?? "Invalid input";
-}
-
-/**
- * Sanitize a free-text search query from URL search params before it reaches
- * a Prisma `contains` filter (session-15 S15-4). Trims whitespace and caps
- * the length (default 100 — the same cap the storefront listing has always
- * applied) so unbounded client strings can neither bloat the query plan nor
- * widen the result grid. Applied at EVERY search surface: storefront
- * /products, admin products, admin orders, and /api/search.
- */
-export function clampSearchTerm(value: string, max = 100): string {
-  return value.trim().slice(0, max);
-}
-
-/**
- * S82-3 (audit 82-a L-3): normalize the admin dialog's Template-category
- * select value for the upsert payload. The Radix Select cannot deselect —
- * the dialog's "None" option (value "none") is the clear path; "" and any
- * stray value also normalize to null so a template category can never be
- * written outside the schema's enum vocabulary.
- */
-export function normalizeTemplateCategory(
-  value: string,
-): "skincare" | "lip_care" | "body_care" | null {
-  return value === "skincare" || value === "lip_care" || value === "body_care"
-    ? value
-    : null;
-}
+export type ListingQuery = z.infer<typeof listingQuerySchema>;
