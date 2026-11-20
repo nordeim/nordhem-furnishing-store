@@ -21,9 +21,30 @@ describe("clientKey (X-Forwarded-For trust depth)", () => {
     expect(clientKey(req, { proxyDepth: 2 })).toBe("10.0.0.1");
   });
 
-  it("falls back to x-real-ip, then 'unknown' — never to a forged first hop", () => {
-    expect(clientKey(request({ "x-real-ip": "9.9.9.9" }))).toBe("9.9.9.9");
-    expect(clientKey(request({}))).toBe("unknown");
+  it("falls back to 'unknown' on direct exposure — x-real-ip is ALSO client-authorable (session-006 H-1)", () => {
+    // Live-verified pre-fix: 12/12 rotating spoofed x-real-ip headers bypassed the track
+    // limiter on :3100. Only a DECLARED proxy (TRUSTED_PROXY_DEPTH >= 1) may source the key.
+    const env = process.env.TRUSTED_PROXY_DEPTH;
+    delete process.env.TRUSTED_PROXY_DEPTH;
+    try {
+      expect(clientKey(request({ "x-real-ip": "9.9.9.9" }))).toBe("unknown");
+      expect(clientKey(request({}))).toBe("unknown");
+    } finally {
+      if (env !== undefined) process.env.TRUSTED_PROXY_DEPTH = env;
+    }
+  });
+
+  it("honors x-real-ip ONLY when proxy trust is declared (TRUSTED_PROXY_DEPTH >= 1)", () => {
+    const env = process.env.TRUSTED_PROXY_DEPTH;
+    process.env.TRUSTED_PROXY_DEPTH = "1";
+    try {
+      // The proxy is trusted to set x-real-ip (or append XFF) — either may key the bucket.
+      expect(clientKey(request({ "x-real-ip": "9.9.9.9" }))).toBe("9.9.9.9");
+      expect(clientKey(request({}))).toBe("unknown");
+    } finally {
+      if (env === undefined) delete process.env.TRUSTED_PROXY_DEPTH;
+      else process.env.TRUSTED_PROXY_DEPTH = env;
+    }
   });
 
   it("UNSET env means direct exposure: even a single-hop XFF is client-authored and ignored (session-005 H-1)", () => {
@@ -52,7 +73,7 @@ describe("clientKey (X-Forwarded-For trust depth)", () => {
       // Even a multi-hop XFF is attacker-authored on direct exposure — must not key the bucket.
       expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).not.toBe("10.0.0.1");
       expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).toBe("unknown");
-      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4", "x-real-ip": "9.9.9.9" }))).toBe("9.9.9.9");
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4", "x-real-ip": "9.9.9.9" }))).toBe("unknown");
     } finally {
       if (env === undefined) delete process.env.TRUSTED_PROXY_DEPTH;
       else process.env.TRUSTED_PROXY_DEPTH = env;

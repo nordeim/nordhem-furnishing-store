@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.4.0
+version: 1.5.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.4.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.5.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 005): 73 unit tests / 23 e2e / 21 smoke checks; sitemap covers the catalog + info routes (276 locs); checkout locks cart rows (FOR UPDATE); proxy trust is opt-in (TRUSTED_PROXY_DEPTH unset = direct exposure, XFF ignored); mobile drawer focus-trapped; hero popover toggles correctly; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 006): 76 unit tests / 25 e2e / 21 smoke checks; sitemap 276 locs; checkout locks only the session's cart rows (FOR UPDATE OF cartItems); ALL client-supplied IP headers are untrusted without declared proxy depth (XFF and x-real-ip); unknown content paths 404 (no soft-200s); scanner guard covers docker-compose.yml; mobile drawer focus-trapped; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -69,6 +69,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
+
+## §14 Lessons (session 006)
+1. Closing HALF the trust hole reopens the whole: session-005 made x-forwarded-for opt-in but left x-real-ip as an unconditional fallback — live-probed, 12/12 rotating spoofed x-real-ip headers bypassed the same limiter the fix was protecting. When the fix is "distrust client headers", enumerate EVERY header in the trust path, not just the famous one.
+2. A row lock is scoped or it is a contention bug: FOR UPDATE on a JOIN locks every table's rows — cross-session checkout contention on hot products and a multi-cart deadlock vector. Drizzle's `.for("update", { of: [table] })` scopes it; update the text-assertion pin in the SAME commit or the suite goes red for the wrong reason.
+3. A catch-all route is an infinite-URL generator unless it 404s: serving a synthesized 200 page for ANY ≤6-segment path is an indexable soft-404 farm. The predicate (isKnownInfoPath) belongs beside the rules it tests, and the route must gate notFound() on it.
+4. Every NEW root file is a scanner incident waiting to happen: docker-compose.yml arrived in a doc-only commit — unguarded, scanner-verified as the only root survivor, and the poison experiment proved .yml colon-form tokens ARE extracted. The @source guard and its test pin must grow in the same commit that adds a root file.
+5. A sample document is a structure, not a source of facts: the operator's sample_DEPLOYMENT.md was written for a sibling repo — 33 of its claims were false here (tables, routes, env vars, payments, imagery, HSTS, test counts). Port the skeleton; re-derive every fact from the tree, then re-verify against the live server.
+6. Compose short-port syntax binds 0.0.0.0: a postgres:postgres container published as "5432:5432" is network-reachable on any multi-interface host. Loopback-only is the repo contract — "127.0.0.1:5432:5432".
 
 ## §13 Lessons (session 005)
 1. An "unset means the common case" default is wrong when the header is client-controlled: defaulting proxy depth to 1 made every direct-exposure deployment trust a single-hop spoofed `x-forwarded-for` — live-probed, 12/12 rotating XFFs bypassed the checkout limiter. Security-relevant trust must be OPTED INTO (unset = fail closed), and the .env.example prose that said "leave unset on direct exposure" was itself the vulnerability's document.

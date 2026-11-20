@@ -27,6 +27,7 @@ const REQUIRED_EXCLUSIONS = [
   '@source not "../../tests"',
   '@source not "../../scripts"',
   '@source not "../../package-lock.json"',
+    '@source not "../../docker-compose.yml"',
   '@source not "../content"',
 ];
 

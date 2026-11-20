@@ -27,6 +27,12 @@ const RULES: PageRule[] = [
   { prefix: "stores", title: "Stores", lead: "Visit an IKEA store, restaurant, Swedish Bistro and Swedish Food Market." },
 ];
 
+/** True when the path falls under a known info-page rule prefix — the route 404s everything else. */
+export function isKnownInfoPath(segments: string[]): boolean {
+  const path = segments.join("/");
+  return RULES.some((candidate) => path === candidate.prefix || path.startsWith(`${candidate.prefix}/`));
+}
+
 export function resolveInfoPage(segments: string[]): InfoPage {
   const path = segments.join("/");
   const rule = RULES.find((candidate) => path === candidate.prefix || path.startsWith(`${candidate.prefix}/`));

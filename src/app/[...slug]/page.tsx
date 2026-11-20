@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/shop/product-card";
 import { AppLink } from "@/components/ui/app-link";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
-import { resolveInfoPage } from "@/content/pages";
+import { isKnownInfoPath, resolveInfoPage } from "@/content/pages";
 import { productCategories } from "@/content/nav";
 import { getFeaturedProducts } from "@/lib/catalog";
 
@@ -31,7 +31,9 @@ export async function generateMetadata({ params }: InfoPageProps): Promise<Metad
  */
 export default async function InfoPage({ params }: InfoPageProps) {
   const segments = validSegments((await params).slug);
-  if (!segments) notFound();
+  // Session-006 M-3: a ruleless path is a real 404, not a synthesized 200 page — the old
+  // behavior served an indexable soft-404 for ANY ≤6-segment URL (infinite duplicate surface).
+  if (!segments || !isKnownInfoPath(segments)) notFound();
 
   const page = resolveInfoPage(segments);
   const products = page.collection ? await getFeaturedProducts(page.collection, 8) : [];

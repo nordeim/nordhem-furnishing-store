@@ -1,3 +1,28 @@
+# Session 006 — the x-real-ip trust closure + soft-404 + DEPLOYMENT rewrite cycle
+
+**Baseline (re-clone at 7b525dd, all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 73/73 · build cold ✓ · smoke 21/21 · e2e 23/23 ×3 · sitemap 276. PostgreSQL 17 restored from the surviving data dir (the sandbox recycle pruned empty runtime subdirs — `pg_notify`, `pg_tblspc`, `pg_logical/snapshots`, `pg_commit_ts`, `pg_dynshmem` — recreated without data loss; catalog intact 242/23). The three commits since `ebb93a6` are doc/tooling-only: `docs/session_6.md`, `docker-compose.yml`, `docs/sample_DEPLOYMENT.md`.
+
+## What was done
+
+**Browser verification (agent-browser)** — mobile drawer state machine (open, Products submenu → navigate `/cat/sofas-armchairs-700640` → unmount, Escape, close button + focus restore + scroll unlock); hero popover own-button toggle; search combobox ArrowDown → first suggestion focused; full manual commerce round-trip (BILLY add-to-cart → badge/toast → cart line → checkout → `IKSG-9977268190` → track-order right/wrong email). No Tailwind v4 display-utility bug. The soft-404 bug was confirmed live here (unknown path → 200 + indexable title) before being fixed.
+
+**Audit (read-only subagent + live probes; web-application + tdd skill methodology)** — 0 CRITICAL · 1 HIGH · 4 MEDIUM · 7 LOW · 6 INFO, plus **33 enumerated mismatches** between the operator's `docs/sample_DEPLOYMENT.md` (written for the sibling home-furnishing-store repo) and this codebase:
+- **H-1 (live-verified)**: `clientKey`'s unconditional `x-real-ip` fallback minted fresh rate-limit buckets — 12/12 rotating spoofed headers bypassed the track limiter. The session-005 fix had closed only the XFF half of the hole.
+- **M-1**: the session-005 `FOR UPDATE` on the cart JOIN also locked `products` rows (cross-session contention + deadlock vector). **M-2**: scanner-probe-verified — `docker-compose.yml` (new root file) survives the `@source not` guard and `.yml` colon-form tokens ARE extracted. **M-3**: catch-all soft-404s (live). **M-4**: compose published `0.0.0.0:5432` with postgres:postgres.
+
+**Remediation (TDD, plan at docs/plans/2026-11-20_session-006_remediation-plan.md)**
+- **H-1**: `x-real-ip` is honored only when `TRUSTED_PROXY_DEPTH >= 1`; the default posture ignores BOTH client-supplied IP headers. 2 pins RED→GREEN; live re-probe: rotating `x-real-ip` now 429s at request 10.
+- **M-1**: lock scoped to `.for("update", { of: [cartItems] })`; the checkout-lock pin was updated in the same commit (RED→GREEN).
+- **M-3**: `isKnownInfoPath()` exported from `src/content/pages.ts`; the route calls `notFound()` for ruleless paths. Live: `/totally-unknown-page-xyz` → **404**; `/offers` and `/stores/restaurant` still 200. New `tests/unit/catch-all-404.test.ts` + e2e pin.
+- **M-2/M-4/L-2/L-3/L-4**: scanner guard + test pin extended to `docker-compose.yml`; compose port bound to `127.0.0.1:5432:5432`; compose comment corrected (7 tables, `ensureCatalog`); `.gitignore` rejects `*.key`/`ssh-key.txt`; security headers now e2e-pinned (incl. no `x-powered-by`).
+- **DEPLOYMENT.md rewritten** from the operator's sample — 12-section structure, every fact re-derived from this tree and re-verified live (7 tables; 11 pages + 8 API files; limiter table 120/120/90/10/10/5; plain `.next/` build; IKEA CDN imagery; demo checkout; `ensureCatalog` lazy seeding under `pg_advisory_xact_lock(727_001)`; rootless PG primary + Docker alternative §4b; correct 7-table TRUNCATE reseed recipe; `IKSG-` probe bodies; the stale-wrapper `--remote` warning). All 33 sibling-repo claims rejected. The stale sitemap count (267 → 276) died in the rewrite.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 76/76 (11 files)** · build cold ✓ · smoke **21/21** · **e2e 25/25** · sitemap **276** · screenshots **12/12** PIL-valid · live probes (x-real-ip 429 at request 10; unknown path 404).
+
+**Deferred (documented):** CSP header · migration journal · HSTS (TLS-edge concern) · axe-core e2e · unused tree-shoken tokens · SearchAction/robots parity · in-memory limiter single-instance · setCartQuantity last-writer-wins.
+
+---
+
 I'll start by reading the pasted content and understanding the current workspace state.
 The pasted content is my operating instruction set — I've internalized it. Now let me set up the full task plan and get the repo.
 Docs reviewed. Now validating understanding against the actual codebase structure.

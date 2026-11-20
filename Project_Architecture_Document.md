@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.4.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.5.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 005 — rate-limit trust posture, checkout lock, sitemap coverage)
+**Last Updated:** 2026-11-20 (session 006 — x-real-ip trust closure, scoped checkout lock, soft-404 fix, DEPLOYMENT rewrite, Docker alternative)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -186,7 +186,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 73 tests / 10 files | Vitest (node) | `tests/unit/` |
+| Unit | 76 tests / 11 files | Vitest (node) | `tests/unit/` |
 | E2E | 23 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
@@ -239,6 +239,14 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.5.0 (2026-11-20, session 006)
+
+- `[SR]` **H-1 fixed: `x-real-ip` trust closed.** The session-005 fix made XFF opt-in but left `x-real-ip` as an unconditional fallback — live-verified pre-fix: 12/12 rotating spoofed `x-real-ip` headers bypassed the track limiter (0 × 429). `clientKey` now honors `x-real-ip` only when `TRUSTED_PROXY_DEPTH >= 1`; default posture ignores BOTH client-supplied IP headers (shared "unknown" bucket). 2 pins RED→GREEN; live re-probe 429s.
+- `[SR]` M-1: the checkout lock is now scoped — `.for("update", { of: [cartItems] })`. A bare FOR UPDATE on the cart INNER JOIN also locked `products` rows (cross-session contention on hot products; multi-cart deadlock vector via 40P01). Pin updated in the same commit.
+- `[SR]` M-3: unknown content paths now return a **real 404** — the catch-all `[...slug]` route calls `notFound()` when the path matches no info-page rule (`isKnownInfoPath` predicate exported from `src/content/pages.ts`). Pre-fix, ANY ≤6-segment URL served an indexable 200 soft-404 (live-verified on `/totally-unknown-page-xyz`).
+- `[QA]` M-2: `docker-compose.yml` (a new root file) added to the Tailwind `@source not` guard + its test pin — scanner-probe verified it was the only unguarded root survivor and that colon-form arbitrary tokens in `.yml` ARE extracted (the run-75 poison class). M-4: compose port bound to `127.0.0.1:5432` (was `0.0.0.0` with postgres:postgres — contradicted the loopback-only contract). L-2: compose comment corrected (7 tables, `ensureCatalog`). L-3: `.gitignore` now rejects `*.key`/`ssh-key.txt`. L-4: security headers pinned by a new e2e test.
+- `[DOC]` **docs/DEPLOYMENT.md rewritten** from the operator's `docs/sample_DEPLOYMENT.md` (written for the sibling home-furnishing-store repo) — 12-section structure, 100% this codebase's verified facts (7 tables, 11 pages + 8 API files, limiter table 120/120/90/10/10/5, plain `.next/` build, IKEA CDN imagery, demo checkout, `ensureCatalog` seeding, rootless PG primary + Docker alternative). All 33 enumerated sample mismatches rejected. Sitemap count 267→276 fixed in the rewrite (L-1, missed by session-005's sweep).
 
 ## Revision Block — v2.4.0 (2026-11-20, session 005)
 

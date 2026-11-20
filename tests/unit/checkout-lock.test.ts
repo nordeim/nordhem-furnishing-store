@@ -10,9 +10,12 @@ import { describe, expect, it } from "vitest";
 const SHOPPING_SRC = readFileSync("src/lib/shopping.ts", "utf8");
 
 describe("checkout transaction concurrency (src/lib/shopping.ts)", () => {
-  it("locks the session's cart rows inside the transaction (FOR UPDATE)", () => {
-    expect(SHOPPING_SRC, "placeOrder must SELECT the cart lines with .for('update')").toMatch(
-      /\.for\(\s*"update"\s*\)/,
+  it("locks ONLY the session's cart rows inside the transaction (FOR UPDATE OF cartItems)", () => {
+    // Session-006 M-1: a bare FOR UPDATE on the cart INNER JOIN products also locks the
+    // products rows — cross-session contention on hot products and a multi-cart deadlock
+    // vector. The lock must be scoped with `of: [cartItems]`.
+    expect(SHOPPING_SRC, "placeOrder must lock with .for('update', { of: [cartItems] })").toMatch(
+      /\.for\(\s*"update"\s*,\s*\{\s*of:\s*\[cartItems\]\s*\}\s*\)/,
     );
   });
 

@@ -1,6 +1,6 @@
 # Nordhem Furnishing Store — an IKEA Singapore storefront re-creation
 
-![Next.js](https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs) ![React](https://img.shields.io/badge/React-19-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4_CSS--first-38bdf8) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql) ![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-c5f74f) ![Vitest](https://img.shields.io/badge/Vitest-73_passing-6e9f18) ![Playwright](https://img.shields.io/badge/Playwright-23_passing-2ead33?logo=playwright) ![License](https://img.shields.io/badge/license-Educational_Demo-grey)
+![Next.js](https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs) ![React](https://img.shields.io/badge/React-19-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4_CSS--first-38bdf8) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql) ![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-c5f74f) ![Vitest](https://img.shields.io/badge/Vitest-76_passing-6e9f18) ![Playwright](https://img.shields.io/badge/Playwright-25_passing-2ead33?logo=playwright) ![License](https://img.shields.io/badge/license-Educational_Demo-grey)
 
 An independent, educational re-creation of <https://www.ikea.com/sg/en/> built on Next.js 16 (App Router), React 19,
 TypeScript (strict), Tailwind CSS 4 and PostgreSQL via Drizzle ORM. It reproduces the live home page's structure and
@@ -24,7 +24,7 @@ every commit.
 |---|---|---|
 | `DATABASE_URL` | yes | PostgreSQL connection string — `postgresql://postgres:postgres@127.0.0.1:5432/app_db` locally. A shell-exported value always beats `.env` (dotenv never overrides). |
 | `NEXT_PUBLIC_SITE_URL` | recommended | Canonical origin for metadata, sitemap and robots — inlined at build time. |
-| `TRUSTED_PROXY_DEPTH` | no | Opt-in proxy trust for the per-IP rate-limit key. **Unset = direct exposure**: `x-forwarded-for` is ignored entirely. Set `1` behind one trusted proxy, `2` behind two. |
+| `TRUSTED_PROXY_DEPTH` | no | Opt-in proxy trust for the per-IP rate-limit key. **Unset = direct exposure**: `x-forwarded-for` AND `x-real-ip` are ignored entirely. Set `1` behind one trusted proxy, `2` behind two. |
 
 ## Troubleshooting
 
@@ -56,7 +56,7 @@ bash docs/setup_pg_z.sh         # OPTIONAL: rootless local PostgreSQL on :5432 (
 cp .env.example .env            # DATABASE_URL + NEXT_PUBLIC_SITE_URL
 npm run db:setup                # drizzle-kit push + idempotent seed (23 categories, 242 products)
 npm run dev                     # http://localhost:3000 — the catalog seeds itself on first request
-npm test                        # unit tests (Vitest, 73 tests)
+npm test                        # unit tests (Vitest, 76 tests)
 npm run test:e2e                # Playwright against the production build on :3100 (build first)
 npm run build && npm start      # production
 BASE_URL=http://127.0.0.1:3000 scripts/smoke.sh   # HTTP end-to-end smoke test (server must be running)

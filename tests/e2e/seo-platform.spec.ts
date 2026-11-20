@@ -65,3 +65,19 @@ test("private pages carry noindex robots meta", async ({ page }) => {
     await expect(meta, `${path} must be noindex`).toHaveAttribute("content", /noindex/);
   }
 });
+
+test("security headers are present on every response (session-006 L-4)", async ({ request }) => {
+  const response = await request.get("/");
+  expect(response.headers()["x-content-type-options"]).toBe("nosniff");
+  expect(response.headers()["x-frame-options"]).toBe("DENY");
+  expect(response.headers()["referrer-policy"]).toBe("strict-origin-when-cross-origin");
+  expect(response.headers()["permissions-policy"]).toContain("camera=()");
+  expect(response.headers()["x-powered-by"]).toBeUndefined();
+});
+
+test("unknown content paths return a real 404, not a soft-200 (session-006 M-3)", async ({ request }) => {
+  const response = await request.get("/totally-unknown-page-xyz");
+  expect(response.status()).toBe(404);
+  const body = await response.text();
+  expect(body).toContain("We couldn");
+});

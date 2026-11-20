@@ -5,3 +5,7 @@ next-env.d.ts
 .env
 playwright-report/
 test-results/
+
+# never commit SSH/deploy key material
+*.key
+ssh-key.txt

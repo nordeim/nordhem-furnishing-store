@@ -7,10 +7,11 @@
 #   Logs:    docker compose logs -f postgres
 #
 # The credentials/port match drizzle.config.json exactly
-# (postgresql://postgres:postgres@127.0.0.1:5432/app_db). After the first
-# `docker compose up -d`, run `npx drizzle-kit push` from the repo root to
-# create the 9 tables — seeding happens automatically on the app's first
-# database read (ensureSeed).
+# (postgresql://postgres:postgres@127.0.0.1:5432/app_db; the port is bound to
+# loopback only — postgres:postgres must never be network-reachable). After the
+# first `docker compose up -d`, run `npm run db:setup` from the repo root
+# (drizzle-kit push creates the 7 tables, then the seed runs) — or push and let
+# the app's first catalog read seed it (ensureCatalog in src/db/seed.ts).
 
 services:
 
@@ -25,7 +26,7 @@ services:
       POSTGRES_PASSWORD: postgres
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

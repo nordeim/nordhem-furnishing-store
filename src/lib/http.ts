@@ -41,18 +41,23 @@ export function hasForeignOrigin(request: Request): boolean {
  * via TRUSTED_PROXY_DEPTH >= 1. When the header has fewer hops than the declared depth we fail
  * closed to "unknown" (all such clients share one bucket) rather than trusting an
  * attacker-controlled entry. UNSET or garbage means NO trusted proxy (direct exposure):
- * x-forwarded-for is ignored entirely — trust must be opted into, never defaulted.
+ * x-forwarded-for AND x-real-ip are ignored entirely — trust must be opted into, never
+ * defaulted (session-006 H-1: a client-supplied x-real-ip minted fresh buckets live).
  * Pinned by tests/unit/http.test.ts.
  */
 export function clientKey(request: Request, options?: { proxyDepth?: number }): string {
   const depth = options?.proxyDepth ?? trustedProxyDepth();
   const forwarded = request.headers.get("x-forwarded-for");
-  // depth 0 = NO trusted proxy: every x-forwarded-for value is client-authored and ignored.
-  if (forwarded && depth >= 1) {
-    const hops = forwarded.split(",").map((hop) => hop.trim()).filter(Boolean);
-    if (hops.length >= depth) return hops[hops.length - depth];
+  // depth 0 = NO trusted proxy: every client-supplied IP header is self-declared and ignored.
+  if (depth >= 1) {
+    if (forwarded) {
+      const hops = forwarded.split(",").map((hop) => hop.trim()).filter(Boolean);
+      if (hops.length >= depth) return hops[hops.length - depth];
+    }
+    // x-real-ip is only meaningful when set by the declared trusted proxy (e.g. nginx).
+    return request.headers.get("x-real-ip") || "unknown";
   }
-  return request.headers.get("x-real-ip") || "unknown";
+  return "unknown";
 }
 
 /**
