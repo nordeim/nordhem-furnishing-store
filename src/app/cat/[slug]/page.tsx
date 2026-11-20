@@ -11,8 +11,10 @@ interface CategoryPageProps {
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const category = await getCategory((await params).slug);
-  return { title: category?.name ?? "Category" };
+  const { slug } = await params;
+  const category = await getCategory(slug);
+  // Canonical drops sort/page/filter params so listings don't accumulate duplicate signals.
+  return { title: category?.name ?? "Category", alternates: { canonical: `/cat/${slug}` } };
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {

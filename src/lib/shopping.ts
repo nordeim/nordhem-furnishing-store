@@ -151,11 +151,14 @@ export async function placeOrder(sessionId: string, input: OrderInput): Promise<
     const orderNo = generateOrderNo();
     try {
       return await db.transaction(async (tx) => {
+        // FOR UPDATE serialises concurrent same-session checkouts: the second tx blocks until
+        // the first commits its cart delete, then sees empty_cart (no double order) — session-005 H-2.
         const lines = await tx
           .select(lineColumns)
           .from(cartItems)
           .innerJoin(products, eq(products.id, cartItems.productId))
-          .where(eq(cartItems.sessionId, sessionId));
+          .where(eq(cartItems.sessionId, sessionId))
+          .for("update");
         if (lines.length === 0) return { ok: false as const, reason: "empty_cart" as const };
 
         const totals = computeTotals(lines, input.method);

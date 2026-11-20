@@ -11,12 +11,12 @@ function request(headers: Record<string, string>, body?: unknown): Request {
 }
 
 describe("clientKey (X-Forwarded-For trust depth)", () => {
-  it("uses the LAST hop by default (proxies append; the first entry is client-spoofable)", () => {
+  it("uses the LAST hop when a depth is explicitly declared (proxies append; the first entry is client-spoofable)", () => {
     const req = request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" });
-    expect(clientKey(req)).toBe("10.0.0.1");
+    expect(clientKey(req, { proxyDepth: 1 })).toBe("10.0.0.1");
   });
 
-  it("uses the entry N hops from the end per TRUSTED_PROXY_DEPTH", () => {
+  it("uses the entry N hops from the end per an explicit proxyDepth", () => {
     const req = request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1, 10.0.0.2" });
     expect(clientKey(req, { proxyDepth: 2 })).toBe("10.0.0.1");
   });
@@ -24,9 +24,20 @@ describe("clientKey (X-Forwarded-For trust depth)", () => {
   it("falls back to x-real-ip, then 'unknown' — never to a forged first hop", () => {
     expect(clientKey(request({ "x-real-ip": "9.9.9.9" }))).toBe("9.9.9.9");
     expect(clientKey(request({}))).toBe("unknown");
-    // A single-hop XFF with default depth 1 means "no proxy in front" — a direct client
-    // cannot be trusted to set its own hop, so it shares the fail-closed bucket.
-    expect(clientKey(request({ "x-forwarded-for": "1.2.3.4" }))).toBe("1.2.3.4");
+  });
+
+  it("UNSET env means direct exposure: even a single-hop XFF is client-authored and ignored (session-005 H-1)", () => {
+    // Trust must be OPTED INTO via TRUSTED_PROXY_DEPTH >= 1. The old default of 1 let a bare
+    // client-sent "x-forwarded-for: 8.8.8.8" mint a fresh rate-limit bucket per request —
+    // live-verified on :3100 (12/12 rotating spoofed XFFs bypassed the checkout limiter).
+    const env = process.env.TRUSTED_PROXY_DEPTH;
+    delete process.env.TRUSTED_PROXY_DEPTH;
+    try {
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4" }))).toBe("unknown");
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).toBe("unknown");
+    } finally {
+      if (env !== undefined) process.env.TRUSTED_PROXY_DEPTH = env;
+    }
   });
 
   it("fails closed when the declared depth exceeds the available hops", () => {
@@ -48,12 +59,13 @@ describe("clientKey (X-Forwarded-For trust depth)", () => {
     }
   });
 
-  it("explicit proxyDepth=0 (option form) also ignores XFF; garbage env falls back to 1", () => {
+  it("explicit proxyDepth=0 (option form) also ignores XFF; garbage env fails CLOSED (session-005)", () => {
     expect(clientKey(request({ "x-forwarded-for": "1.2.3.4" }), { proxyDepth: 0 })).toBe("unknown");
     const env = process.env.TRUSTED_PROXY_DEPTH;
     process.env.TRUSTED_PROXY_DEPTH = "garbage";
     try {
-      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).toBe("10.0.0.1");
+      // Unparsable values must not silently re-enable proxy trust.
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).toBe("unknown");
     } finally {
       if (env === undefined) delete process.env.TRUSTED_PROXY_DEPTH;
       else process.env.TRUSTED_PROXY_DEPTH = env;

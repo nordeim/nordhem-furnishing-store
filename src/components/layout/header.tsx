@@ -59,6 +59,9 @@ export function Header() {
 
   useEffect(() => {
     if (panel !== "mobile") return;
+    // Capture the button now: menuButtonRef.current at cleanup time may be stale
+    // (react-hooks/exhaustive-deps) — session-005 L-5.
+    const menuButton = menuButtonRef.current;
     const drawer = document.getElementById("mobile-drawer");
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -88,7 +91,7 @@ export function Header() {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onTab, true);
-      menuButtonRef.current?.focus();
+      menuButton?.focus();
     };
   }, [panel]);
 

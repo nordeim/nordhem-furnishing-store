@@ -15,7 +15,22 @@ const ROBOTS_SRC = readFileSync("src/app/robots.ts", "utf8");
 const PRIVATE_ROUTES = ["/cart", "/checkout", "/orders/", "/track-order", "/favourites", "/search", "/api/"];
 
 /** Routes that must be present for the storefront to be discoverable. */
-const PUBLIC_ROUTES = ["/", "/ikea-family", "/cat/", "/p/"];
+const PUBLIC_ROUTES = [
+  "/",
+  "/ikea-family",
+  "/cat/",
+  "/p/",
+  // Indexable long-tail info routes (session-005 L-7): linked from nav/footer, 200-status.
+  "/offers",
+  "/rooms",
+  "/stores",
+  "/ideas",
+  "/new",
+  "/campaigns/christmas",
+  "/customer-service/services",
+  "/customer-service/returns-claims/return-policy",
+  "/product-guides/sustainable-products",
+];
 
 describe("sitemap route contract (src/app/sitemap.ts)", () => {
   it("is a MetadataRoute.Sitemap export consumed by Next at /sitemap.xml", () => {

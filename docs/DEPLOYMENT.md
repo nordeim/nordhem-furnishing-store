@@ -46,7 +46,7 @@ answers (`SELECT 1`).
 |---|---|---|
 | `DATABASE_URL` | yes | `postgresql://user:pass@host:5432/app_db` |
 | `NEXT_PUBLIC_SITE_URL` | build | Public origin, e.g. `https://nordhem.example` — feeds sitemap/robots/canonicals/JSON-LD |
-| `TRUSTED_PROXY_DEPTH` | no | See §5. Unset = 1 (one trusted proxy). |
+| `TRUSTED_PROXY_DEPTH` | no | See §5. Unset = direct exposure (XFF ignored). Opt-in trust. |
 
 Start from `.env.example` (`cp .env.example .env`) — it documents every
 variable above.
@@ -67,8 +67,9 @@ derived from
   IP to `x-forwarded-for`, so the key counts `TRUSTED_PROXY_DEPTH` hops from
   the END (default 1 = the proxy-added entry — trustworthy). Two chained
   proxies → `TRUSTED_PROXY_DEPTH=2`.
-- **Direct exposure** (no proxy): set `TRUSTED_PROXY_DEPTH=0` — client-supplied
-  `x-forwarded-for` values are ignored entirely and every caller shares the
+- **Direct exposure** (no proxy / unset): XFF trust is OPT-IN since session-005 — an
+  unset or unparsable `TRUSTED_PROXY_DEPTH` ignores client-supplied `x-forwarded-for`
+  entirely and every caller shares the
   `unknown` bucket (fail closed; without a real proxy there is no per-client
   IP signal anyway — `x-real-ip` still works if your LB sets it).
 - Forward `X-Forwarded-Proto: https` from the proxy so cookie attributes and

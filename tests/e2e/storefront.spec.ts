@@ -36,6 +36,11 @@ test("header search suggests products and submits to the search page", async ({ 
   const box = page.locator("#site-search");
   await box.fill("billy");
   await expect(page.locator("ul[aria-label='Products']").first()).toBeVisible();
+  // WAI-ARIA combobox: ArrowDown moves focus into the suggestion list (session-005 M-4).
+  const panelId = await box.getAttribute("aria-controls");
+  await box.press("ArrowDown");
+  await expect(page.locator(`#${panelId} a`).first()).toBeFocused();
+  await box.click();
   await box.press("Enter");
   await expect(page).toHaveURL(/\/search\?q=billy/);
   await expect(page.locator("a[href^='/p/']:visible").first()).toBeVisible();

@@ -22,7 +22,9 @@ function createPool(): Pool {
   return created;
 }
 
-export const pool = globalForDb.__arenaNextJsPostgresqlPool ?? createPool();
+// Deliberately NOT exported: `db` is the sole handle, so every query funnels through
+// one construction (and the HMR-cached global) — session-005 M-3.
+const pool = globalForDb.__arenaNextJsPostgresqlPool ?? createPool();
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;

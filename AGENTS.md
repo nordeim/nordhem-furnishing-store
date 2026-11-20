@@ -11,8 +11,8 @@ An IKEA Singapore storefront re-creation: Next.js 16 App Router · React 19 · T
 | `npm run lint` | ESLint — app boundary only |
 | `npm run typecheck` | `tsc --noEmit` (app code) |
 | `npm run typecheck:tests` | tsc over tests + configs (`tsconfig.tests.json`) |
-| `npm test` | Vitest unit suite (70 tests, 9 files) |
-| `npm run test:e2e` | Playwright (18 tests) against the production build on :3100 — **run `npm run build` first** |
+| `npm test` | Vitest unit suite (73 tests, 10 files) |
+| `npm run test:e2e` | Playwright (23 tests) against the production build on :3100 — **run `npm run build` first** |
 | `npm run db:setup` | `drizzle-kit push` + idempotent seed (23 categories / 242 products) |
 | `bash docs/setup_pg_z.sh` | Rootless local PostgreSQL on :5432 (postgres:postgres/app_db) |
 | `BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh` | 21-check HTTP smoke (server must be running) |
@@ -40,6 +40,7 @@ A warm Turbopack cache can mask this class of failure — `rm -rf .next` before 
 |---|---|---|
 | `DATABASE_URL` | yes | `postgresql://postgres:postgres@127.0.0.1:5432/app_db` locally. **An explicit shell env always beats `.env`** (dotenv never overrides) — if the app reads the wrong DB, check `env | grep DATABASE_URL` first. |
 | `NEXT_PUBLIC_SITE_URL` | recommended | Canonical origin for metadata/sitemap/robots — inlined at build time; set before `npm run build` in production. |
+| `TRUSTED_PROXY_DEPTH` | no | **Opt-in proxy trust** (session-005): unset/garbage = direct exposure, `x-forwarded-for` ignored entirely (fail-closed "unknown" bucket). Declare `1`/`2`/… only behind that many trusted proxies. |
 
 `db:seed` runs through `scripts/seed-cli.ts` — dotenv loads BEFORE the import graph pulls in `src/db`, which throws at import time without `DATABASE_URL`.
 

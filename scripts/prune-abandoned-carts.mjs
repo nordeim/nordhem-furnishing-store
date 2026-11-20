@@ -11,6 +11,8 @@
  * Usage:
  *   node scripts/prune-abandoned-carts.mjs            # report only (dry run)
  *   node scripts/prune-abandoned-carts.mjs --apply    # actually delete
+// Footgun guard: MAX_AGE_DAYS is a blunt instrument — a value below ~30 also deletes
+// RECENT ACTIVE carts. Always dry-run first; 180 (the cookie maxAge) is the safe default.
  *   MAX_AGE_DAYS=90 node scripts/prune-abandoned-carts.mjs --apply
  *
  * Reads DATABASE_URL from the environment (same source as the app). Intended for an

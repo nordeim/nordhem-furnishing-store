@@ -20,9 +20,14 @@ interface ProductPageProps {
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const product = await getProductBySlug((await params).slug);
+  const { slug } = await params;
+  const product = await getProductBySlug(slug);
   if (!product) return { title: "Product not found" };
-  return { title: `${product.name} ${product.typeDesc}`, description: `${product.name}, ${product.typeDesc}. ${formatPrice(product.priceCents)} at IKEA Singapore.` };
+  return {
+    title: `${product.name} ${product.typeDesc}`,
+    description: `${product.name}, ${product.typeDesc}. ${formatPrice(product.priceCents)} at IKEA Singapore.`,
+    alternates: { canonical: `/p/${slug}` },
+  };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {

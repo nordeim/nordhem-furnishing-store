@@ -22,7 +22,6 @@ const REQUIRED_EXCLUSIONS = [
   '@source not "../../CLAUDE.md"',
   '@source not "../../Project_Architecture_Document.md"',
   '@source not "../../worklog.md"',
-  '@source not "../../ely-beauty_SKILL.md"',
   '@source not "../../docs"',
   '@source not "../../skills"',
   '@source not "../../tests"',

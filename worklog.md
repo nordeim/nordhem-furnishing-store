@@ -87,3 +87,22 @@ Work Log:
 - Docs: PAD v2.3.0 (revision block incl. the correction), SKILL v1.3.0 (§12 lessons — exit-code verification, born-RED tests, shared-ref-in-map antipattern, locator hygiene, prune schema check), DEPLOYMENT.md §5/§6, AGENTS/CLAUDE/README counts, worklog Task 122.
 Stage Summary: 1 HIGH (gate integrity — a false "all green" claim corrected and the verification method fixed) + 1 MEDIUM + 2 LOW + 2 INFO fixed; e2e suite 21+1-failed → 23/23 ×3 genuinely green; orphan-row hygiene delivered; doc counts back in lockstep.
 Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.
+
+Task ID: 123
+Agent: session-005 executor (the rate-limit trust + checkout-lock cycle)
+Task: The operator's standing instruction: refresh, review session-004 docs (docs/session_4.md, plan-004, worklog), validate alignment, restore PostgreSQL, audit the codebase esp. recent changes, browser-verify mobile nav, check sitemap/SEO, plan + execute remediation TDD, refresh screenshots + docs + SKILL, push to main via the SSH wrapper.
+Work Log:
+- Workspace: fresh clone at d42a761; PostgreSQL 17 restored via docs/setup_pg_z.sh (rootless :5432, catalog 242/23). All session-004 claims verified TRUE on the fresh clone (baseline: lint 0/1-warning, typecheck ✓, unit 70/70, build cold ✓, smoke 21/21, e2e 23/23 ×3 exit-code-checked, sitemap 267).
+- Browser verification (agent-browser, 390×844 + 1440×900, dev + prod servers): mobile drawer open/submenu-navigate/unmount/Escape/close-button/focus-restore/scroll-lock all pass; hero popover toggle/Escape/outside-click correct; search suggestions live; add-to-cart → badge + toast → cart → checkout → order confirmation → track-order (right + wrong email) round-trip manual-verified. No Tailwind v4 display-utility bug (conditional mount; zero classList in src/).
+- Audit (read-only subagent, web-application + tdd skill methodology; live curl/psql/DOM probes; skills/ excluded): 0 CRITICAL · 2 HIGH · 4 MEDIUM · 9 LOW · 10 INFO. H-1 live-verified on :3100 (rotating spoofed XFF, 12/12 limiter bypass); H-2 by code-read.
+- Remediation (docs/plans/2026-11-20_session-005_remediation-plan.md, TDD red→green per slice):
+  - H-1: TRUSTED_PROXY_DEPTH unset/garbage now means DIRECT EXPOSURE (depth 0 — XFF ignored entirely, fail-closed "unknown"); proxy trust is opt-in (explicit integer >= 1). 3 unit pins rewritten/added RED first; .env.example/AGENTS/CLAUDE/PAD/DEPLOYMENT swept; live re-probe: rotating XFF 429s at request 10.
+  - H-2: placeOrder tx SELECTs cart lines FOR UPDATE — concurrent same-session checkout #2 blocks, then sees empty_cart. New tests/unit/checkout-lock.test.ts (2 pins, RED→GREEN).
+  - L-7: 9 indexable info routes added to sitemap (267→276 locs live-verified, DB-outage fallback includes them); seo-routes pins extended RED first. L-8: alternates.canonical on /cat/* and /p/*.
+  - M-4: search combobox ArrowDown/ArrowUp focus-into-list (WAI-ARIA 1.2) + e2e toBeFocused pin. M-3: dead `pool` export removed from src/db/index.ts. L-4: stale ely-beauty_SKILL.md guard line + test pin dropped. L-5: header effect captures menuButtonRef.current — lint now 0 warnings. L-6: prune-script MAX_AGE_DAYS footgun documented.
+  - L-1/L-2/L-3: stale counts swept (AGENTS e2e 18→23; README unit 52→73; PAD mobile-nav 6→8) plus new counts (73 unit / 10 files / 276 sitemap).
+- Final gates (all exit-code-checked): lint 0 errors 0 warnings ✓ · typecheck ✓ · typecheck:tests ✓ · unit 73/73 (10 files) ✓ · build cold ✓ · smoke 21/21 ✓ · e2e 23/23 × THREE consecutive runs (exit 0 each) · sitemap 276 ✓.
+- Screenshots re-captured 12/12 PIL-valid (scripts/capture-screenshots.mjs against :3100).
+- Docs: README expanded (badges, overview, env table, troubleshooting per readme-md skill), PAD v2.4.0 (revision block + §6 limiter posture), SKILL v1.4.0 (§13 lessons, state line), AGENTS env table + counts, CLAUDE counts, DEPLOYMENT §1/§5, worklog Task 123, docs/session_5.md, plan-005.
+Stage Summary: 1 HIGH security default inverted (trust is opt-in, live-verified) + 1 HIGH concurrency race closed (FOR UPDATE) + 1 MEDIUM a11y + 5 LOW + doc-count lockstep; unit 70→73; sitemap 267→276; lint 0 warnings; e2e 23/23 ×3.
+Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.

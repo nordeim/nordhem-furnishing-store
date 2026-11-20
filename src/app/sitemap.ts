@@ -16,6 +16,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: base + "/ikea-family", changeFrequency: "monthly", priority: 0.5 },
   ];
 
+  // Indexable long-tail content routes (linked from nav/footer) — session-005 L-7: they were
+  // absent from the sitemap, leaving 9 discoverable pages invisible to crawlers.
+  const infoRoutes: MetadataRoute.Sitemap = [
+    "/offers",
+    "/rooms",
+    "/stores",
+    "/ideas",
+    "/new",
+    "/campaigns/christmas",
+    "/customer-service/services",
+    "/customer-service/returns-claims/return-policy",
+    "/product-guides/sustainable-products",
+  ].map((path) => ({ url: base + path, changeFrequency: "weekly" as const, priority: 0.4 }));
+
   try {
     const [categorySlugs, productSlugs] = await Promise.all([listAllCategorySlugs(), listAllProductSlugs()]);
     const categoryRoutes: MetadataRoute.Sitemap = categorySlugs.map(({ slug }) => ({
@@ -28,9 +42,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.7,
     }));
-    return [...staticRoutes, ...categoryRoutes, ...productRoutes];
+    return [...staticRoutes, ...infoRoutes, ...categoryRoutes, ...productRoutes];
   } catch (error) {
     logError("sitemap.db_unavailable", error); // never ship a silent 2-URL sitemap
-    return staticRoutes;
+    return [...staticRoutes, ...infoRoutes];
   }
 }

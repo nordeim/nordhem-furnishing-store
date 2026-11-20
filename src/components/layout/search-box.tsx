@@ -101,7 +101,18 @@ export function SearchBox() {
             if (value.trim().length < 2) setResults(null);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Escape") setOpen(false);
+            if (event.key === "Escape") {
+              setOpen(false);
+              return;
+            }
+            // WAI-ARIA combobox pattern: ArrowDown/ArrowUp move focus into the suggestion
+            // list (first / last link) so keyboard users can browse before submitting.
+            if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+            const panel = document.getElementById(listId);
+            const links = panel ? Array.from(panel.querySelectorAll<HTMLAnchorElement>("a[href]")) : [];
+            if (links.length === 0) return;
+            event.preventDefault();
+            (event.key === "ArrowDown" ? links[0] : links[links.length - 1]).focus();
           }}
           className="min-w-0 flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-ink-soft"
         />

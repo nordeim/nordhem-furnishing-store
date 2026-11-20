@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.3.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.4.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 004 — gate-integrity fixes)
+**Last Updated:** 2026-11-20 (session 005 — rate-limit trust posture, checkout lock, sitemap coverage)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,7 +111,7 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (6 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 7 files / 52 tests
+tests/unit/         # 10 files / 73 tests
 tests/e2e/          # mobile-navigation, storefront, seo-platform (23 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
@@ -134,7 +134,7 @@ export function POST(request: Request) {
 ```
 Why: every mutation shares the same validation/rate/CSRF/error shape; a new route cannot forget a guard.
 
-**The conditional-mount drawer** (`src/components/layout/header.tsx`): `{panel === "mobile" && (<div id="mobile-drawer" role="dialog" aria-modal …>)}` — no `classList`, no `hidden`-toggle (the Tailwind v4 display-utility bug class). Escape/pointerdown close, body scroll lock, focus move to the close button. Pinned by `tests/e2e/mobile-navigation.spec.ts` (6 tests).
+**The conditional-mount drawer** (`src/components/layout/header.tsx`): `{panel === "mobile" && (<div id="mobile-drawer" role="dialog" aria-modal …>)}` — no `classList`, no `hidden`-toggle (the Tailwind v4 display-utility bug class). Escape/pointerdown close, body scroll lock, focus move to the close button. Pinned by `tests/e2e/mobile-navigation.spec.ts` (8 tests).
 
 **The scanner guard** (`src/app/globals.css`): `@source not "../../AGENTS.md"; … "@source not "../../skills"; …` — **paths relative to the CSS file**, root targets need `../../`. A bare `"docs"` matches nothing; the poison classes compile; the build dies with `CssSyntaxError: Missed semicolon` at a ~100KB offset. Pinned by `tests/unit/tailwind-scan-guard.test.ts`.
 
@@ -178,7 +178,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 | Headers | nosniff, X-Frame-Options DENY, strict referrer, restrictive Permissions-Policy |
 | Session cookie | httpOnly, SameSite=Lax, secure when x-forwarded-proto=https, 180d, UUID-validated on read |
 
-**Known limitation (accepted):** in-memory rate limiter is single-instance; `clientKey` trusts the first `x-forwarded-for` hop (fine behind a single proxy; revisit for multi-hop edge deploys). No CSP yet.
+**Known limitation (accepted):** in-memory rate limiter is single-instance. Proxy trust is opt-in since session-005: `TRUSTED_PROXY_DEPTH` unset/garbage = direct exposure (XFF ignored entirely, clients share the "unknown" bucket); a value ≥ 1 declares N trusted hops counted from the END of `x-forwarded-for`. No CSP yet.
 
 ---
 
@@ -186,7 +186,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 70 tests / 9 files | Vitest (node) | `tests/unit/` |
+| Unit | 73 tests / 10 files | Vitest (node) | `tests/unit/` |
 | E2E | 23 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.4.0 (2026-11-20, session 005)
+
+- `[SR]` **H-1 fixed: proxy trust is now OPT-IN.** `clientKey`'s default `TRUSTED_PROXY_DEPTH=1` trusted a single client-supplied `x-forwarded-for` hop on direct exposure — live-verified: 12/12 rotating spoofed XFFs bypassed the checkout limiter (429 never reached). Unset/garbage now means depth 0 (XFF ignored entirely, fail-closed "unknown" bucket); trust must be declared via `TRUSTED_PROXY_DEPTH>=1`. 3 unit pins updated/added (RED→GREEN); `.env.example`, DEPLOYMENT §1/§5, this PAD §6 swept; live re-probe post-fix: rotating XFF 429s at request 10.
+- `[SR]` **H-2 fixed: checkout double-order race closed.** `placeOrder`'s transaction now SELECTs the session's cart lines `FOR UPDATE` — the second concurrent same-session checkout blocks until the first commits its cart delete, then returns `empty_cart` instead of placing a second order. Pinned by `tests/unit/checkout-lock.test.ts` (text-assertion on the SQL shape; RED→GREEN).
+- `[SR]` L-7: the 9 indexable long-tail info routes (`/offers`, `/rooms`, `/stores`, `/ideas`, `/new`, `/campaigns/christmas`, `/customer-service/services`, `/customer-service/returns-claims/return-policy`, `/product-guides/sustainable-products`) are now in the sitemap (267→276 locs, live-verified); the DB-outage fallback emits them too. L-8: `alternates.canonical` added to `/cat/*` and `/p/*` metadata (query params no longer accumulate duplicate signals).
+- `[SR]` M-4: the header search combobox now implements the WAI-ARIA 1.2 pattern's ArrowDown/ArrowUp focus move into the suggestions panel; pinned by a new e2e assertion (`toBeFocused` on the first suggestion link).
+- `[QA]` M-3: `src/db/index.ts` no longer exports the raw `pool` (dead export; `db` is the sole handle). L-4: the stale `../../ely-beauty_SKILL.md` guard line + test pin removed (the file does not exist). L-5: the header focus-restore effect captures `menuButtonRef.current` into a local — lint is now 0 warnings. L-6: the prune script documents its `MAX_AGE_DAYS` footgun. L-1/L-2/L-3: stale counts (AGENTS 18→23 e2e, README 52→70→73 unit, PAD 6→8 mobile-nav tests) swept in the same commit as the count changes.
+- `[CA]` Deferred (documented in docs/plans/2026-11-20_session-005): CSP header, migration journal, unused tree-shoken tokens, SearchAction/robots parity, in-memory limiter single-instance (ADR-001), setCartQuantity last-writer-wins (no money impact), per-orderNo track sub-bucket (subsumed by the H-1 key-derivation fix).
 
 ## Revision Block — v2.3.0 (2026-11-20, session 004)
 

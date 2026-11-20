@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.3.0
+version: 1.4.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.0.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.4.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 004): 70 unit tests / 23 e2e (3× consecutive green, exit-code-verified) / 21 smoke checks; sitemap covers 100% of the catalog (267 locs); mobile drawer focus-trapped; hero popover toggles correctly; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 005): 73 unit tests / 23 e2e / 21 smoke checks; sitemap covers the catalog + info routes (276 locs); checkout locks cart rows (FOR UPDATE); proxy trust is opt-in (TRUSTED_PROXY_DEPTH unset = direct exposure, XFF ignored); mobile drawer focus-trapped; hero popover toggles correctly; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -69,6 +69,13 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
+
+## §13 Lessons (session 005)
+1. An "unset means the common case" default is wrong when the header is client-controlled: defaulting proxy depth to 1 made every direct-exposure deployment trust a single-hop spoofed `x-forwarded-for` — live-probed, 12/12 rotating XFFs bypassed the checkout limiter. Security-relevant trust must be OPTED INTO (unset = fail closed), and the .env.example prose that said "leave unset on direct exposure" was itself the vulnerability's document.
+2. A text-read of a transaction is not a concurrency proof: `SELECT` then `INSERT` then `DELETE` inside one tx is a double-order race under READ COMMITTED without `FOR UPDATE` on the rows the transaction's outcome depends on. Lock the session's cart lines at the head of the checkout tx; the loser must see `empty_cart`.
+3. Sitemap "coverage" has a second axis beyond products: the long-tail info routes (offers/rooms/stores/services/policies) are 200-status, indexable and linked from nav — 9 of 9 were invisible to crawlers. When auditing SEO, enumerate every 200 route against the sitemap, not just the catalog.
+4. The lint warning backlog is a false economy: the one `react-hooks/exhaustive-deps` warning (ref read in cleanup) was a 2-line fix once triaged, and a clean `0 problems` lint output makes any NEW warning a signal instead of noise.
+5. Keyboard operability of a combobox is not "Tab reaches the links eventually": the ARIA pattern requires ArrowDown/ArrowUp to move focus into the list. One `onKeyDown` branch + one e2e `toBeFocused` pin closes it.
 
 ## §12 Lessons (session 004)
 1. Never verify a test gate by grepping the last line of the runner output: Playwright prints "N passed" after the failure block, so `grep passed | tail -1` showed 21 passed and hid "1 failed". Every verdict comes from the process exit code plus the full tally block.
