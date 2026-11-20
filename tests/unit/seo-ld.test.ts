@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildOrganizationJsonLd, buildWebsiteJsonLd, siteBaseUrl } from "@/lib/seo";
+import { buildOrganizationJsonLd, buildWebsiteJsonLd, jsonLdScript, siteBaseUrl } from "@/lib/seo";
 
 describe("siteBaseUrl", () => {
   it("uses NEXT_PUBLIC_SITE_URL when set", () => {
@@ -36,5 +36,17 @@ describe("JSON-LD builders", () => {
       target: "https://store.example.com/search?q={search_term_string}",
       "query-input": "required name=search_term_string",
     });
+  });
+});
+
+describe("jsonLdScript (injection escaping)", () => {
+  it("escapes < so a payload can never terminate the script element", () => {
+    expect(jsonLdScript({ name: "</script><script>alert(1)</script>" })).not.toContain("<");
+    expect(jsonLdScript({ name: "a<b" })).toContain("\\u003c");
+  });
+
+  it("round-trips through JSON.parse with the original string", () => {
+    const hostile = "</script>";
+    expect(JSON.parse(jsonLdScript({ name: hostile })).name).toBe(hostile);
   });
 });

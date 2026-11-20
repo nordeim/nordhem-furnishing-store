@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.0.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.1.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 001 — post-rewrite remediation)
+**Last Updated:** 2026-11-20 (session 002 — audit + hardening)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -186,7 +186,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 52 tests / 7 files | Vitest (node) | `tests/unit/` |
+| Unit | 65 tests / 8 files | Vitest (node) | `tests/unit/` |
 | E2E | 18 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 19 checks | bash | `scripts/smoke.sh` |
 
@@ -217,7 +217,6 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | HIGH | No CSP header (needs per-request nonces on Next 16) | XSS defense-in-depth gap | Open |
 | MEDIUM | `drizzle-kit push` dev posture — no migration journal | Prod schema drift risk | Open (accept for demo) |
 | MEDIUM | In-memory rate limiter (single instance) | Multi-instance would share nothing | Accepted, documented |
-| LOW | Sitemap covers first 24 products only | Full catalog indexing | Open (demo-size catalog fits) |
 | LOW | ikea.com image dependency | Offline = placeholder tiles | Accepted |
 
 ---
@@ -240,6 +239,16 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.1.0 (2026-11-20, session 002)
+
+- `[SR]` H1 fixed: sitemap now lists ALL products (267 locs = 2 static + 23 categories/collections + 242 products) via `listAllProductSlugs()`/`listAllCategorySlugs()`; the false "fits the first page" comment and known-issue row removed.
+- `[CA]` H2 fixed: `clientKey` now counts `TRUSTED_PROXY_DEPTH` hops from the END of `x-forwarded-for` (default 1); single-hop self-declared values fall through to `x-real-ip`/`unknown` — pinned by `tests/unit/http.test.ts`.
+- `[SR]` M1/M4: `readJson` gained a Content-Type gate (415) and 16 KB body cap (413); `http.ts` (CSRF guard, IP key, body gates), `jsonLdScript` escaping now unit-tested (13 new tests).
+- `[CA]` M5: session cookie `secure` in production unconditionally (not only behind `x-forwarded-proto`).
+- `[SR]` H3/M2: both product-page e2e tests now click a visible link and assert the URL before reading the DOM — 18/18 across three consecutive runs (was ~40% flake / silent false-pass).
+- `[SR]` L2/L3/L4/L5/L7/L9/L10: `order_items_order_idx` added; playwright artifacts untracked; pg pool `error` handler; summary badge retry; product page uses the tested `jsonLdScript` helper; category breadcrumb no longer links "Products" to the Storage category; search box clears stale suggestions on non-OK responses.
+- `[CA]` Deferred (documented in docs/plans/2026-11-20_session-002): dialog focus-trap (M3), first-request session race (L1), unused icons/tokens (L6), legacy `!p-0` prefix form (L8), CSP header, migration journal.
 
 ## Revision Block — v2.0.0 (2026-11-20, session 001)
 

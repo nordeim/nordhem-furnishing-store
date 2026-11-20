@@ -39,7 +39,10 @@ export function SearchBox() {
     const timer = setTimeout(async () => {
       try {
         const response = await fetch(`/api/search?q=${encodeURIComponent(term)}`, { signal: controller.signal });
-        if (!response.ok) return;
+        if (!response.ok) {
+          setResults(null); // never show the previous query's suggestions under the new term
+          return;
+        }
         setResults((await response.json()) as SuggestionPayload);
       } catch {
         // Aborted or offline: suggestions are best-effort, full search still works on submit.

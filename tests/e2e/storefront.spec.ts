@@ -24,7 +24,10 @@ test("product page renders price, article number and add-to-cart", async ({ page
   const href = await firstCard.getAttribute("href");
   expect(href).toMatch(/^\/p\//);
   await firstCard.click();
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // Assert the URL changed: the home page also has an sr-only h1 and $-text, so without this
+  // the assertions below could pass before client-side navigation completes.
+  await expect(page).toHaveURL(/\/p\//);
+  await expect(page.getByText(/Article no\./)).toBeVisible();
   await expect(page.getByText(/\$\d/).first()).toBeVisible();
 });
 

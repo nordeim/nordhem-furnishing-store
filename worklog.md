@@ -27,3 +27,23 @@ Work Log:
 - Final gates: lint ✓ · typecheck ✓ · typecheck:tests ✓ · unit 52/52 (7 files) · build ✓ (8.5s) · smoke 19/19 · e2e 18/18.
 Stage Summary: the rewrite's CRITICAL build break + missing test/SEO/docs infrastructure fully remediated TDD-first; all seven gate steps green; docs set regenerated for the furniture store.
 Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.
+
+Task ID: 120
+Agent: session-002 executor (the audit + hardening cycle)
+Task: The operator's standing instruction: refresh, review the session-001 docs + session_1.md + plan, validate alignment, set up rootless PostgreSQL, audit the codebase (web-application skill, skills/ excluded), verify the mobile nav in a browser, check sitemap/SEO, plan + execute remediation TDD, refresh screenshots + docs + SKILL, push to main via the SSH wrapper.
+Work Log:
+- Workspace: fresh clone at 006e30a (two operator doc-only commits since a46390e: docs/session_1.md transcript + worklog trim to Tasks 112/119). Sandbox recycled cold: PostgreSQL data dir survived but three runtime subdirs (pg_tblspc, pg_logical/{snapshots,mappings}) vanished — recreated, server up, catalog intact (242/23). npm + paramiko reinstalled; the workspace ssh shim reused.
+- Baseline gates: lint ✓ · typecheck ✓ · typecheck:tests ✓ · unit 52/52 ✓ · build ✓ · smoke 19/19 ✓ · e2e 17-18/18 with a MEASURED ~30-50% flake in "product page carries Product JSON-LD" (reproduced 4 times; curl proved the page itself always carries the Product node — a test-side race).
+- Doc alignment: every session-001 claim verified true (guard lines, scripts, SEO routes, test counts) EXCEPT the sitemap coverage claim — the audit found it false (below).
+- Audit (read-only subagent, web-application + code-review + clean-code skills; src/ only): 0 CRITICAL · 3 HIGH · 5 MEDIUM · 10 LOW. Core commerce CLEAN (checkout transaction, money math, validation, ILIKE escaping, PII hygiene, guard coverage, zero classList).
+- Remediation (docs/plans/2026-11-20_session-002_remediation-plan.md, TDD):
+  - H1 sitemap: page-1-only (24/242 products, 90% omitted) behind a false "fits the first page" comment → listAllProductSlugs() + listAllCategorySlugs(); live count now 267 locs (2 static + 23 cats/collections + 242 products).
+  - H2 rate-limit key: first-XFF-hop (client-spoofable, defeats every limiter) → TRUSTED_PROXY_DEPTH hops from the END (default 1), fail-closed to x-real-ip/unknown; unit-pinned (4 tests).
+  - H3 e2e flake: aria-hidden image-link click + script read racing client navigation → visible link + waitForURL; M2 storefront twin (silent false-pass via sr-only h1) → same fix + Article-no assertion.
+  - M1: readJson Content-Type gate (415) + 16 KB cap (413). M4: http.ts/seo escaping unit tests (13 new). M5: session cookie secure in production unconditionally.
+  - L2 order_items_order_idx (pushed) · L3 playwright artifacts untracked + .gitignore · L4 pg pool error handler · L5 summary badge retry-on-failure · L7 product page uses the tested jsonLdScript helper · L9 "Products" crumb no longer links to Storage · L10 stale search suggestions cleared on non-OK.
+- Final gates: lint ✓ · typecheck ✓ · typecheck:tests ✓ · unit 65/65 (8 files, +13) · build ✓ · smoke 19/19 ✓ · e2e 18/18 × THREE consecutive runs (flake eliminated).
+- Browser verification: mobile drawer captured open + Products-submenu (12/12 screenshots valid, PIL-checked); the drawer's conditional-mount state machine pinned by the 6 mobile-navigation e2e tests (open/close/reopen/Escape/scroll-lock/interior-route) — no Tailwind v4 display-utility bug (zero classList in src/).
+- Docs: README/AGENTS/CLAUDE counts swept (65/8), PAD v2.1.0 (revision block; the false sitemap known-issue row removed; deferred items recorded), SKILL v1.1.0 (§10 session-002 lessons), .env.example documents TRUSTED_PROXY_DEPTH.
+Stage Summary: 3 HIGH + 4 MEDIUM + 7 LOW fixed TDD-first; unit +13; e2e flake eliminated; sitemap 24→267 URLs; docs lockstep.
+Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.

@@ -26,7 +26,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   return (
     <ListingView
       title={category.name}
-      crumbs={[{ label: "Home", href: "/" }, { label: "Products", href: "/cat/storage-organisation-st001" }, { label: category.name }]}
+      crumbs={[{ label: "Home", href: "/" }, { label: category.name }]}
       result={result}
       query={query}
       basePath={`/cat/${slug}`}

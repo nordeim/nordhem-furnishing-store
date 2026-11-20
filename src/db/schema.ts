@@ -101,18 +101,22 @@ export const orders = pgTable(
   (t) => [index("orders_session_idx").on(t.sessionId)],
 );
 
-export const orderItems = pgTable("order_items", {
-  id: serial("id").primaryKey(),
-  orderId: integer("order_id")
-    .notNull()
-    .references(() => orders.id, { onDelete: "cascade" }),
-  productId: integer("product_id").references(() => products.id, { onDelete: "set null" }),
-  name: text("name").notNull(),
-  typeDesc: text("type_desc").notNull(),
-  image: text("image").notNull(),
-  unitPriceCents: integer("unit_price_cents").notNull(),
-  quantity: integer("quantity").notNull(),
-});
+export const orderItems = pgTable(
+  "order_items",
+  {
+    id: serial("id").primaryKey(),
+    orderId: integer("order_id")
+      .notNull()
+      .references(() => orders.id, { onDelete: "cascade" }),
+    productId: integer("product_id").references(() => products.id, { onDelete: "set null" }),
+    name: text("name").notNull(),
+    typeDesc: text("type_desc").notNull(),
+    image: text("image").notNull(),
+    unitPriceCents: integer("unit_price_cents").notNull(),
+    quantity: integer("quantity").notNull(),
+  },
+  (t) => [index("order_items_order_idx").on(t.orderId)],
+);
 
 export const familyMembers = pgTable("family_members", {
   id: serial("id").primaryKey(),

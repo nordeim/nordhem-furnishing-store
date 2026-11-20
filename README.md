@@ -16,7 +16,7 @@ design tokens and adds working commerce flows (a functional superset of the mark
 | Shopping | `/cart`, `/favourites` (shopping list), `/checkout`, `/orders/[orderNo]`, `/track-order` |
 | Account-lite | `/ikea-family` (Family sign-up; `/profile` redirects here) |
 | Long tail of IKEA content URLs | `/[...slug]` — summary page + link to the official page, with a product rail where relevant |
-| SEO | `/sitemap.xml` (home + 23 categories + 242 products), `/robots.txt` (private surfaces disallowed), `/manifest.webmanifest`, Organization/WebSite/Product JSON-LD |
+| SEO | `/sitemap.xml` (home + 23 categories/collections + all 242 products), `/robots.txt` (private surfaces disallowed), `/manifest.webmanifest`, Organization/WebSite/Product JSON-LD |
 | API | `/api/cart`, `/api/favourites`, `/api/summary`, `/api/search`, `/api/checkout`, `/api/family`, `/api/orders/track`, `/api/health` |
 
 ## Commands
@@ -79,6 +79,6 @@ npm run lint && npm run typecheck && npm run typecheck:tests && npm test && npm 
 
 | Tier | Runner | Scope |
 |---|---|---|
-| Unit (52 tests, 7 files) | Vitest | Pure seams: cart math, money, validation schemas, paths/search helpers, rate-limit windows, content contracts, SEO builders, the Tailwind scan guard |
+| Unit (65 tests, 8 files) | Vitest | Pure seams: cart math, money, validation schemas, paths/search helpers, rate-limit windows, content contracts, SEO builders, the Tailwind scan guard |
 | E2E (Chromium) | Playwright | `mobile-navigation` (iPhone 13 viewport — the conditional-mount drawer), `storefront` (home/listing/product/search/cart), `seo-platform` (sitemap, robots, manifest, JSON-LD, noindex) |
 | Smoke (19 checks) | bash `scripts/smoke.sh` | Pages, validation rejections, cart → checkout → track round-trip, cross-session order isolation |

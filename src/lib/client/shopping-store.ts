@@ -69,14 +69,16 @@ export async function request<T>(url: string, method: string, body?: unknown): P
 
 export async function refreshSummary(): Promise<void> {
   const result = await request<SummaryResponse>("/api/summary", "GET");
-  if (!result.ok) return;
+  if (!result.ok) {
+    summaryLoaded = false; // a transient failure must not permanently freeze the badges at zero
+    return;
+  }
   summaryLoaded = true;
   setState({ cartCount: result.data.cartCount, favouriteIds: result.data.favouriteIds });
 }
 
 export function ensureSummaryLoaded(): void {
   if (!summaryLoaded) {
-    summaryLoaded = true;
     void refreshSummary();
   }
 }

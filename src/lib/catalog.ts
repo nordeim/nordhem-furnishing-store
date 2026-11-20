@@ -24,9 +24,21 @@ export interface ListingResult {
   pageCount: number;
 }
 
+/** Every product slug for the sitemap — unpaginated, minimal columns (242 rows at demo scale). */
+export async function listAllProductSlugs(): Promise<{ slug: string }[]> {
+  await ensureCatalog();
+  return db.select({ slug: products.slug }).from(products).orderBy(asc(products.id));
+}
+
 export async function getNavCategories(): Promise<Category[]> {
   await ensureCatalog();
   return db.select().from(categories).where(eq(categories.kind, "category")).orderBy(asc(categories.sortOrder));
+}
+
+/** Every category AND collection slug for the sitemap — both render public listing pages. */
+export async function listAllCategorySlugs(): Promise<{ slug: string }[]> {
+  await ensureCatalog();
+  return db.select({ slug: categories.slug }).from(categories).orderBy(asc(categories.sortOrder));
 }
 
 export async function getCategory(slug: string): Promise<Category | undefined> {

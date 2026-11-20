@@ -11,7 +11,7 @@ An IKEA Singapore storefront re-creation: Next.js 16 App Router · React 19 · T
 | `npm run lint` | ESLint — app boundary only |
 | `npm run typecheck` | `tsc --noEmit` (app code) |
 | `npm run typecheck:tests` | tsc over tests + configs (`tsconfig.tests.json`) |
-| `npm test` | Vitest unit suite (52 tests, 7 files) |
+| `npm test` | Vitest unit suite (65 tests, 8 files) |
 | `npm run test:e2e` | Playwright (18 tests) against the production build on :3100 — **run `npm run build` first** |
 | `npm run db:setup` | `drizzle-kit push` + idempotent seed (23 categories / 242 products) |
 | `bash docs/setup_pg_z.sh` | Rootless local PostgreSQL on :5432 (postgres:postgres/app_db) |
@@ -57,7 +57,7 @@ A warm Turbopack cache can mask this class of failure — `rm -rf .next` before 
 
 ## Testing discipline
 
-- Unit tests target **pure seams** (`src/lib/*`) — no DB, no mocks of internals.
+- Unit tests target **pure seams** (`src/lib/*` — including `http.ts` CSRF/IP-key/body gates) — no DB, no mocks of internals.
 - E2E runs against the **production build** (:3100, Chromium headless-shell; WebKit not installable here). The mobile-navigation project uses the iPhone 13 viewport.
 - Product-card image links are `aria-hidden` — use `a[href^='/p/']:visible` locators.
 - If e2e fails on a page whose code you did not change, restart the :3100 server first (stale server, not a regression).

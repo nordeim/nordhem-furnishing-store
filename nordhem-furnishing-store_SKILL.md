@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.0.0
+version: 1.1.0
 last_updated: 2026-11-20
 ---
 
 # Nordhem Furnishing Store — Engineering Skill (v1.0.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 001): 52 unit tests / 18 e2e / 19 smoke checks, all green; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 002): 65 unit tests / 18 e2e (3× consecutive green) / 19 smoke checks; sitemap covers 100% of the catalog (267 locs); production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -55,3 +55,10 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. Test files that pin poison tokens must construct them by concatenation, or they become the leak.
 4. An existing good README can be updated in place — full rewrites lose accurate specifics.
 5. Production-build e2e caught nothing the smoke missed, but the mobile-navigation pin is the regression net for the v4 drawer bug — keep it first-class.
+
+## §10 Lessons (session 002)
+1. A code comment that says "every product fits the first page" is a claim, not a fact — PAGE_SIZE=24 vs 242 products; the sitemap omitted 90% of the catalog behind that sentence. Verify data-dependent claims against the data.
+2. `x-forwarded-for.split(",")[0]` is the single most common rate-limit bypass: proxies APPEND, so the FIRST hop is client-controlled. Count from the END per a declared proxy depth, and fail closed.
+3. Playwright `:visible` does NOT exclude `aria-hidden` links; `.click()` resolves at dispatch, not navigation. Click a named/visible target and assert the URL before reading the DOM — otherwise the test races (or silently passes against the previous page).
+4. `toHaveURL(/^\/p\//)` fails on absolute URLs — Playwright matches the full URL; drop the anchor or match the host too.
+5. Node's `Request` does NOT populate a `host` header from the URL — set it explicitly in unit tests that exercise host-dependent logic (the CSRF guard).

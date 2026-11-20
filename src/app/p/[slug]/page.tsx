@@ -10,6 +10,7 @@ import { SmartImage } from "@/components/ui/smart-image";
 import { DELIVERY_FEE_CENTS, FREE_DELIVERY_THRESHOLD_CENTS } from "@/lib/cart-math";
 import { getCategory, getProductBySlug, getRelatedProducts } from "@/lib/catalog";
 import { imageUrl } from "@/lib/images";
+import { jsonLdScript } from "@/lib/seo";
 import { formatPrice } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const [category, related] = await Promise.all([getCategory(product.categorySlug), getRelatedProducts(product)]);
 
   // Escaping "<" keeps the inline JSON from terminating the script element.
-  const structuredData = JSON.stringify({
+  const structuredData = jsonLdScript({
     "@context": "https://schema.org",
     "@type": "Product",
     name: `${product.name} ${product.typeDesc}`,
@@ -41,7 +42,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
     ...(product.rating !== null && product.reviewCount > 0
       ? { aggregateRating: { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviewCount } }
       : {}),
-  }).replace(/</g, "\\u003c");
+  });
 
   return (
     <div className="page-x mx-auto max-w-page py-6">

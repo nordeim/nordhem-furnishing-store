@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getNavCategories, listProducts } from "@/lib/catalog";
+import { listAllCategorySlugs, listAllProductSlugs } from "@/lib/catalog";
 import { siteBaseUrl } from "@/lib/seo";
 
 /**
@@ -16,15 +16,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   try {
-    const [categories, products] = await Promise.all([getNavCategories(), listProducts({ page: 1 })]);
-    const categoryRoutes: MetadataRoute.Sitemap = categories.map((category) => ({
-      url: base + "/cat/" + category.slug,
+    const [categorySlugs, productSlugs] = await Promise.all([listAllCategorySlugs(), listAllProductSlugs()]);
+    const categoryRoutes: MetadataRoute.Sitemap = categorySlugs.map(({ slug }) => ({
+      url: base + "/cat/" + slug,
       changeFrequency: "weekly",
       priority: 0.8,
     }));
-    // First page of products (24/page); the catalog is a demo set — every product fits the first page.
-    const productRoutes: MetadataRoute.Sitemap = products.items.map((product) => ({
-      url: base + "/p/" + product.slug,
+    const productRoutes: MetadataRoute.Sitemap = productSlugs.map(({ slug }) => ({
+      url: base + "/p/" + slug,
       changeFrequency: "weekly",
       priority: 0.7,
     }));

@@ -17,6 +17,12 @@ export const pool =
     connectionString: databaseUrl,
   });
 
+// An unhandled pool-level 'error' (idle client / backend disconnect) would crash the process;
+// log it instead so the failure surfaces per-request via guard().
+pool.on("error", (error) => {
+  console.error(JSON.stringify({ event: "db.pool_error", message: error instanceof Error ? error.message : String(error) }));
+});
+
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;
 }

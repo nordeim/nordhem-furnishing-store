@@ -35,10 +35,31 @@ export function hasForeignOrigin(request: Request): boolean {
   }
 }
 
-export function clientKey(request: Request): string {
+/**
+ * Rate-limit key. Proxies APPEND to `x-forwarded-for`, so the FIRST entry is client-spoofable;
+ * we count `proxyDepth` hops from the END (default 1 = one trusted proxy). When the header has
+ * fewer hops than the declared depth we fail closed to "unknown" (all such clients share one
+ * bucket) rather than trusting an attacker-controlled entry. Pinned by tests/unit/http.test.ts.
+ */
+export function clientKey(request: Request, options?: { proxyDepth?: number }): string {
+  const depth = Math.max(1, options?.proxyDepth ?? trustedProxyDepth());
   const forwarded = request.headers.get("x-forwarded-for");
-  return forwarded?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  if (forwarded) {
+    const hops = forwarded.split(",").map((hop) => hop.trim()).filter(Boolean);
+    if (hops.length >= depth) return hops[hops.length - depth];
+  }
+  return request.headers.get("x-real-ip") || "unknown";
 }
+
+function trustedProxyDepth(): number {
+  const raw = process.env.TRUSTED_PROXY_DEPTH;
+  if (raw === undefined || raw === "") return 1;
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed >= 1 ? parsed : 1;
+}
+
+/** Bodies larger than this are rejected before parsing — all API schemas are tiny. */
+const MAX_JSON_BYTES = 16 * 1024;
 
 type ParsedBody<T> = { ok: true; data: T } | { ok: false; response: Response };
 
@@ -46,9 +67,21 @@ export async function readJson<T>(request: Request, schema: z.ZodType<T>): Promi
   if (hasForeignOrigin(request)) {
     return { ok: false, response: apiError(403, "forbidden_origin", "Cross-origin requests are not allowed.") };
   }
+  const contentType = request.headers.get("content-type") ?? "";
+  if (!contentType.toLowerCase().startsWith("application/json")) {
+    return { ok: false, response: apiError(415, "unsupported_media_type", "Requests must be JSON.") };
+  }
+  const declaredLength = Number(request.headers.get("content-length") ?? "");
+  if (Number.isFinite(declaredLength) && declaredLength > MAX_JSON_BYTES) {
+    return { ok: false, response: apiError(413, "payload_too_large", "Request body is too large.") };
+  }
   let payload: unknown;
   try {
-    payload = await request.json();
+    const text = await request.text();
+    if (text.length > MAX_JSON_BYTES) {
+      return { ok: false, response: apiError(413, "payload_too_large", "Request body is too large.") };
+    }
+    payload = JSON.parse(text);
   } catch {
     return { ok: false, response: apiError(400, "invalid_json", "Request body must be valid JSON.") };
   }

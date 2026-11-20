@@ -46,7 +46,10 @@ test("home page carries Organization and WebSite JSON-LD", async ({ page }) => {
 
 test("product page carries Product JSON-LD with an offer", async ({ page }) => {
   await page.goto("/");
-  await page.locator("a[href^='/p/']").first().click();
+  // The first /p/ link in DOM order is the aria-hidden image link inside a carousel — click a
+  // visible card title instead and WAIT for navigation, or the script read races the home page.
+  await page.locator("a[href^='/p/']:visible").first().click();
+  await page.waitForURL(/\/p\//);
   const scripts = page.locator('script[type="application/ld+json"]');
   const bodies = await scripts.allTextContents();
   const product = bodies.map((body) => JSON.parse(body)).find((node) => node["@type"] === "Product");

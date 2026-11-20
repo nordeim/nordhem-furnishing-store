@@ -21,7 +21,7 @@ export async function ensureSessionId(): Promise<string> {
   (await cookies()).set(SESSION_COOKIE, sessionId, {
     httpOnly: true,
     sameSite: "lax",
-    secure: forwardedProto === "https",
+    secure: forwardedProto === "https" || process.env.NODE_ENV === "production",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
