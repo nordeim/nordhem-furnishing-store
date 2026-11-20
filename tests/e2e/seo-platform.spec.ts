@@ -75,9 +75,60 @@ test("security headers are present on every response (session-006 L-4)", async (
   expect(response.headers()["x-powered-by"]).toBeUndefined();
 });
 
+test("Content-Security-Policy is set with the app's source allowlist (session-007 CSP)", async ({ request }) => {
+  const response = await request.get("/");
+  const csp = response.headers()["content-security-policy"];
+  expect(csp).toBeDefined();
+  expect(csp).toContain("default-src 'self'");
+  expect(csp).toContain("img-src 'self' https://www.ikea.com data:");
+  expect(csp).toContain("object-src 'none'");
+  expect(csp).toContain("frame-ancestors 'none'");
+});
+
 test("unknown content paths return a real 404, not a soft-200 (session-006 M-3)", async ({ request }) => {
   const response = await request.get("/totally-unknown-page-xyz");
   expect(response.status()).toBe(404);
   const body = await response.text();
   expect(body).toContain("We couldn");
+  // Session-007 L-6: the 404 surfaces its own title, not the site default.
+  expect(body).toContain("Page not found");
+});
+
+test("product page exposes og:image and a twitter card (session-007 L-4)", async ({ page }) => {
+  await page.goto("/p/billy-oxberg-bookcase-white-s69528344");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+    "content",
+    /ikea\.com|\/_next\//,
+  );
+  await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute("content", "summary_large_image");
+});
+
+test("category pages have a unique meta description (session-007 L-1)", async ({ page }) => {
+  await page.goto("/cat/sofas-armchairs-700640");
+  const description = await page.locator('meta[name="description"]').getAttribute("content");
+  expect(description).toBeTruthy();
+  expect(description).toContain("Sofas");
+  expect(description).not.toBe(
+    "Discover affordable furniture and home furnishing for all homes. Find quality storage solutions, mattresses, sofas and more. Be inspired and shop now!",
+  );
+});
+
+test("footer long-tail links resolve — no dead content routes (session-007 M-2)", async ({ request }) => {
+  for (const path of [
+    "/planners/",
+    "/customer-service/faq/",
+    "/customer-service/returns-claims/guarantee/",
+    "/this-is-ikea/about-us/",
+    "/newsroom/",
+    "/ikea-business/",
+    "/campaigns/stay-cool-in-the-heat-pub521d0d30/",
+  ]) {
+    const response = await request.get(path);
+    expect(response.status(), `${path} must resolve`).toBe(200);
+  }
+});
+
+test("the health endpoint is never cached (session-007 L-3)", async ({ request }) => {
+  const response = await request.get("/api/health");
+  expect(response.headers()["cache-control"]).toBe("no-store");
 });

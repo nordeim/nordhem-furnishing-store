@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.5.0
+version: 1.6.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.5.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.6.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 006): 76 unit tests / 25 e2e / 21 smoke checks; sitemap 276 locs; checkout locks only the session's cart rows (FOR UPDATE OF cartItems); ALL client-supplied IP headers are untrusted without declared proxy depth (XFF and x-real-ip); unknown content paths 404 (no soft-200s); scanner guard covers docker-compose.yml; mobile drawer focus-trapped; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 007): 84 unit tests / 38 e2e / 21 smoke checks; sitemap 276 locs; checkout locks only the session's cart rows (FOR UPDATE OF cartItems); ALL client-supplied IP headers are untrusted without declared proxy depth (XFF and x-real-ip); unknown content paths 404 (no soft-200s); scanner guard covers docker-compose.yml; mobile drawer focus-trapped; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -69,6 +69,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
+
+## §15 Lessons (session 007)
+1. A correct fix can create link rot: killing soft-404s (session-006 M-3) was right, but nobody census'd the footer long tail — 17 rendered links started 404ing. After any routing-behavior change, crawl every internal link the site actually renders (the link-census unit test now does this permanently).
+2. Trust doctrine must cover every proxy header, in every guard: session-006 closed x-forwarded-for/x-real-ip in clientKey but left x-forwarded-host in the CSRF check. Enumerate ALL client-authorable headers once per security review, not per finding.
+3. An empty collection is a product defect even when the code is correct: the recycled-materials heuristic fired on zero corpus rows — shipping a linked, sitemapped empty shelf was the real bug. Empty-state pages must be reachable only by real states.
+4. Machine-enforce doc counts: two consecutive sessions missed count sites in manual sweeps; `tests/unit/docs-counts.test.ts` turns drift into a RED test. Any cross-file invariant that humans keep failing belongs in the suite.
+5. axe pays for itself on the first run: the sweep immediately caught a label/name mismatch no manual pass had noticed (aria-label carried the product name, visible text didn't). Gate on serious+critical to stay actionable.
+6. Test configs can be complete: "add vitest/playwright" was a no-op because the suites exist and are correctly configured — the genuine gaps were content (axe sweep, metadata pins), not config. Say so instead of churning working config.
 
 ## §14 Lessons (session 006)
 1. Closing HALF the trust hole reopens the whole: session-005 made x-forwarded-for opt-in but left x-real-ip as an unconditional fallback — live-probed, 12/12 rotating spoofed x-real-ip headers bypassed the same limiter the fix was protecting. When the fix is "distrust client headers", enumerate EVERY header in the trust path, not just the famous one.

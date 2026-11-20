@@ -37,8 +37,13 @@ posture (no static-catalog fallback).
   `camera=(), microphone=(), geolocation=(), payment=()` — e2e-pinned) and
   three 307 redirects (`/profile` → `/ikea-family`,
   `/customer-service/track-manage-order` → `/track-order`,
-  `/ikea-family/:path+` → `/ikea-family`). There is **no HSTS** (set it at
-  the TLS edge) and no CSP (documented known limitation).
+  `/ikea-family/:path+` → `/ikea-family`), and since session-007 a
+  **Content-Security-Policy** (`default-src 'self'; img-src 'self'
+  https://www.ikea.com data:; style-src 'self' 'unsafe-inline';
+  script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';
+  form-action 'self'; frame-ancestors 'none'` — the inline allowances are
+  Next's RSC bootstrap and the two JSON-LD blocks). There is **no HSTS**
+  (set it at the TLS edge).
 
 ## 2. Prerequisites
 
@@ -152,7 +157,7 @@ Verify:
 PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d app_db \
   -c "SELECT (SELECT count(*) FROM categories) AS categories, (SELECT count(*) FROM products) AS products;"
 #  categories | products
-#         23 |      242
+#         22 |      242
 ```
 
 **Reseed from scratch** (destroys orders/carts — dev only):
@@ -213,14 +218,20 @@ NEXT_PUBLIC_SITE_URL="https://your-origin" npm run build
   every caller shares the `"unknown"` bucket. Behind a trusted proxy, set
   `TRUSTED_PROXY_DEPTH=1` (or 2 for two chained proxies): the key is then
   the entry N hops from the END of `x-forwarded-for` (proxies append),
-  falling back to a proxy-set `x-real-ip`. Forward
+  falling back to a proxy-set `x-real-ip`; the CSRF check likewise
+  honors `x-forwarded-host` only under declared trust. Forward
   `X-Forwarded-Proto: https` so cookie attributes and the CSRF origin check
   stay correct.
+- **Direct-exposure ceiling**: with no proxy trust declared, every caller
+  shares the `unknown` bucket, so checkout is effectively **10/min total
+  across all users** (family 5/min, track 10/min). Fine for a single-user
+  demo; for real traffic put a proxy in front and set
+  `TRUSTED_PROXY_DEPTH=1`.
 - **Error posture**: fail loud. A database outage returns 500 via `guard()`
   and the error boundary — only the sitemap degrades (static routes) so a
   build never dies on a DB hiccup. Success responses are raw JSON payloads;
   failures are `{ error: { code, message, details? } }`.
-- **SEO**: `/sitemap.xml` (276 URLs: 2 static + 9 info routes + 23
+- **SEO**: `/sitemap.xml` (275 URLs: 2 static + 9 info routes + 22
   categories/collections + 242 products), `/robots.txt` disallows private
   session surfaces (`/cart`, `/checkout`, `/orders/`, `/track-order`,
   `/favourites`, `/search`, `/api/`), canonical links on `/cat/*` and
@@ -255,13 +266,13 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 76 unit tests, 11 files
+npm test                                                      # Vitest: 84 unit tests, 13 files
 npm run build                                                 # cold build succeeds
 BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 21 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment
-npm run test:e2e                                              # 25 e2e against the production build on :3100
+npm run test:e2e                                              # 38 e2e against the production build on :3100 (incl. the axe a11y sweep — npx playwright install chromium first)
 curl -s http://127.0.0.1:3000/api/health                      # {"ok":true} when the DB answers (SELECT 1)
-curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 276
+curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 275
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/no-such-page   # 404
 curl -s "http://127.0.0.1:3000/api/search?q=billy" | head -c 200              # live suggestions
 ```

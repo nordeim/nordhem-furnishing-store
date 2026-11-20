@@ -1,3 +1,28 @@
+# Session 007 — the CSRF-trust closure + dead-link repair + CSP/axe gates cycle
+
+**Baseline (pull to 5c86ef8, all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 76/76 · build cold ✓ · smoke 21/21 · e2e 25/25 · sitemap 276. All five session-006 fixes re-verified holding live. The operator's new commit was doc-only (this session's context, sample_DEPLOYMENT.md consumed and deleted).
+
+## What was done
+
+**Audit (read-only subagent + live probes; web-application + tdd skill methodology):** 0 CRITICAL · 0 HIGH · **4 MEDIUM · 8 LOW · 10 INFO**, plus verdicts on every deferred item (CSP and axe-core = do-now; migration journal and shared-store limiter = do-later; HSTS, token cleanup, SearchAction parity, setCartQuantity LWW = never/accept). Test configs judged sound — the standing "add vitest/playwright config" instruction was a deliberate no-op; the real gaps were content, not config.
+
+**Browser verification (agent-browser):** mobile drawer state machine (open, submenu → navigate → unmount, Escape, close + focus restore + scroll unlock); hero popover toggle; combobox ArrowDown; full manual cart→checkout→order→track round-trip; the 17 dead footer links live-confirmed.
+
+**Remediation (TDD, plan-007):**
+- **M-1**: `hasForeignOrigin` now honors `x-forwarded-host` only behind declared proxy trust — the last client-authorable header in the trust paths. Live pairing probe (`Origin` + `x-forwarded-host` both evil) went 404-pass → **403**.
+- **M-2**: RULES extended with broad prefixes — **17 dead footer/home links repaired**; new `tests/unit/link-census.test.ts` censuses every rendered internal href (RED listed all 17 → GREEN) + an e2e resolved-set pin; `/totally-unknown-page-xyz` still 404s.
+- **M-3**: **doc counts machine-enforced** — `tests/unit/docs-counts.test.ts` (5 RED on the stale sites sessions 005/006 missed → GREEN after the sweep to 84 unit / 13 files / 38 e2e / 7 tables).
+- **CSP (long-deferred, now live)**: header in next.config.ts with the audited allowlist (img-src self + ikea.com + data:, object-src none, frame-ancestors none, inline allowances for Next's RSC bootstrap and the JSON-LD blocks) — e2e-pinned, JSON-LD e2e still green.
+- **axe gate (long-deferred, now live)**: `@axe-core/playwright` sweep of 8 surfaces at serious/critical — immediately caught and fixed a `label-content-name-mismatch` (favourite button visible label now includes the product name) plus the L-2 heading-order skips (sr-only `<h2>` before the /cat, /search, /favourites grids).
+- **M-4**: the empty `recycled-materials-700324` collection dropped (0 of 242 products ever matched the heuristic, yet it was linked + sitemapped) — 23→22 categories, sitemap 276→**275**, sustainable guide features `lowest-price`, home card retargeted, DB reseeded and verified.
+- **L-1/L-3/L-4/L-6**: category meta descriptions; `/api/health` `no-store`; `og:image` + `twitter:card` on product pages; 404 page title — all e2e-pinned. **L-8**: unused icons deleted. **I-10**: compose header renamed. **DEPLOYMENT**: CSP paragraph, direct-exposure ceiling note (L-7), counts.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 84/84 (13 files)** · build cold ✓ · smoke **21/21** · **e2e 38/38** · sitemap **275** · screenshots **12/12** PIL-valid · live probes (CSRF pairing 403, health no-store, CSP present, `/planners` 200, old collection 404).
+
+**Deferred (documented):** migration journal (first real schema change) · shared-store limiter (multi-instance deploy) · HSTS (TLS edge) · SearchAction/robots parity (deliberate) · setCartQuantity LWW (accept) · CSP nonces (later tightening).
+
+---
+
 I'll continue this task from where we left off. Let me start by refreshing the local workspace and reviewing the repository.
 The workspace was reset (the repo folder is gone, but `pg/` data, `bin/` SSH shim and `scripts/` survived). This is session 006. Let me set up the plan and re-clone.
 **PostgreSQL 17 restored** — the server is back up on :5432 with the catalog intact (242 products). The sandbox recycle had pruned empty runtime subdirectories from the data dir; recreating them (`pg_notify`, `pg_tblspc`, `pg_logical/snapshots`, etc.) brought it back without data loss. Now installing npm deps and running the baseline gate:

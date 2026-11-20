@@ -100,11 +100,29 @@ describe("hasForeignOrigin (CSRF guard)", () => {
     expect(hasForeignOrigin(request({}))).toBe(false);
   });
 
-  it("rejects mismatched origins, honoring x-forwarded-host", () => {
+  it("rejects mismatched origins; x-forwarded-host is trusted ONLY when proxy trust is declared (session-007 M-1)", () => {
     expect(hasForeignOrigin(request({ origin: "https://evil.example" }))).toBe(true);
-    expect(
-      hasForeignOrigin(request({ origin: "https://evil.example", "x-forwarded-host": "evil.example" })),
-    ).toBe(false);
+    const env = process.env.TRUSTED_PROXY_DEPTH;
+    delete process.env.TRUSTED_PROXY_DEPTH;
+    try {
+      // Direct exposure: a client-supplied x-forwarded-host paired with a matching Origin
+      // must NOT pass the gate (browsers cannot set the header, but curl can — live-probed).
+      expect(
+        hasForeignOrigin(request({ origin: "https://evil.example", "x-forwarded-host": "evil.example" })),
+      ).toBe(true);
+    } finally {
+      if (env !== undefined) process.env.TRUSTED_PROXY_DEPTH = env;
+    }
+    process.env.TRUSTED_PROXY_DEPTH = "1";
+    try {
+      // Behind a declared proxy the proxy-set x-forwarded-host is authoritative.
+      expect(
+        hasForeignOrigin(request({ origin: "https://evil.example", "x-forwarded-host": "evil.example" })),
+      ).toBe(false);
+    } finally {
+      if (env === undefined) delete process.env.TRUSTED_PROXY_DEPTH;
+      else process.env.TRUSTED_PROXY_DEPTH = env;
+    }
   });
 
   it("rejects unparseable origins", () => {

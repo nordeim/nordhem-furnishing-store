@@ -22,12 +22,15 @@ export function rateLimited(result: RateLimitResult): Response {
 /**
  * CSRF guard for cookie-authenticated mutations. Browsers always send `Origin` on cross-site POSTs,
  * so a mismatch is rejected; requests without `Origin` (curl, server-to-server) are allowed because
- * they cannot ride a victim's cookies.
+ * they cannot ride a victim's cookies. The authoritative host is `x-forwarded-host` ONLY when proxy
+ * trust is declared via TRUSTED_PROXY_DEPTH >= 1 (session-007 M-1) — browsers cannot set that header,
+ * but a non-browser client pairing it with a matching Origin must not slip past the gate.
  */
 export function hasForeignOrigin(request: Request): boolean {
   const origin = request.headers.get("origin");
   if (!origin) return false;
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
+  const depth = trustedProxyDepth();
+  const host = (depth >= 1 ? request.headers.get("x-forwarded-host") : null) ?? request.headers.get("host");
   try {
     return new URL(origin).host !== host;
   } catch {

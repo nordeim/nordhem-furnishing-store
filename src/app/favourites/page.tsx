@@ -23,13 +23,17 @@ export default async function FavouritesPage() {
           </AppLink>
         </div>
       ) : (
-        <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
-          {products.map((product) => (
-            <li key={product.id}>
-              <ProductCard product={product} refreshOnFavouriteChange />
-            </li>
-          ))}
-        </ul>
+        // sr-only h2 keeps the heading order intact (h1 → h2 → card h3s) for AT and axe.
+        <>
+          <h2 className="sr-only">Saved products</h2>
+          <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
+            {products.map((product) => (
+              <li key={product.id}>
+                <ProductCard product={product} refreshOnFavouriteChange />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </div>
   );

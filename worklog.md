@@ -125,3 +125,22 @@ Work Log:
 - Final gates (all exit-code-checked): lint 0/0 ✓ · typecheck ✓ · typecheck:tests ✓ · unit 76/76 (11 files) ✓ · build cold ✓ · smoke 21/21 ✓ · e2e 25/25 (first run; ×3 pending final gate) · sitemap 276 ✓ · screenshots 12/12 PIL-valid.
 Stage Summary: 1 HIGH trust closure (x-real-ip, live-verified) + 1 scoped-lock fix + soft-404 eliminated + scanner guard extended to the new root file + compose loopback fix + DEPLOYMENT.md ground-truth rewrite (33 sibling-repo claims rejected); unit 73→76; e2e 23→25.
 Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py --remote override (paramiko shim), remote verified.
+
+Task ID: 125
+Agent: session-007 executor (the CSRF-trust closure + dead-link repair + CSP/axe gates cycle)
+Task: The operator's standing instruction: refresh (pull 5c86ef8 — doc-only), review session-006/007 docs, validate alignment, baseline gate, audit esp. recent changes with deferred-item verdicts, browser-verify mobile nav + flows, plan + execute remediation TDD, refresh screenshots, update docs, push to main via the SSH wrapper.
+Work Log:
+- Baseline (all exit-code-checked): lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 76/76 · build cold ✓ · smoke 21/21 · e2e 25/25 · sitemap 276 · live re-verification of all five session-006 fixes (rotating x-real-ip 429s at request 10; unknown → 404; FOR UPDATE OF cart_items; scanner guard; compose loopback). PostgreSQL intact from the surviving data dir.
+- Browser verification (agent-browser, 390×844 + 1440×900, dev server): mobile drawer open/submenu-navigate/unmount/Escape/close+focus-restore/scroll-lock all pass; hero popover toggle; combobox ArrowDown → first suggestion focused; full manual cart→checkout→order(IKSG-8521009240)→track right/wrong email. Dead footer links live-confirmed (fed M-2).
+- Audit (read-only subagent, web-application + tdd methodology): 0 CRITICAL · 0 HIGH · 4 MEDIUM · 8 LOW · 10 INFO + deferred-item verdicts (CSP + axe = do-now; migration journal + shared limiter = do-later; HSTS/token cleanup/SearchAction/LWW = never/accept). Test configs judged sound — no config churn.
+- Remediation (docs/plans/2026-11-20_session-007_remediation-plan.md, TDD):
+  - M-1: hasForeignOrigin honors x-forwarded-host only when TRUSTED_PROXY_DEPTH >= 1 (RED pin → GREEN; live pairing probe 403).
+  - M-2: RULES extended (customer-service, this-is-ikea, newsroom, planners, ikea-business, campaigns widened) — 17 dead footer/home links repaired; new tests/unit/link-census.test.ts (RED listed all 17 → GREEN) + e2e resolved-set pin.
+  - M-3+L-5: docs-counts.test.ts (5 RED → GREEN after sweep); PAD cookie-secure prose fixed; 6→7 tables, 73/23→84/38 counts everywhere.
+  - CSP: header added to next.config.ts (img-src ikea.com; object-src none; frame-ancestors none; inline allowances documented) — e2e pin; JSON-LD e2e still green (scripts execute).
+  - axe gate: @axe-core/playwright + tests/e2e/accessibility.spec.ts (8 surfaces, serious/critical) — surfaced label-content-name-mismatch on the favourite button (visible label now includes product name) and fixed L-2 heading skips (sr-only h2 on /cat, /search, /favourites).
+  - M-4: empty recycled-materials collection dropped from seed (23→22 categories, sitemap 276→275); sustainable guide features lowest-price; home Guides card retargeted; DB reseeded (22/242 verified); stale capture-catalog.py pair removed.
+  - L-1/L-3/L-4/L-6: category meta descriptions, /api/health no-store (json helper), og:image + twitter:card on products, 404 page title — each e2e-pinned. L-8: unused icons (check/pin) deleted. I-10: compose header renamed. DEPLOYMENT: CSP paragraph, direct-exposure ceiling note (L-7), counts.
+- Final gates (all exit-code-checked): lint 0/0 ✓ · typecheck ✓ · typecheck:tests ✓ · unit 84/84 (13 files) ✓ · build cold ✓ · smoke 21/21 ✓ · e2e 38/38 (first run; ×2 more in final gate) · sitemap 275 ✓ · screenshots 12/12 PIL-valid · live probes (CSRF pairing 403, health no-store, CSP header, /planners 200, old collection 404).
+Stage Summary: CSRF trust closed on the last client-authorable header + 17 dead links repaired + CSP and axe gates added (both long-deferred) + empty sitemapped collection removed + doc counts machine-enforced; unit 76→84; e2e 25→38; sitemap 276→275.
+Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py --remote override (paramiko shim), remote verified.

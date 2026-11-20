@@ -1,527 +1,527 @@
 {
- "categoryNav": [
-  {
-   "href": "/offers/",
-   "label": "Offers & promos",
-   "img": null
+  "categoryNav": [
+    {
+      "href": "/offers/",
+      "label": "Offers & promos",
+      "img": null
+    },
+    {
+      "href": "/cat/storage-organisation-st001/",
+      "label": "Storage & organisation solutions",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/storage-furniture-st001.jpeg"
+    },
+    {
+      "href": "/cat/small-storage-organisers-st007/",
+      "label": "Small storage & organisers",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/small-storage-organisers-st007.jpeg"
+    },
+    {
+      "href": "/cat/sofas-armchairs-700640/",
+      "label": "Sofas & armchairs",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/sofas-armchairs-700640.jpeg"
+    },
+    {
+      "href": "/cat/beds-mattresses-bm001/",
+      "label": "Beds & mattresses",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/beds-mattresses-bm001.jpeg"
+    },
+    {
+      "href": "/cat/baby-children-bc001/",
+      "label": "Baby & children's furniture",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/baby-children-bc001.jpeg"
+    },
+    {
+      "href": "/cat/chairs-stools-benches-fu002/",
+      "label": "Tables, chairs & dining furniture",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/tables-chairs-fu002.jpeg"
+    },
+    {
+      "href": "/cat/tables-desks-fu004/",
+      "label": "Study & office furniture",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/desk-desk-chairs-fu004.jpeg"
+    },
+    {
+      "href": "/cat/kitchen-cabinets-appliances-ka001/",
+      "label": "Kitchen cabinets & appliances",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/kitchen-appliances-ka001.jpeg"
+    },
+    {
+      "href": "/cat/kitchenware-tableware-kt001/",
+      "label": "Kitchenware & tableware",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/kitchenware-tableware-kt001.jpeg"
+    },
+    {
+      "href": "/cat/outdoor-products-od001/",
+      "label": "Outdoor furniture & accessories",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/outdoor-products-od001.jpeg"
+    },
+    {
+      "href": "/cat/bathroom-storage-accessories-ba001/",
+      "label": "Bathroom storage & accessories",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/bathroom-products-ba001.jpeg"
+    },
+    {
+      "href": "/cat/textiles-tl001/",
+      "label": "Textiles & rugs",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/textiles-rugs-tl001.jpeg"
+    },
+    {
+      "href": "/cat/curtains-blinds-tl002/",
+      "label": "Curtains, curtain rods & blinds",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/window-treatments-tl002.jpeg"
+    },
+    {
+      "href": "/cat/decoration-de001/",
+      "label": "Home decoration",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/decoration-de001.jpeg"
+    },
+    {
+      "href": "/cat/plants-pots-planters-pp001/",
+      "label": "Plants, pots & planters",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/pots-plants-pp001.jpeg"
+    },
+    {
+      "href": "/cat/lighting-lamps-shades-li001/",
+      "label": "Lighting, lamps & shades",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/lighting-li001.jpeg"
+    },
+    {
+      "href": "/cat/home-electronics-he001/",
+      "label": "Home electronics",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/home-electronics-he001.jpeg"
+    },
+    {
+      "href": "/cat/laundry-cleaning-accessories-lc001/",
+      "label": "Laundry & cleaning accessories",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/laundry-cleaning-lc001.jpeg"
+    },
+    {
+      "href": "/cat/home-improvement-hi001/",
+      "label": "Home improvement",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/home-improvement-hi001.jpeg"
+    },
+    {
+      "href": "/cat/food-beverages-fb001/",
+      "label": "Food & beverages",
+      "img": "https://www.ikea.com/global/assets/range-categorisation/images/product/food-beverages-fb001.jpeg"
+    },
+    {
+      "href": "/cat/christmas-decoration-wt001/",
+      "label": "Christmas trees, decorations & ornaments",
+      "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/winter-holiday-wt001.jpeg"
+    }
+  ],
+  "christmas": {
+    "title": "Let the Christmas decorating begin!",
+    "text": "Give the tree some personality, brighten up the table and make room for all the little things that make Christmas special. However you celebrate, find festive favourites to make the season feel like yours.",
+    "cta": {
+      "label": "Explore the Christmas shop",
+      "href": "/campaigns/christmas/"
+    },
+    "slides": [
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/75e07f31d6f22e07/original/PE1023277.jpg",
+        "alt": "A VINTERFINT artificial Xmas tree with classic red VINTERFINT tree decorations with presents underneath."
+      },
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/388fd3bc2dade6eb/original/PH210779-crop001.jpg",
+        "alt": "A Santa Claus/striped red VINTERFINT decoration in the living room"
+      },
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/1c4ccc22f2e3005e/original/PE1023288.jpg",
+        "alt": "A bell-shaped battery-operated/brass-colour STRÅLA LED lighting chain in the dining room"
+      }
+    ]
   },
-  {
-   "href": "/cat/storage-organisation-st001/",
-   "label": "Storage & organisation solutions",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/storage-furniture-st001.jpeg"
+  "reasons": {
+    "title": "More reasons to make a trip to IKEA 🎄",
+    "text": "There’s more to unwrap at IKEA this Christmas. Stand a chance to win our Swedish Christmas lottery, pick out a real Christmas tree and tuck into festive favourites. Come by, take your pick and make your Christmas preparations a little merrier.",
+    "banners": [
+      {
+        "href": "/campaigns/christmas/#a2d2f240-c07b-11f1-a85b-c5818c51fd69",
+        "img": "https://www.ikea.com/images/a-ikea-singapore-swedish-christmas-lottery-2026-key-visuals-83329acb1b96093a59bcdd8d4eaf5334.jpg",
+        "alt": "A IKEA Singapore Swedish Christmas lottery 2026 key visuals."
+      },
+      {
+        "href": "/campaigns/christmas/#34b59160-a8ca-11f0-a348-418fecdc57b2",
+        "img": "https://www.ikea.com/images/a-red-stripes-background-with-text-that-reads-now-available--721de464a6778df7041d25070905d412.jpg",
+        "alt": "A red stripes background with text that reads 'Now available at IKEA Tampines & IKEA Alexandra. It's beginning to smell a lot like Christmas~ 1.5~1.8m, Noble Fir tree.' On the bottom left, a green box with white text that reads 'IKEA Family members receive a $10 IKEA Gift card* when you buy a live tree. *Terms & conditions apply.'"
+      },
+      {
+        "href": "/campaigns/christmas/#2e68ae61-a8d8-11f0-9bd0-21ecd371958e",
+        "img": "https://www.ikea.com/images/ikea-2026-christmas-food-lifestyle-shot-that-showcase-rosema-61bbb2e192d7140cd8cfa9adc2826705.jpg",
+        "alt": "IKEA 2026 Christmas food lifestyle shot that showcase - Rosemark chicken whole leg with mashed potato with cream sauce and mixed vegetabls and green soya beans, Boneless pork knuckle with mashed potato with cream sauce, Chirstmas cold plate and Mini Christmas log cake."
+      }
+    ]
   },
-  {
-   "href": "/cat/small-storage-organisers-st007/",
-   "label": "Small storage & organisers",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/small-storage-organisers-st007.jpeg"
+  "xmasCards": [
+    {
+      "href": "/campaigns/christmas/#ca6a5240-d696-11f1-97fd-775a45e46756",
+      "img": "https://www.ikea.com/images/a-red-stripe-background-with-vinterfint-characters-standing--0d44ee6b55902d828d9052f1c628ef50.jpg",
+      "alt": "A red stripe background with VINTERFINT characters standing next to a directional map",
+      "label": "Christmas Vinterland & in-store activities"
+    },
+    {
+      "href": "/campaigns/christmas/#34b59160-a8ca-11f0-a348-418fecdc57b2",
+      "img": "https://www.ikea.com/images/a-close-up-shot-of-a-red-ceramic-vinterfint-santa-bowl-with--2a659796e480d12d5bc7dc2c3873ac95.jpg",
+      "alt": "A close-up shot of a red ceramic VINTERFINT Santa bowl with lid beside a brown VINTERFINT reindeer bowl with lid placed on a pine IVAR cabinet.",
+      "label": "In-store exclusive offers"
+    },
+    {
+      "href": "/campaigns/christmas/#7618acd0-c6a8-11f1-8fd1-ef52afa63262",
+      "img": "https://www.ikea.com/ext/ingkadam/m/75e07f31d6f22e07/original/PE1023277.jpg",
+      "alt": "A VINTERFINT artificial Xmas tree with classic red VINTERFINT tree decorations with presents underneath.",
+      "label": "Christmas trees & decorations"
+    },
+    {
+      "href": "/campaigns/christmas/#bdcbcc11-a8cc-11f0-a348-418fecdc57b2",
+      "img": "https://www.ikea.com/ext/ingkadam/m/603835bb635bf773/original/PH199003.jpg",
+      "alt": "A LÄTTBAKAD cookie scoop filled with cookie dough is placed next to a baking tray with a BAKTRADITION baking mat on it.",
+      "label": "Cooking & baking essentials"
+    },
+    {
+      "href": "/campaigns/christmas/#f221ca11-a8d0-11f0-a348-418fecdc57b2",
+      "img": "https://www.ikea.com/ext/ingkadam/m/65441deb26d8b611/original/PE1021866-crop001.jpg",
+      "alt": "A multicolour VINTERFINT tray in the dining room",
+      "label": "Hosting & dining essentials"
+    },
+    {
+      "href": "/campaigns/christmas/#9da80b31-a9a1-11f0-9d8f-6da5101ec5eb",
+      "img": "https://www.ikea.com/images/a-close-up-shot-of-a-red-vinterfint-2026-cushion-in-red-plac-57d08b3aebe97444f22db15ab695b3ce.jpg",
+      "alt": "A close-up shot of a red VINTERFINT 2026 cushion in red placed next to a red checkered patterned VINTERFINT 2026 cushion on a light grey sofa in a living room setting.",
+      "label": "Living room essentials"
+    },
+    {
+      "href": "/campaigns/christmas/#2e68ae61-a8d8-11f0-9bd0-21ecd371958e",
+      "img": "https://www.ikea.com/images/a-top-angle-shot-of-ikea-singapores-2026-christmas-festive-f-a33b2b2b7241cf8f37d25361d682c746.jpg",
+      "alt": "A top angle shot of IKEA Singapore's 2026 Christmas festive food at Swedish Restaurant",
+      "label": "Festive food offers"
+    },
+    {
+      "href": "/campaigns/christmas/#6ed401d1-c4e8-11f0-9ba2-25e42f914ae2",
+      "img": "https://www.ikea.com/ext/ingkadam/m/3a87f9b4aa1056c4/original/PE1021935-crop001.jpg",
+      "alt": "A double sided mixed patterns/red/white VINTERFINT gift wrap roll in the dining room",
+      "label": "IKEA Gift guide"
+    }
+  ],
+  "family": {
+    "title": "More reasons to love being an IKEA Family member",
+    "text": "Make a little more room for what you love this November. Enjoy IKEA Family offers on storage and everyday home favourites, and find smart, affordable ways to keep your home organised and feeling good.",
+    "cta": {
+      "label": "Discover more IKEA Family offers",
+      "href": "/offers/family-offers/"
+    },
+    "images": [
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/1ecec663653bface/original/PE886131.jpg",
+        "alt": "A black-brown MALM chest of 6 drawers in the bedroom"
+      },
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/5c5da1c93887869a/original/PH200810.jpg",
+        "alt": "Close-up of NÖDMAST led portable lamp in green and pink, on bedside table."
+      },
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/2abc9ae0c6d7eef8/original/PH207620.jpg",
+        "alt": "A black RÅSKOG trolley in a hallway on a LOHALS flatwoven rug, holding a hairdryer, exercise gear and rollerskates."
+      },
+      {
+        "img": "https://www.ikea.com/ext/ingkadam/m/524484d6e6cdaa82/original/PH209447.jpg",
+        "alt": "A white SOCKERBIT box with lid containing some rope and a garden hose stands on a terrace on a sunny day."
+      }
+    ]
   },
-  {
-   "href": "/cat/sofas-armchairs-700640/",
-   "label": "Sofas & armchairs",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/sofas-armchairs-700640.jpeg"
+  "feature": {
+    "title": "A modern 2-room Flexi BTO, by Home design service",
+    "text": "We love creating homes that actually feel like homes. For this homeowner, the goal is simple: to create a cosy home she can return to at the end of each day. With thoughtful planning and smart use of space, the Home design team brought warmth, functionality and character into the home.",
+    "cta": {
+      "label": "Explore this home",
+      "href": "/ideas/modern-2-room-flexi-bto-flat-pub3b5be030/"
+    },
+    "img": "https://www.ikea.com/images/modern-and-airy-2-room-flexi-bto-flat-for-a-single-executive-b8703877aeb2b6e4412baf36b4dd2fb1.jpg",
+    "alt": "Explore this home"
   },
-  {
-   "href": "/cat/beds-mattresses-bm001/",
-   "label": "Beds & mattresses",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/beds-mattresses-bm001.jpeg"
+  "happening": {
+    "title": "Don't miss out on what's happening now!",
+    "text": "Scroll to the right to discover what's happening currently in IKEA Singapore.",
+    "cards": [
+      {
+        "href": "/customer-service/services/interior-design-service-home/",
+        "img": "https://www.ikea.com/images/home-design-specialist-meeting-customer-at-ikea-singapore-fo-e22299f03caeacd60b854a23eea1fca2.jpg",
+        "alt": "Home design specialist meeting customer at IKEA Singapore for home design service",
+        "title": "Calling all BTO owners! Furnish a 4-room flat for as low as $15,000.",
+        "text": "From the kitchen, bedroom, living & dining areas, we have the designs & solutions for you. Book a free consultation & design your dream home together with our Design Specialists."
+      },
+      {
+        "href": "/campaigns/stay-cool-in-the-heat-pub521d0d30/",
+        "img": "https://www.ikea.com/images/top-seller-product-klubbsporre-pillow-usd39-90-ccf1ba72d673888cb961a7c3c44b712e.jpg",
+        "alt": "Top seller product. KLUBBSPORRE pillow. $39.90",
+        "title": "How to stay cool and comfortable in Singapore ❄️",
+        "text": "When the haze and heat gets too much, our cooling range is here to save the day. Bring home the coolest blankets, pillows, mattresses and more today."
+      },
+      {
+        "href": "/customer-service/services/assembly/#5e212f30-d892-11eb-a2ec-a1b0e42f0b5b",
+        "img": "https://www.ikea.com/images/screwdriver-icon-on-top-left-of-the-image-black-text-reads-a-1ae71118c83599e83fdbc8d1d1e3c7d1.jpg",
+        "alt": "Screwdriver icon on top left of the image. Black text reads: Assemble more for less! Our assembly service is now: 10% of total product price. Previous assembly price: 20% of product price.",
+        "title": "You can assemble it yourself – but you don’t have to",
+        "text": "Need an extra hand? Getting us to put it together can be a real time-saver. Now, we're making it more affordable for you to assemble your favourite products."
+      },
+      {
+        "href": "/cat/lowest-price/#product-list",
+        "img": "https://www.ikea.com/images/black-laiva-bookcase-price-usd29-90-aed7c5dfb855ecc94fcb3b8a45cd4caf.png",
+        "alt": "Black LAIVA bookcase. Price: $29.90.",
+        "title": "Actually ah, our lowest prices just got lower!",
+        "text": "At IKEA, we want to help you make room for more — with well-designed, functional solutions for everyday life. We’ve lowered prices on over 150 of our lowest price products. Shop now >>"
+      },
+      {
+        "href": "/rooms/ikea-real-homes-puba2435880/",
+        "img": "https://www.ikea.com/images/user-generated-content-coffee-beans-and-and-an-assortment-of-1e8e844d57477b734a3b62a3fc9db644.jpg",
+        "alt": "User generated content. Coffee beans and and an assortment of children's toys in a TROFAST shelf within a FLISAT children's table, for sensory play. Price: $99.90",
+        "title": "Loved and styled by our customers",
+        "text": "A little sensory play for kids can go a long way. Create your own \"construction\" site by combining TROFAST boxes within FLISAT children's table! Add in toys and voila!"
+      },
+      {
+        "href": "/new/new-products/#product-list",
+        "img": "https://www.ikea.com/images/new-ikea-product-ekenaset-high-back-armchair-and-footstool-u-b9cc63c5f074f33486aa5efc21069473.jpg",
+        "alt": "NEW IKEA product. EKENASET high back armchair and footstool. $369.",
+        "title": "Browse products that make your everyday life better",
+        "text": "Looking for the latest and greatest? Here is where you will find what's new."
+      }
+    ]
   },
-  {
-   "href": "/cat/baby-children-bc001/",
-   "label": "Baby & children's furniture",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/baby-children-bc001.jpeg"
+  "newCards": [
+    {
+      "href": "/new/",
+      "img": "https://www.ikea.com/images/white-text-reads-2-100-new-on-orange-background-a-alptall-re-d2723e20046cb9b3ce2aa0ce1bf4c4f7.jpg",
+      "alt": "White text reads: \"2,100+ NEW\" on orange background. A ALPTALL red panda soft toys in a forest setting. ",
+      "label": "Shop NEW products"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Ast001#product-list",
+      "img": "https://www.ikea.com/images/a-lifestyle-photo-featuring-the-oak-effect-ankarudden-chest--c41ba876ee22ff65ca978964b5f8faed.jpg",
+      "alt": "A lifestyle photo featuring the oak effect ANKARUDDEN chest of 6 drawers in a bedroom setting. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Storage & organisation"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Abm001#product-list",
+      "img": "https://www.ikea.com/images/a-lifestyle-image-of-a-beige-white-ramnefjaell-upholstered-b-49df528ff5fd38cf679aadb281a1e90a.jpg",
+      "alt": "A lifestyle image of a beige/white RAMNEFJÄLL upholstered bed in a corner of the bedroom setting. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Beds & mattresses"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3A700640#product-list",
+      "img": "https://www.ikea.com/images/a-lifestyle-image-of-a-oat-effect-off-white-ekenaeset-armcah-484f089df9f6994c0f8b0fc3d9474c4d.jpg",
+      "alt": "A lifestyle image of a oat effect/off-white EKENÄSET armcahir & footstool in the corner of a living room setting placed on a STOCKHOLM floor rug. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Living room seating"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Abc001#product-list",
+      "img": "https://www.ikea.com/images/a-lifestyle-image-of-blue-shark-ikea-ps-loemsk-childrens-acc-b814bef5a9344d13c3ac84a6b4d9e96f.jpg",
+      "alt": "A lifestyle image of blue shark IKEA PS LÖMSK children's accessories placed on a white IKEA PS LÖMSK\nChildren's swivel armchair in a children's bedroom setting. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Baby & children"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Ast007#product-list",
+      "img": "https://www.ikea.com/images/a-mid-shot-of-a-transparent-set-of-6-klippkaktus-storage-box-763bf8a3bfd611565dbb316000db7461.jpg",
+      "alt": "A mid shot of a transparent set of 6 KLIPPKAKTUS storage box for the fridge on the kitchen counter being used to organise fresh vegetables. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Small storage & organisers"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Afu004#product-list",
+      "img": "https://www.ikea.com/images/a-lifestlye-image-of-a-gaming-room-with-utklassning-gaming-c-1911543ed8a80069b9b29f216989178b.jpg",
+      "alt": "A lifestlye image of a gaming room with UTKLASSNING gaming chair in anthracite black and a gaming desk. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Study & office furniture"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Afu002#product-list",
+      "img": "https://www.ikea.com/images/a-lifestyle-image-of-dinning-room-setting-with-karskaer-tabl-53985cb694f738fa59d709f1c89e8719.jpg",
+      "alt": "A lifestyle image of dinning room setting with KARSKÄR table and chairs in rubberwood material. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Tables, chairs & dining furniture"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Akt001#product-list",
+      "img": "https://www.ikea.com/images/a-top-view-shot-of-a-table-setting-with-vardagen-cast-iron-p-7c8a3412b0f8d85ed2411bcaeadd9eed.jpg",
+      "alt": "A top view shot of a table setting with VARDAGEN cast iron pot in light pink and a handle of GRÅRÄV tableware series in medium brown and medium green. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Kitchenware & tableware"
+    },
+    {
+      "href": "/new/new-products/?filters=f-subcategories%3Atl001#product-list",
+      "img": "https://www.ikea.com/images/a-close-up-shot-of-light-beige-with-floral-patterns-kronbusk-eb21afb510c9a3dc78c8459a8d3b3c7d.jpg",
+      "alt": "A close-up shot of light beige with floral patterns KRONBUSKE duvet set with pillowcases. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
+      "label": "Textiles & rugs"
+    }
+  ],
+  "newTitle": "There's always something NEW at IKEA",
+  "trio": [
+    {
+      "title": "IKEA Family",
+      "lead": "members get more; view",
+      "linkLabel": "here",
+      "href": "/ikea-family",
+      "img": "https://www.ikea.com/images/two-customers-shopping-in-ikea-store-8278383ba6740e5cf17d505248d025c0.jpg",
+      "alt": "Two customers shopping in IKEA store"
+    },
+    {
+      "title": "IKEA For Business",
+      "lead": "find out more",
+      "linkLabel": "here",
+      "href": "/ikea-business/",
+      "img": "https://www.ikea.com/images/closeup-of-a-customer-holding-up-office-designs-during-an-ik-439ceae6a3a47d4b039a406a6f21f047.jpg",
+      "alt": "Closeup of a customer holding up office designs during an IKEA for Business meeting"
+    },
+    {
+      "title": "Visit an IKEA store",
+      "lead": "find out more",
+      "linkLabel": "here",
+      "href": "/stores",
+      "img": "https://www.ikea.com/images/two-customers-shopping-in-ikea-store-c032d9d739654604e1c71e6326c4d03a.jpg",
+      "alt": "Two customers shopping in IKEA store"
+    }
+  ],
+  "food": {
+    "title": "More ways to enjoy IKEA food",
+    "cards": [
+      {
+        "href": "/stores/restaurant/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/4048e6d6ef85c952/original/PE859007.jpg",
+        "alt": "Swedish Restaurant",
+        "title": "Swedish Restaurant",
+        "text": "At IKEA, we offer a modern taste of Sweden with honest, affordable, and appetising food. We have a variety of food for everyone."
+      },
+      {
+        "href": "/stores/restaurant/swedish-bistro-pub3f432030/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/250974ba61e36d8c/original/PH193929.jpg",
+        "alt": "Swedish Bistro",
+        "title": "Swedish Bistro",
+        "text": "Before going home, the whole family can grab an affordable snack or drink at the Swedish Bistro."
+      },
+      {
+        "href": "/stores/restaurant/swedish-food-market-pubf2000510/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/48546aa32cefce6f/original/PH170777.jpg",
+        "alt": "A frozen HUVUDROLL plant balls in the kitchen",
+        "title": "Swedish Food Market",
+        "text": "For take-home meals, meatballs, marinated herring, coffee, pastries, and various other Swedish specialities."
+      }
+    ]
   },
-  {
-   "href": "/cat/chairs-stools-benches-fu002/",
-   "label": "Tables, chairs & dining furniture",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/tables-chairs-fu002.jpeg"
+  "services": {
+    "title": "Services — your one stop to all IKEA essentials",
+    "cards": [
+      {
+        "href": "/customer-service/services/interior-design-service-home/",
+        "img": "https://www.ikea.com/images/ikea-symbol-representing-home-design-service-1e086b33b8b8f3147cfbdbe10b7047e9.jpg",
+        "alt": "IKEA symbol representing Home design service",
+        "label": "Home design service"
+      },
+      {
+        "href": "/planners/",
+        "img": "https://www.ikea.com/images/ikea-symbol-representing-ikea-planning-tools-5b9e24db1b858a00f57131ba88163f09.jpg",
+        "alt": "IKEA symbol representing IKEA planning tools",
+        "label": "Planning tools"
+      },
+      {
+        "href": "/customer-service/faq/",
+        "img": "https://www.ikea.com/images/magnifying-glass-icon-representing-frequently-asked-question-c5bc5365b4a9d79a5c84c8c3d247c229.png",
+        "alt": "Magnifying glass icon representing Frequently Asked Questions",
+        "label": "FAQ"
+      },
+      {
+        "href": "/customer-service/services/finance-options/",
+        "img": "https://www.ikea.com/images/ikea-icon-representing-finance-options-f3b1596005d7fa54328cc188ebf39758.png",
+        "alt": "IKEA icon representing Finance options",
+        "label": "Finance options"
+      },
+      {
+        "href": "/customer-service/services/delivery/",
+        "img": "https://www.ikea.com/images/truck-icon-representing-ikea-delivery-service-05c64a6d43e3c7a769f4ce3e24edb1fd.png",
+        "alt": "Truck icon representing IKEA Delivery service",
+        "label": "Delivery service"
+      },
+      {
+        "href": "/customer-service/services/assembly/",
+        "img": "https://www.ikea.com/images/hand-drill-icon-representing-assembly-service-91401018b5f6b0f65362f2a4a00b1365.png",
+        "alt": "Hand drill icon representing Assembly service",
+        "label": "Assembly service"
+      },
+      {
+        "href": "/customer-service/returns-claims/spareparts/",
+        "img": "https://www.ikea.com/images/screw-icon-representing-ikea-spare-parts-ordering-3426f1b7e659977fd8c8c80a6a7a50ed.jpg",
+        "alt": "Screw icon representing IKEA spare parts ordering",
+        "label": "Order spare parts"
+      },
+      {
+        "href": "/customer-service/returns-claims/return-policy/",
+        "img": "https://www.ikea.com/images/icon-representing-ikea-return-policy-616b3b74f755ea7831dad702f3e812c7.jpg",
+        "alt": "Icon representing IKEA return policy",
+        "label": "Returns"
+      }
+    ]
   },
-  {
-   "href": "/cat/tables-desks-fu004/",
-   "label": "Study & office furniture",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/desk-desk-chairs-fu004.jpeg"
+  "guides": {
+    "title": "Guides for your home",
+    "lead": "Do something. Change everything.",
+    "leadHref": "/product-guides/sustainable-products/",
+    "cards": [
+      {
+        "href": "/product-guides/sustainable-products/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/58b1d5747ee596e2/original/PH203867.jpg",
+        "alt": "Close-up of TIGERFINK storage complete full of soft toys brought close to bed. Bright yellow BLÅVINGAD soft toy on top.",
+        "label": "Shop recycled materials"
+      },
+      {
+        "href": "/product-guides/sustainable-products/saving-energy/",
+        "img": "https://www.ikea.com/images/a-hand-pressing-the-switch-of-a-white-table-lamp-standing-on-d3f1f7440855a6438f53b7faa1fd8eb0.jpg",
+        "alt": "A hand pressing the switch of a white table lamp standing on a light blue table.",
+        "label": "Saving energy and electricity"
+      },
+      {
+        "href": "/product-guides/sustainable-products/reducing-waste/",
+        "img": "https://www.ikea.com/images/three-white-sortera-bins-in-a-white-tiled-room-where-one-is--365527a331b36b392c4a7dc17f9c58ae.jpg",
+        "alt": "Three white SORTERA bins in a white tiled room where one is stuffed with brown paper.",
+        "label": "Reducing waste"
+      },
+      {
+        "href": "/product-guides/sustainable-products/saving-water/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/43a1bce4e49c46ad/original/PH175585-copy.jpg",
+        "alt": "Hand adjusts the water flow of a GLYPEN kitchen tap in stainless steel next to a TÅRTSMET dish-washing brush.",
+        "label": "Saving water"
+      },
+      {
+        "href": "/product-guides/sustainable-products/make-furniture-live-longer/",
+        "img": "https://www.ikea.com/images/a-persons-hand-holds-a-brush-to-apply-grey-paint-to-the-top--5d6a022365e7ffbfc02da7f1af2c7f30.jpg",
+        "alt": "A person’s hand holds a brush to apply grey paint to the top surface of a piece of untreated pine furniture.",
+        "label": "How to give furniture a longer life"
+      },
+      {
+        "href": "/product-guides/sustainable-products/reusable-products/",
+        "img": "https://www.ikea.com/images/on-a-wooden-chopping-board-a-person-covers-a-glass-of-choppe-fe85e25dd78ceb9ad366f5559ddf7136.jpg",
+        "alt": "On a wooden chopping board, a person covers a glass of chopped watermelon with a reusable silicone ÖVERMÄTT food cover.",
+        "label": "How to use less and reuse more"
+      },
+      {
+        "href": "/product-guides/sustainable-products/recycled-materials-pubaa4538a0/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/4ffd085a13906cef/original/PH210134.jpg",
+        "alt": "A close-up of a hand holding natural coloured cotton fibres, showcasing their soft and fluffy texture.",
+        "label": "Commitment to recycled materials"
+      },
+      {
+        "href": "/this-is-ikea/climate-environment/becoming-a-circular-business-pub40dc71c0/",
+        "img": "https://www.ikea.com/ext/ingkadam/m/460c2579c88967c1/original/PH206796.jpg",
+        "alt": "A person applies green paint to the edge of an IVAR shelving unit, showing that the solid wood can be painted.",
+        "label": "Becoming a circular business"
+      }
+    ]
   },
-  {
-   "href": "/cat/kitchen-cabinets-appliances-ka001/",
-   "label": "Kitchen cabinets & appliances",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/kitchen-appliances-ka001.jpeg"
-  },
-  {
-   "href": "/cat/kitchenware-tableware-kt001/",
-   "label": "Kitchenware & tableware",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/kitchenware-tableware-kt001.jpeg"
-  },
-  {
-   "href": "/cat/outdoor-products-od001/",
-   "label": "Outdoor furniture & accessories",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/outdoor-products-od001.jpeg"
-  },
-  {
-   "href": "/cat/bathroom-storage-accessories-ba001/",
-   "label": "Bathroom storage & accessories",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/bathroom-products-ba001.jpeg"
-  },
-  {
-   "href": "/cat/textiles-tl001/",
-   "label": "Textiles & rugs",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/textiles-rugs-tl001.jpeg"
-  },
-  {
-   "href": "/cat/curtains-blinds-tl002/",
-   "label": "Curtains, curtain rods & blinds",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/window-treatments-tl002.jpeg"
-  },
-  {
-   "href": "/cat/decoration-de001/",
-   "label": "Home decoration",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/decoration-de001.jpeg"
-  },
-  {
-   "href": "/cat/plants-pots-planters-pp001/",
-   "label": "Plants, pots & planters",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/pots-plants-pp001.jpeg"
-  },
-  {
-   "href": "/cat/lighting-lamps-shades-li001/",
-   "label": "Lighting, lamps & shades",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/lighting-li001.jpeg"
-  },
-  {
-   "href": "/cat/home-electronics-he001/",
-   "label": "Home electronics",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/home-electronics-he001.jpeg"
-  },
-  {
-   "href": "/cat/laundry-cleaning-accessories-lc001/",
-   "label": "Laundry & cleaning accessories",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/laundry-cleaning-lc001.jpeg"
-  },
-  {
-   "href": "/cat/home-improvement-hi001/",
-   "label": "Home improvement",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/home-improvement-hi001.jpeg"
-  },
-  {
-   "href": "/cat/food-beverages-fb001/",
-   "label": "Food & beverages",
-   "img": "https://www.ikea.com/global/assets/range-categorisation/images/product/food-beverages-fb001.jpeg"
-  },
-  {
-   "href": "/cat/christmas-decoration-wt001/",
-   "label": "Christmas trees, decorations & ornaments",
-   "img": "https://www.ikea.com/sg/en/range-categorisation/images/product/winter-holiday-wt001.jpeg"
-  }
- ],
- "christmas": {
-  "title": "Let the Christmas decorating begin!",
-  "text": "Give the tree some personality, brighten up the table and make room for all the little things that make Christmas special. However you celebrate, find festive favourites to make the season feel like yours.",
-  "cta": {
-   "label": "Explore the Christmas shop",
-   "href": "/campaigns/christmas/"
-  },
-  "slides": [
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/75e07f31d6f22e07/original/PE1023277.jpg",
-    "alt": "A VINTERFINT artificial Xmas tree with classic red VINTERFINT tree decorations with presents underneath."
-   },
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/388fd3bc2dade6eb/original/PH210779-crop001.jpg",
-    "alt": "A Santa Claus/striped red VINTERFINT decoration in the living room"
-   },
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/1c4ccc22f2e3005e/original/PE1023288.jpg",
-    "alt": "A bell-shaped battery-operated/brass-colour STRÅLA LED lighting chain in the dining room"
-   }
-  ]
- },
- "reasons": {
-  "title": "More reasons to make a trip to IKEA 🎄",
-  "text": "There’s more to unwrap at IKEA this Christmas. Stand a chance to win our Swedish Christmas lottery, pick out a real Christmas tree and tuck into festive favourites. Come by, take your pick and make your Christmas preparations a little merrier.",
-  "banners": [
-   {
-    "href": "/campaigns/christmas/#a2d2f240-c07b-11f1-a85b-c5818c51fd69",
-    "img": "https://www.ikea.com/images/a-ikea-singapore-swedish-christmas-lottery-2026-key-visuals-83329acb1b96093a59bcdd8d4eaf5334.jpg",
-    "alt": "A IKEA Singapore Swedish Christmas lottery 2026 key visuals."
-   },
-   {
-    "href": "/campaigns/christmas/#34b59160-a8ca-11f0-a348-418fecdc57b2",
-    "img": "https://www.ikea.com/images/a-red-stripes-background-with-text-that-reads-now-available--721de464a6778df7041d25070905d412.jpg",
-    "alt": "A red stripes background with text that reads 'Now available at IKEA Tampines & IKEA Alexandra. It's beginning to smell a lot like Christmas~ 1.5~1.8m, Noble Fir tree.' On the bottom left, a green box with white text that reads 'IKEA Family members receive a $10 IKEA Gift card* when you buy a live tree. *Terms & conditions apply.'"
-   },
-   {
-    "href": "/campaigns/christmas/#2e68ae61-a8d8-11f0-9bd0-21ecd371958e",
-    "img": "https://www.ikea.com/images/ikea-2026-christmas-food-lifestyle-shot-that-showcase-rosema-61bbb2e192d7140cd8cfa9adc2826705.jpg",
-    "alt": "IKEA 2026 Christmas food lifestyle shot that showcase - Rosemark chicken whole leg with mashed potato with cream sauce and mixed vegetabls and green soya beans, Boneless pork knuckle with mashed potato with cream sauce, Chirstmas cold plate and Mini Christmas log cake."
-   }
-  ]
- },
- "xmasCards": [
-  {
-   "href": "/campaigns/christmas/#ca6a5240-d696-11f1-97fd-775a45e46756",
-   "img": "https://www.ikea.com/images/a-red-stripe-background-with-vinterfint-characters-standing--0d44ee6b55902d828d9052f1c628ef50.jpg",
-   "alt": "A red stripe background with VINTERFINT characters standing next to a directional map",
-   "label": "Christmas Vinterland & in-store activities"
-  },
-  {
-   "href": "/campaigns/christmas/#34b59160-a8ca-11f0-a348-418fecdc57b2",
-   "img": "https://www.ikea.com/images/a-close-up-shot-of-a-red-ceramic-vinterfint-santa-bowl-with--2a659796e480d12d5bc7dc2c3873ac95.jpg",
-   "alt": "A close-up shot of a red ceramic VINTERFINT Santa bowl with lid beside a brown VINTERFINT reindeer bowl with lid placed on a pine IVAR cabinet.",
-   "label": "In-store exclusive offers"
-  },
-  {
-   "href": "/campaigns/christmas/#7618acd0-c6a8-11f1-8fd1-ef52afa63262",
-   "img": "https://www.ikea.com/ext/ingkadam/m/75e07f31d6f22e07/original/PE1023277.jpg",
-   "alt": "A VINTERFINT artificial Xmas tree with classic red VINTERFINT tree decorations with presents underneath.",
-   "label": "Christmas trees & decorations"
-  },
-  {
-   "href": "/campaigns/christmas/#bdcbcc11-a8cc-11f0-a348-418fecdc57b2",
-   "img": "https://www.ikea.com/ext/ingkadam/m/603835bb635bf773/original/PH199003.jpg",
-   "alt": "A LÄTTBAKAD cookie scoop filled with cookie dough is placed next to a baking tray with a BAKTRADITION baking mat on it.",
-   "label": "Cooking & baking essentials"
-  },
-  {
-   "href": "/campaigns/christmas/#f221ca11-a8d0-11f0-a348-418fecdc57b2",
-   "img": "https://www.ikea.com/ext/ingkadam/m/65441deb26d8b611/original/PE1021866-crop001.jpg",
-   "alt": "A multicolour VINTERFINT tray in the dining room",
-   "label": "Hosting & dining essentials"
-  },
-  {
-   "href": "/campaigns/christmas/#9da80b31-a9a1-11f0-9d8f-6da5101ec5eb",
-   "img": "https://www.ikea.com/images/a-close-up-shot-of-a-red-vinterfint-2026-cushion-in-red-plac-57d08b3aebe97444f22db15ab695b3ce.jpg",
-   "alt": "A close-up shot of a red VINTERFINT 2026 cushion in red placed next to a red checkered patterned VINTERFINT 2026 cushion on a light grey sofa in a living room setting.",
-   "label": "Living room essentials"
-  },
-  {
-   "href": "/campaigns/christmas/#2e68ae61-a8d8-11f0-9bd0-21ecd371958e",
-   "img": "https://www.ikea.com/images/a-top-angle-shot-of-ikea-singapores-2026-christmas-festive-f-a33b2b2b7241cf8f37d25361d682c746.jpg",
-   "alt": "A top angle shot of IKEA Singapore's 2026 Christmas festive food at Swedish Restaurant",
-   "label": "Festive food offers"
-  },
-  {
-   "href": "/campaigns/christmas/#6ed401d1-c4e8-11f0-9ba2-25e42f914ae2",
-   "img": "https://www.ikea.com/ext/ingkadam/m/3a87f9b4aa1056c4/original/PE1021935-crop001.jpg",
-   "alt": "A double sided mixed patterns/red/white VINTERFINT gift wrap roll in the dining room",
-   "label": "IKEA Gift guide"
-  }
- ],
- "family": {
-  "title": "More reasons to love being an IKEA Family member",
-  "text": "Make a little more room for what you love this November. Enjoy IKEA Family offers on storage and everyday home favourites, and find smart, affordable ways to keep your home organised and feeling good.",
-  "cta": {
-   "label": "Discover more IKEA Family offers",
-   "href": "/offers/family-offers/"
-  },
-  "images": [
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/1ecec663653bface/original/PE886131.jpg",
-    "alt": "A black-brown MALM chest of 6 drawers in the bedroom"
-   },
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/5c5da1c93887869a/original/PH200810.jpg",
-    "alt": "Close-up of NÖDMAST led portable lamp in green and pink, on bedside table."
-   },
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/2abc9ae0c6d7eef8/original/PH207620.jpg",
-    "alt": "A black RÅSKOG trolley in a hallway on a LOHALS flatwoven rug, holding a hairdryer, exercise gear and rollerskates."
-   },
-   {
-    "img": "https://www.ikea.com/ext/ingkadam/m/524484d6e6cdaa82/original/PH209447.jpg",
-    "alt": "A white SOCKERBIT box with lid containing some rope and a garden hose stands on a terrace on a sunny day."
-   }
-  ]
- },
- "feature": {
-  "title": "A modern 2-room Flexi BTO, by Home design service",
-  "text": "We love creating homes that actually feel like homes. For this homeowner, the goal is simple: to create a cosy home she can return to at the end of each day. With thoughtful planning and smart use of space, the Home design team brought warmth, functionality and character into the home.",
-  "cta": {
-   "label": "Explore this home",
-   "href": "/ideas/modern-2-room-flexi-bto-flat-pub3b5be030/"
-  },
-  "img": "https://www.ikea.com/images/modern-and-airy-2-room-flexi-bto-flat-for-a-single-executive-b8703877aeb2b6e4412baf36b4dd2fb1.jpg",
-  "alt": "Explore this home"
- },
- "happening": {
-  "title": "Don't miss out on what's happening now!",
-  "text": "Scroll to the right to discover what's happening currently in IKEA Singapore.",
-  "cards": [
-   {
-    "href": "/customer-service/services/interior-design-service-home/",
-    "img": "https://www.ikea.com/images/home-design-specialist-meeting-customer-at-ikea-singapore-fo-e22299f03caeacd60b854a23eea1fca2.jpg",
-    "alt": "Home design specialist meeting customer at IKEA Singapore for home design service",
-    "title": "Calling all BTO owners! Furnish a 4-room flat for as low as $15,000.",
-    "text": "From the kitchen, bedroom, living & dining areas, we have the designs & solutions for you. Book a free consultation & design your dream home together with our Design Specialists."
-   },
-   {
-    "href": "/campaigns/stay-cool-in-the-heat-pub521d0d30/",
-    "img": "https://www.ikea.com/images/top-seller-product-klubbsporre-pillow-usd39-90-ccf1ba72d673888cb961a7c3c44b712e.jpg",
-    "alt": "Top seller product. KLUBBSPORRE pillow. $39.90",
-    "title": "How to stay cool and comfortable in Singapore ❄️",
-    "text": "When the haze and heat gets too much, our cooling range is here to save the day. Bring home the coolest blankets, pillows, mattresses and more today."
-   },
-   {
-    "href": "/customer-service/services/assembly/#5e212f30-d892-11eb-a2ec-a1b0e42f0b5b",
-    "img": "https://www.ikea.com/images/screwdriver-icon-on-top-left-of-the-image-black-text-reads-a-1ae71118c83599e83fdbc8d1d1e3c7d1.jpg",
-    "alt": "Screwdriver icon on top left of the image. Black text reads: Assemble more for less! Our assembly service is now: 10% of total product price. Previous assembly price: 20% of product price.",
-    "title": "You can assemble it yourself – but you don’t have to",
-    "text": "Need an extra hand? Getting us to put it together can be a real time-saver. Now, we're making it more affordable for you to assemble your favourite products."
-   },
-   {
-    "href": "/cat/lowest-price/#product-list",
-    "img": "https://www.ikea.com/images/black-laiva-bookcase-price-usd29-90-aed7c5dfb855ecc94fcb3b8a45cd4caf.png",
-    "alt": "Black LAIVA bookcase. Price: $29.90.",
-    "title": "Actually ah, our lowest prices just got lower!",
-    "text": "At IKEA, we want to help you make room for more — with well-designed, functional solutions for everyday life. We’ve lowered prices on over 150 of our lowest price products. Shop now >>"
-   },
-   {
-    "href": "/rooms/ikea-real-homes-puba2435880/",
-    "img": "https://www.ikea.com/images/user-generated-content-coffee-beans-and-and-an-assortment-of-1e8e844d57477b734a3b62a3fc9db644.jpg",
-    "alt": "User generated content. Coffee beans and and an assortment of children's toys in a TROFAST shelf within a FLISAT children's table, for sensory play. Price: $99.90",
-    "title": "Loved and styled by our customers",
-    "text": "A little sensory play for kids can go a long way. Create your own \"construction\" site by combining TROFAST boxes within FLISAT children's table! Add in toys and voila!"
-   },
-   {
-    "href": "/new/new-products/#product-list",
-    "img": "https://www.ikea.com/images/new-ikea-product-ekenaset-high-back-armchair-and-footstool-u-b9cc63c5f074f33486aa5efc21069473.jpg",
-    "alt": "NEW IKEA product. EKENASET high back armchair and footstool. $369.",
-    "title": "Browse products that make your everyday life better",
-    "text": "Looking for the latest and greatest? Here is where you will find what's new."
-   }
-  ]
- },
- "newCards": [
-  {
-   "href": "/new/",
-   "img": "https://www.ikea.com/images/white-text-reads-2-100-new-on-orange-background-a-alptall-re-d2723e20046cb9b3ce2aa0ce1bf4c4f7.jpg",
-   "alt": "White text reads: \"2,100+ NEW\" on orange background. A ALPTALL red panda soft toys in a forest setting. ",
-   "label": "Shop NEW products"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Ast001#product-list",
-   "img": "https://www.ikea.com/images/a-lifestyle-photo-featuring-the-oak-effect-ankarudden-chest--c41ba876ee22ff65ca978964b5f8faed.jpg",
-   "alt": "A lifestyle photo featuring the oak effect ANKARUDDEN chest of 6 drawers in a bedroom setting. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Storage & organisation"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Abm001#product-list",
-   "img": "https://www.ikea.com/images/a-lifestyle-image-of-a-beige-white-ramnefjaell-upholstered-b-49df528ff5fd38cf679aadb281a1e90a.jpg",
-   "alt": "A lifestyle image of a beige/white RAMNEFJÄLL upholstered bed in a corner of the bedroom setting. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Beds & mattresses"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3A700640#product-list",
-   "img": "https://www.ikea.com/images/a-lifestyle-image-of-a-oat-effect-off-white-ekenaeset-armcah-484f089df9f6994c0f8b0fc3d9474c4d.jpg",
-   "alt": "A lifestyle image of a oat effect/off-white EKENÄSET armcahir & footstool in the corner of a living room setting placed on a STOCKHOLM floor rug. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Living room seating"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Abc001#product-list",
-   "img": "https://www.ikea.com/images/a-lifestyle-image-of-blue-shark-ikea-ps-loemsk-childrens-acc-b814bef5a9344d13c3ac84a6b4d9e96f.jpg",
-   "alt": "A lifestyle image of blue shark IKEA PS LÖMSK children's accessories placed on a white IKEA PS LÖMSK\nChildren's swivel armchair in a children's bedroom setting. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Baby & children"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Ast007#product-list",
-   "img": "https://www.ikea.com/images/a-mid-shot-of-a-transparent-set-of-6-klippkaktus-storage-box-763bf8a3bfd611565dbb316000db7461.jpg",
-   "alt": "A mid shot of a transparent set of 6 KLIPPKAKTUS storage box for the fridge on the kitchen counter being used to organise fresh vegetables. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Small storage & organisers"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Afu004#product-list",
-   "img": "https://www.ikea.com/images/a-lifestlye-image-of-a-gaming-room-with-utklassning-gaming-c-1911543ed8a80069b9b29f216989178b.jpg",
-   "alt": "A lifestlye image of a gaming room with UTKLASSNING gaming chair in anthracite black and a gaming desk. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Study & office furniture"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Afu002#product-list",
-   "img": "https://www.ikea.com/images/a-lifestyle-image-of-dinning-room-setting-with-karskaer-tabl-53985cb694f738fa59d709f1c89e8719.jpg",
-   "alt": "A lifestyle image of dinning room setting with KARSKÄR table and chairs in rubberwood material. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Tables, chairs & dining furniture"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Akt001#product-list",
-   "img": "https://www.ikea.com/images/a-top-view-shot-of-a-table-setting-with-vardagen-cast-iron-p-7c8a3412b0f8d85ed2411bcaeadd9eed.jpg",
-   "alt": "A top view shot of a table setting with VARDAGEN cast iron pot in light pink and a handle of GRÅRÄV tableware series in medium brown and medium green. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Kitchenware & tableware"
-  },
-  {
-   "href": "/new/new-products/?filters=f-subcategories%3Atl001#product-list",
-   "img": "https://www.ikea.com/images/a-close-up-shot-of-light-beige-with-floral-patterns-kronbusk-eb21afb510c9a3dc78c8459a8d3b3c7d.jpg",
-   "alt": "A close-up shot of light beige with floral patterns KRONBUSKE duvet set with pillowcases. Overlaying the image, orange tag that reads 'New' on the top left corner. ",
-   "label": "Textiles & rugs"
-  }
- ],
- "newTitle": "There's always something NEW at IKEA",
- "trio": [
-  {
-   "title": "IKEA Family",
-   "lead": "members get more; view",
-   "linkLabel": "here",
-   "href": "/ikea-family",
-   "img": "https://www.ikea.com/images/two-customers-shopping-in-ikea-store-8278383ba6740e5cf17d505248d025c0.jpg",
-   "alt": "Two customers shopping in IKEA store"
-  },
-  {
-   "title": "IKEA For Business",
-   "lead": "find out more",
-   "linkLabel": "here",
-   "href": "/ikea-business/",
-   "img": "https://www.ikea.com/images/closeup-of-a-customer-holding-up-office-designs-during-an-ik-439ceae6a3a47d4b039a406a6f21f047.jpg",
-   "alt": "Closeup of a customer holding up office designs during an IKEA for Business meeting"
-  },
-  {
-   "title": "Visit an IKEA store",
-   "lead": "find out more",
-   "linkLabel": "here",
-   "href": "/stores",
-   "img": "https://www.ikea.com/images/two-customers-shopping-in-ikea-store-c032d9d739654604e1c71e6326c4d03a.jpg",
-   "alt": "Two customers shopping in IKEA store"
-  }
- ],
- "food": {
-  "title": "More ways to enjoy IKEA food",
-  "cards": [
-   {
-    "href": "/stores/restaurant/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/4048e6d6ef85c952/original/PE859007.jpg",
-    "alt": "Swedish Restaurant",
-    "title": "Swedish Restaurant",
-    "text": "At IKEA, we offer a modern taste of Sweden with honest, affordable, and appetising food. We have a variety of food for everyone."
-   },
-   {
-    "href": "/stores/restaurant/swedish-bistro-pub3f432030/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/250974ba61e36d8c/original/PH193929.jpg",
-    "alt": "Swedish Bistro",
-    "title": "Swedish Bistro",
-    "text": "Before going home, the whole family can grab an affordable snack or drink at the Swedish Bistro."
-   },
-   {
-    "href": "/stores/restaurant/swedish-food-market-pubf2000510/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/48546aa32cefce6f/original/PH170777.jpg",
-    "alt": "A frozen HUVUDROLL plant balls in the kitchen",
-    "title": "Swedish Food Market",
-    "text": "For take-home meals, meatballs, marinated herring, coffee, pastries, and various other Swedish specialities."
-   }
-  ]
- },
- "services": {
-  "title": "Services — your one stop to all IKEA essentials",
-  "cards": [
-   {
-    "href": "/customer-service/services/interior-design-service-home/",
-    "img": "https://www.ikea.com/images/ikea-symbol-representing-home-design-service-1e086b33b8b8f3147cfbdbe10b7047e9.jpg",
-    "alt": "IKEA symbol representing Home design service",
-    "label": "Home design service"
-   },
-   {
-    "href": "/planners/",
-    "img": "https://www.ikea.com/images/ikea-symbol-representing-ikea-planning-tools-5b9e24db1b858a00f57131ba88163f09.jpg",
-    "alt": "IKEA symbol representing IKEA planning tools",
-    "label": "Planning tools"
-   },
-   {
-    "href": "/customer-service/faq/",
-    "img": "https://www.ikea.com/images/magnifying-glass-icon-representing-frequently-asked-question-c5bc5365b4a9d79a5c84c8c3d247c229.png",
-    "alt": "Magnifying glass icon representing Frequently Asked Questions",
-    "label": "FAQ"
-   },
-   {
-    "href": "/customer-service/services/finance-options/",
-    "img": "https://www.ikea.com/images/ikea-icon-representing-finance-options-f3b1596005d7fa54328cc188ebf39758.png",
-    "alt": "IKEA icon representing Finance options",
-    "label": "Finance options"
-   },
-   {
-    "href": "/customer-service/services/delivery/",
-    "img": "https://www.ikea.com/images/truck-icon-representing-ikea-delivery-service-05c64a6d43e3c7a769f4ce3e24edb1fd.png",
-    "alt": "Truck icon representing IKEA Delivery service",
-    "label": "Delivery service"
-   },
-   {
-    "href": "/customer-service/services/assembly/",
-    "img": "https://www.ikea.com/images/hand-drill-icon-representing-assembly-service-91401018b5f6b0f65362f2a4a00b1365.png",
-    "alt": "Hand drill icon representing Assembly service",
-    "label": "Assembly service"
-   },
-   {
-    "href": "/customer-service/returns-claims/spareparts/",
-    "img": "https://www.ikea.com/images/screw-icon-representing-ikea-spare-parts-ordering-3426f1b7e659977fd8c8c80a6a7a50ed.jpg",
-    "alt": "Screw icon representing IKEA spare parts ordering",
-    "label": "Order spare parts"
-   },
-   {
-    "href": "/customer-service/returns-claims/return-policy/",
-    "img": "https://www.ikea.com/images/icon-representing-ikea-return-policy-616b3b74f755ea7831dad702f3e812c7.jpg",
-    "alt": "Icon representing IKEA return policy",
-    "label": "Returns"
-   }
-  ]
- },
- "guides": {
-  "title": "Guides for your home",
-  "lead": "Do something. Change everything.",
-  "leadHref": "/product-guides/sustainable-products/",
-  "cards": [
-   {
-    "href": "/cat/recycled-materials-700324/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/58b1d5747ee596e2/original/PH203867.jpg",
-    "alt": "Close-up of TIGERFINK storage complete full of soft toys brought close to bed. Bright yellow BLÅVINGAD soft toy on top.",
-    "label": "Shop recycled materials"
-   },
-   {
-    "href": "/product-guides/sustainable-products/saving-energy/",
-    "img": "https://www.ikea.com/images/a-hand-pressing-the-switch-of-a-white-table-lamp-standing-on-d3f1f7440855a6438f53b7faa1fd8eb0.jpg",
-    "alt": "A hand pressing the switch of a white table lamp standing on a light blue table.",
-    "label": "Saving energy and electricity"
-   },
-   {
-    "href": "/product-guides/sustainable-products/reducing-waste/",
-    "img": "https://www.ikea.com/images/three-white-sortera-bins-in-a-white-tiled-room-where-one-is--365527a331b36b392c4a7dc17f9c58ae.jpg",
-    "alt": "Three white SORTERA bins in a white tiled room where one is stuffed with brown paper.",
-    "label": "Reducing waste"
-   },
-   {
-    "href": "/product-guides/sustainable-products/saving-water/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/43a1bce4e49c46ad/original/PH175585-copy.jpg",
-    "alt": "Hand adjusts the water flow of a GLYPEN kitchen tap in stainless steel next to a TÅRTSMET dish-washing brush.",
-    "label": "Saving water"
-   },
-   {
-    "href": "/product-guides/sustainable-products/make-furniture-live-longer/",
-    "img": "https://www.ikea.com/images/a-persons-hand-holds-a-brush-to-apply-grey-paint-to-the-top--5d6a022365e7ffbfc02da7f1af2c7f30.jpg",
-    "alt": "A person’s hand holds a brush to apply grey paint to the top surface of a piece of untreated pine furniture.",
-    "label": "How to give furniture a longer life"
-   },
-   {
-    "href": "/product-guides/sustainable-products/reusable-products/",
-    "img": "https://www.ikea.com/images/on-a-wooden-chopping-board-a-person-covers-a-glass-of-choppe-fe85e25dd78ceb9ad366f5559ddf7136.jpg",
-    "alt": "On a wooden chopping board, a person covers a glass of chopped watermelon with a reusable silicone ÖVERMÄTT food cover.",
-    "label": "How to use less and reuse more"
-   },
-   {
-    "href": "/product-guides/sustainable-products/recycled-materials-pubaa4538a0/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/4ffd085a13906cef/original/PH210134.jpg",
-    "alt": "A close-up of a hand holding natural coloured cotton fibres, showcasing their soft and fluffy texture.",
-    "label": "Commitment to recycled materials"
-   },
-   {
-    "href": "/this-is-ikea/climate-environment/becoming-a-circular-business-pub40dc71c0/",
-    "img": "https://www.ikea.com/ext/ingkadam/m/460c2579c88967c1/original/PH206796.jpg",
-    "alt": "A person applies green paint to the edge of an IVAR shelving unit, showing that the solid wood can be painted.",
-    "label": "Becoming a circular business"
-   }
-  ]
- },
- "recalls": [
-  {
-   "href": "/customer-service/product-support/secure-it-or-return-it-pub6b7f8175/",
-   "img": "https://www.ikea.com/images/product-recalls-37c6caa13fd88ec86ef1d499f341fdd1.jpg",
-   "alt": "Product recalls"
-  },
-  {
-   "href": "/customer-service/product-support/recalls/",
-   "img": "https://www.ikea.com/images/secure-it-or-return-it-4ec6bb00199cdd437477ed6f208bd90d.jpg",
-   "alt": "Secure it or return it"
-  }
- ],
- "seoText": "For more than 80 years, we work to create a better everyday life for the many people. As a furniture and home furnishing store, we do this by producing furniture and accessories that are well-designed, functional and affordable. Here you will find everything from smart home solutions to a variety of bedroom furniture, sofas, dining tables, chairs, wardrobes, textiles, cookware, decorations and more. Check out our wide range of products online and in-store."
+  "recalls": [
+    {
+      "href": "/customer-service/product-support/secure-it-or-return-it-pub6b7f8175/",
+      "img": "https://www.ikea.com/images/product-recalls-37c6caa13fd88ec86ef1d499f341fdd1.jpg",
+      "alt": "Product recalls"
+    },
+    {
+      "href": "/customer-service/product-support/recalls/",
+      "img": "https://www.ikea.com/images/secure-it-or-return-it-4ec6bb00199cdd437477ed6f208bd90d.jpg",
+      "alt": "Secure it or return it"
+    }
+  ],
+  "seoText": "For more than 80 years, we work to create a better everyday life for the many people. As a furniture and home furnishing store, we do this by producing furniture and accessories that are well-designed, functional and affordable. Here you will find everything from smart home solutions to a variety of bedroom furniture, sofas, dining tables, chairs, wardrobes, textiles, cookware, decorations and more. Check out our wide range of products online and in-store."
 }

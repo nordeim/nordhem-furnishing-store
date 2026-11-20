@@ -39,7 +39,6 @@ CATEGORIES = [
     ("food-beverages-fb001", "fb001"),
     ("christmas-decoration-wt001", "wt001"),
     ("lowest-price", "lowest-price"),
-    ("recycled-materials-700324", "recycled-materials-700324"),
 ]
 
 

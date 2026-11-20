@@ -14,7 +14,11 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   const { slug } = await params;
   const category = await getCategory(slug);
   // Canonical drops sort/page/filter params so listings don't accumulate duplicate signals.
-  return { title: category?.name ?? "Category", alternates: { canonical: `/cat/${slug}` } };
+  return {
+    title: category?.name ?? "Category",
+    description: `Shop ${category?.name ?? "our range"} at IKEA Singapore — affordable home furnishing with flat-pack prices.`,
+    alternates: { canonical: `/cat/${slug}` },
+  };
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {

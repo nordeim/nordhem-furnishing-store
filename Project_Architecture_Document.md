@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.5.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.6.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 006 — x-real-ip trust closure, scoped checkout lock, soft-404 fix, DEPLOYMENT rewrite, Docker alternative)
+**Last Updated:** 2026-11-20 (session 007 — CSRF-gate trust closure, dead-link repair, CSP + axe gates, empty-collection removal)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -109,10 +109,10 @@ src/app/globals.css # @theme tokens + @utility set + THE @source not GUARD
 src/app/{sitemap,robots,manifest}.ts   # MetadataRoute generators (session 001)
 src/components/     # layout (header+drawer, footer, search-box, toaster), shop, home, forms, ui
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
-src/db/             # schema.ts (6 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
+src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 10 files / 73 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform (23 tests)
+tests/unit/         # 13 files / 84 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility (38 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -176,7 +176,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 | Order privacy | confirmation = session-scoped 404; track = orderNo + email, single generic error (no enumeration) |
 | Secrets | none in repo; `.env` gitignored; logs are structured JSON without PII |
 | Headers | nosniff, X-Frame-Options DENY, strict referrer, restrictive Permissions-Policy |
-| Session cookie | httpOnly, SameSite=Lax, secure when x-forwarded-proto=https, 180d, UUID-validated on read |
+| Session cookie | httpOnly, SameSite=Lax, secure when x-forwarded-proto=https OR NODE_ENV=production (the production arm is unconditional), 180d, UUID-validated on read |
 
 **Known limitation (accepted):** in-memory rate limiter is single-instance. Proxy trust is opt-in since session-005: `TRUSTED_PROXY_DEPTH` unset/garbage = direct exposure (XFF ignored entirely, clients share the "unknown" bucket); a value ≥ 1 declares N trusted hops counted from the END of `x-forwarded-for`. No CSP yet.
 
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 76 tests / 11 files | Vitest (node) | `tests/unit/` |
-| E2E | 23 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 84 tests / 13 files | Vitest (node) | `tests/unit/` |
+| E2E | 38 tests / 4 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -231,7 +231,7 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | src/lib/cart-math.ts | Integer-cents totals |
 | src/lib/validation.ts | All Zod schemas + lenient listing parser |
 | src/lib/http.ts | json/apiError/rateLimited/readJson/origin guard |
-| src/db/schema.ts | The 6-table Drizzle schema |
+| src/db/schema.ts | The 7-table Drizzle schema |
 | src/db/seed.ts | Advisory-lock idempotent seed |
 | scripts/seed-cli.ts | dotenv-first db:seed entry |
 | scripts/smoke.sh | 21-check HTTP contract |
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.6.0 (2026-11-20, session 007)
+
+- `[SR]` **M-1: `x-forwarded-host` CSRF trust closed.** `hasForeignOrigin` preferred `x-forwarded-host` unconditionally — a non-browser client pairing `Origin: evil` + `x-forwarded-host: evil` passed the 403 gate (live-verified pre-fix). The header is now honored only when `TRUSTED_PROXY_DEPTH >= 1`, matching the session-005/006 doctrine; live pairing probe now 403s. Pins updated RED→GREEN.
+- `[QA]` **M-2: 17 dead content links repaired.** The session-006 soft-404 fix was correct but the RULES prefixes covered only 9 of the footer's long tail — `/planners`, `/customer-service/*` deep links, `/this-is-ikea/*`, `/newsroom/*`, `/ikea-business`, `/campaigns/stay-cool…` all 404'd from the sitewide footer/home. RULES extended with broad prefixes (titles slug-derived); a new link-census unit test fails on any rendered-but-dead internal href, and an e2e test pins the resolved set.
+- `[SR]` **CSP header live** (deferred since session-003): `default-src 'self'; img-src 'self' https://www.ikea.com data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'` — e2e-pinned; JSON-LD/RSC scripts verified still executing.
+- `[QA]` **axe-core a11y gate added** (`tests/e2e/accessibility.spec.ts`, 8 surfaces, serious/critical): immediately surfaced and fixed a `label-content-name-mismatch` on the favourite button (visible label now contains the product name, matching the aria-label) and the h1→h3 heading skips on /cat, /search, /favourites (sr-only `<h2>` inserted; L-2).
+- `[DATA]` **M-4: the empty `recycled-materials-700324` collection removed.** No corpus text matched the `/recycl/i` tagging heuristic (0 of 242 products), yet the collection was linked and sitemapped — an empty shelf. Dropped from the seed (23→22 categories, sitemap 276→275), the sustainable guide now features `lowest-price`, and the home Guides card links to the guide. Reseeded and verified live.
+- `[QA]` **M-3: doc counts machine-enforced.** New `tests/unit/docs-counts.test.ts` pins the live-tense counts in README/AGENTS/CLAUDE/PAD (unit 84/13 files, e2e 38, smoke 21, 7 tables) — RED on the 4 stale sites sessions 005/006 missed, GREEN after the sweep. Also fixed: PAD cookie-secure prose (production arm), L-1 category meta descriptions, L-3 `/api/health` no-store, L-4 og:image + twitter:card on product pages, L-6 404 page title, L-8 unused icons deleted, compose header sibling-slug renamed, DEPLOYMENT §8 direct-exposure ceiling note (L-7).
 
 ## Revision Block — v2.5.0 (2026-11-20, session 006)
 

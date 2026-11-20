@@ -1,4 +1,7 @@
+import type { Metadata } from "next";
 import { AppLink } from "@/components/ui/app-link";
+
+export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (

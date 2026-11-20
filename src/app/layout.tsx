@@ -20,6 +20,7 @@ export const metadata: Metadata = {
     title: "Nordhem Furnishing Store",
     description: "Affordable furniture and home furnishing — storage, sofas, mattresses and more.",
   },
+  twitter: { card: "summary" },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

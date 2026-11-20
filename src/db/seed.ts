@@ -19,7 +19,6 @@ interface CatalogEntry {
 }
 
 const LOWEST_PRICE = "lowest-price";
-const RECYCLED = "recycled-materials-700324";
 /** Products at or below this price (S$15) populate the "lowest price" collection. */
 const LOWEST_PRICE_CEILING_CENTS = 1500;
 const ADVISORY_LOCK_KEY = 727_001;
@@ -41,7 +40,6 @@ function buildCategoryRows() {
   return [
     ...navRows,
     { slug: LOWEST_PRICE, name: "Our lowest prices", kind: "collection", image: null, sortOrder: 100 },
-    { slug: RECYCLED, name: "Products made with recycled materials", kind: "collection", image: null, sortOrder: 101 },
   ];
 }
 
@@ -51,7 +49,6 @@ function buildProductRows(knownCategories: ReadonlySet<string>) {
     .map((entry) => {
       const collections = new Set(entry.collections);
       if (entry.priceCents <= LOWEST_PRICE_CEILING_CENTS) collections.add(LOWEST_PRICE);
-      if (/recycl/i.test(`${entry.name} ${entry.typeDesc}`)) collections.add(RECYCLED);
       return {
         articleNo: entry.articleNo,
         slug: entry.slug,

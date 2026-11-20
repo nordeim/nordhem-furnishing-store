@@ -5,6 +5,16 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // Session-007 CSP: no inline event handlers exist; inline content is limited to the two
+  // JSON-LD blocks, Next's RSC bootstrap pushes and a handful of style attributes —
+  // hence 'unsafe-inline' for style, and 'unsafe-inline' for script only because the RSC
+  // bootstrap uses inline pushes (nonce middleware is the later tightening step).
+  // Images come from self, the IKEA CDN and inline data: URIs (favicons, placeholders).
+  {
+    key: "Content-Security-Policy",
+    value:
+      "default-src 'self'; img-src 'self' https://www.ikea.com data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  },
 ];
 
 const nextConfig: NextConfig = {

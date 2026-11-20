@@ -100,13 +100,17 @@ export function ListingView({ title, crumbs, result, query, basePath, searchTerm
           </AppLink>
         </div>
       ) : (
-        <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
-          {items.map((product) => (
-            <li key={product.id}>
-              <ProductCard product={product} />
-            </li>
-          ))}
-        </ul>
+        // sr-only h2 keeps the heading order intact (h1 → h2 → card h3s) for AT and axe.
+        <>
+          <h2 className="sr-only">Products</h2>
+          <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 xl:grid-cols-4">
+            {items.map((product) => (
+              <li key={product.id}>
+                <ProductCard product={product} />
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       {pageCount > 1 && (

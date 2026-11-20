@@ -48,7 +48,9 @@ export function FavouriteButton({
       )}
     >
       <Icon name="heart" filled={active} className="size-5" />
-      {label && <span>{active ? "Saved to shopping list" : "Save to shopping list"}</span>}
+      {/* Visible text must be contained in the accessible name (axe label-content-name-mismatch):
+          the visible label includes the product name, so the aria-label does too. */}
+      {label && <span>{active ? `Saved ${name} to shopping list` : `Save ${name} to shopping list`}</span>}
     </button>
   );
 }

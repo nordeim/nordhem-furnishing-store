@@ -27,6 +27,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     title: `${product.name} ${product.typeDesc}`,
     description: `${product.name}, ${product.typeDesc}. ${formatPrice(product.priceCents)} at IKEA Singapore.`,
     alternates: { canonical: `/p/${slug}` },
+    openGraph: {
+      title: `${product.name} ${product.typeDesc}`,
+      description: `${product.name}, ${product.typeDesc}. ${formatPrice(product.priceCents)} at IKEA Singapore.`,
+      images: [imageUrl(product.image, "l")],
+    },
+    twitter: { card: "summary_large_image" },
   };
 }
 

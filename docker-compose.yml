@@ -1,4 +1,4 @@
-# NORDHEM (home-furnishing-store) — local PostgreSQL via Docker.
+# NORDHEM (nordhem-furnishing-store) — local PostgreSQL via Docker.
 #
 # Usage:
 #   Start:   docker compose up -d
