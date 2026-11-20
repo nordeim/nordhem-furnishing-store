@@ -24,14 +24,18 @@ export interface HeroSlide {
 export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
-  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // The popover is NON-modal (it never traps focus or blocks the page) — so it closes on
   // outside pointerdown and Escape, like a disclosure, instead of pretending to be a dialog.
+  // The open hotspot's container carries [data-hotspot-open]: presses inside it (the button
+  // OR its inner dot) belong to the toggle, not to "outside" — a shared buttonRef cannot
+  // express this (it would hold only the last-rendered hotspot's button).
   useEffect(() => {
     if (!openKey) return;
     function onPointerDown(event: PointerEvent) {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as Node) && buttonRef.current !== event.target) {
+      const target = event.target instanceof Element ? event.target : null;
+      const insideOpenHotspot = target?.closest("[data-hotspot-open]") ?? null;
+      if (!insideOpenHotspot && popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
         setOpenKey(null);
       }
     }
@@ -57,9 +61,8 @@ export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
             const key = `${slideIndex}-${spotIndex}`;
             const isOpen = openKey === key;
             return (
-              <div key={key} className="absolute" style={{ left: `${spot.x}%`, top: `${spot.y}%` }}>
+              <div key={key} className="absolute" style={{ left: `${spot.x}%`, top: `${spot.y}%` }} {...(isOpen ? { "data-hotspot-open": "" } : {})}>
                 <button
-                  ref={buttonRef}
                   type="button"
                   aria-expanded={isOpen}
                   aria-label={`Product information: ${spot.name}`}
@@ -71,11 +74,15 @@ export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
                 {isOpen && (
                   <div
                     ref={popoverRef}
-                    aria-label={spot.name}
+                    role="group"
+                    aria-labelledby="hotspot-popover-name"
+                    data-testid="hotspot-popover"
                     className="absolute z-20 mt-3 w-52 -translate-x-1/2 rounded-lg bg-white p-3 text-left shadow-xl"
                     style={{ left: spot.x > 70 ? "-30%" : spot.x < 30 ? "30%" : "0" }}
                   >
-                    <p className="text-sm font-bold">{spot.name}</p>
+                    <p id="hotspot-popover-name" className="text-sm font-bold">
+                      {spot.name}
+                    </p>
                     <p className="line-clamp-2 text-xs text-ink-soft">{spot.typeDesc}</p>
                     <p className="mt-1 text-sm font-bold">{formatPrice(spot.priceCents)}</p>
                     <AppLink href={spot.href} className="mt-2 inline-block text-xs font-bold underline">

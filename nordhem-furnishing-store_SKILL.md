@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.2.0
+version: 1.3.0
 last_updated: 2026-11-20
 ---
 
 # Nordhem Furnishing Store — Engineering Skill (v1.0.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 003): 70 unit tests / 22 e2e (3× consecutive green) / 21 smoke checks; sitemap covers 100% of the catalog (267 locs); mobile drawer focus-trapped; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 004): 70 unit tests / 23 e2e (3× consecutive green, exit-code-verified) / 21 smoke checks; sitemap covers 100% of the catalog (267 locs); mobile drawer focus-trapped; hero popover toggles correctly; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -69,3 +69,10 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
+
+## §12 Lessons (session 004)
+1. Never verify a test gate by grepping the last line of the runner output: Playwright prints "N passed" after the failure block, so `grep passed | tail -1` showed 21 passed and hid "1 failed". Every verdict comes from the process exit code plus the full tally block.
+2. A test born RED is a silent debt: the outside-click pin landed failing (it clicked a 1×1 sr-only h1 — pointer events intercepted by the sticky header) and the commit still claimed 22/22. After writing any new e2e test, run it ALONE and check its exit code before running the suite, and never write "N/N green" into a commit message you did not see with your own exit-code check.
+3. A shared ref bound inside a `.map()` holds only the last-rendered element — per-item interactions need per-item identity (a `data-*` marker + `closest()`), not `ref !== target` comparisons. The bug: clicking a popover's own button closed it on pointerdown and re-opened it on click (stale-true toggle).
+4. e2e locators must not be textual `filter({ hasText })` on broad attribute selectors — `[aria-label]` matched the carousel region and list ancestors. `data-testid` is boring and correct.
+5. Orphan-row hygiene for cookie-only sessions belongs in an operator cron with a dry-run default (`scripts/prune-abandoned-carts.mjs`), never in the request path — and the prune predicate must match the REAL schema (cart_items has only `updated_at`; favourites only `created_at`): check information_schema before writing the SQL, then live-verify by backdating a probe row.

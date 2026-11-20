@@ -39,7 +39,9 @@ export function hasForeignOrigin(request: Request): boolean {
  * Rate-limit key. Proxies APPEND to `x-forwarded-for`, so the FIRST entry is client-spoofable;
  * we count `proxyDepth` hops from the END (default 1 = one trusted proxy). When the header has
  * fewer hops than the declared depth we fail closed to "unknown" (all such clients share one
- * bucket) rather than trusting an attacker-controlled entry. Pinned by tests/unit/http.test.ts.
+ * bucket) rather than trusting an attacker-controlled entry. TRUSTED_PROXY_DEPTH=0 means NO
+ * trusted proxy: x-forwarded-for is ignored entirely (direct exposure posture).
+ * Pinned by tests/unit/http.test.ts.
  */
 export function clientKey(request: Request, options?: { proxyDepth?: number }): string {
   const depth = options?.proxyDepth ?? trustedProxyDepth();

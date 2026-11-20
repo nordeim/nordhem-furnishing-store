@@ -81,4 +81,4 @@ npm run lint && npm run typecheck && npm run typecheck:tests && npm test && npm 
 |---|---|---|
 | Unit (70 tests, 9 files) | Vitest | Pure seams: cart math, money, validation schemas, paths/search helpers, rate-limit windows, content contracts, SEO builders, the Tailwind scan guard |
 | E2E (Chromium) | Playwright | `mobile-navigation` (iPhone 13 viewport — the conditional-mount drawer), `storefront` (home/listing/product/search/cart), `seo-platform` (sitemap, robots, manifest, JSON-LD, noindex) |
-| Smoke (19 checks) | bash `scripts/smoke.sh` | Pages, validation rejections, cart → checkout → track round-trip, cross-session order isolation |
+| Smoke (21 checks) | bash `scripts/smoke.sh` | Pages, validation rejections, cart → checkout → track round-trip, cross-session order isolation |

@@ -62,7 +62,7 @@ test("hero hotspot popover opens, closes on Escape, and is not announced as a di
   await page.goto("/");
   const firstHotspot = page.getByRole("button", { name: /^Product information:/ }).first();
   await firstHotspot.click();
-  const popover = page.locator("[aria-label]").filter({ hasText: "View product" }).first();
+  const popover = page.getByTestId("hotspot-popover");
   await expect(popover).toBeVisible();
   // Non-modal by design: no dialog role, no aria-modal.
   await expect(page.getByRole("dialog")).toHaveCount(0);
@@ -74,8 +74,26 @@ test("hero hotspot popover opens, closes on Escape, and is not announced as a di
 test("hero hotspot popover closes on outside click", async ({ page }) => {
   await page.goto("/");
   await page.getByRole("button", { name: /^Product information:/ }).first().click();
-  const popover = page.locator("[aria-label]").filter({ hasText: "View product" }).first();
+  const popover = page.getByTestId("hotspot-popover");
   await expect(popover).toBeVisible();
-  await page.getByRole("heading", { level: 1 }).click({ position: { x: 5, y: 5 } });
+  // A genuinely visible element outside the popover (the sr-only h1 is a 1x1px box —
+  // pointer events there are intercepted by the article/header and never reach it).
+  await page.getByRole("heading", { name: /Let the Christmas decorating begin/i }).click();
+  await expect(popover).toHaveCount(0);
+});
+
+test("hero hotspot popover toggles closed by clicking its own button again", async ({ page }) => {
+  await page.goto("/");
+  const hotspot = page.getByRole("button", { name: /^Product information:/ }).first();
+  await hotspot.click();
+  const popover = page.getByTestId("hotspot-popover");
+  await expect(popover).toBeVisible();
+  // The button (or its inner dot) must toggle: pointerdown must not count as "outside".
+  await hotspot.click();
+  await expect(popover).toHaveCount(0);
+  // And clicking the inner dot too — not just the button element itself.
+  await hotspot.click();
+  await expect(popover).toBeVisible();
+  await hotspot.locator("span").click();
   await expect(popover).toHaveCount(0);
 });

@@ -58,8 +58,9 @@ the browser will refuse the cookie.
 
 ## 5. Reverse proxy and rate limiting
 
-All API limiters (cart 120/min, search 90/min, checkout 10/min, order
-tracking 10/min, family 5/min) key on the client IP derived from
+All API limiters (cart 120/min, favourites 120/min, search 90/min,
+checkout 10/min, order tracking 10/min, family 5/min) key on the client IP
+derived from
 `x-forwarded-for` (`src/lib/http.ts` → `clientKey`):
 
 - **Behind a proxy** (the supported posture): the proxy **appends** the client
@@ -85,6 +86,22 @@ npm run db:setup       # after schema changes (drizzle-kit push)
 npm run build
 # restart the server process
 ```
+
+### Pruning abandoned cart rows
+
+Sessions are cookie-only UUIDs with no sessions table, so abandoned carts and
+favourites accumulate rows. Prune them on a cron (weekly is plenty):
+
+```bash
+# report only
+DATABASE_URL=... node scripts/prune-abandoned-carts.mjs
+# delete rows untouched for over 180 days (matches the cookie maxAge)
+DATABASE_URL=... node scripts/prune-abandoned-carts.mjs --apply
+```
+
+`MAX_AGE_DAYS=90` overrides the threshold. The script is deliberately not
+wired into any request path — a hot-path scan would couple checkout latency
+to table size.
 
 ## 7. Smoke test and verification checklist
 
@@ -117,5 +134,5 @@ Loopback host required for the smoke cookie jar — the production cookie is
 
 - No CSP header yet (needs per-request nonces on Next 16).
 - `drizzle-kit push` dev posture — no migration journal for auditable DDL history.
-- Cart/favourites rows from abandoned first-visit sessions are never swept.
+- First-request session races can mint orphan cart rows; pruned by the operator cron (§6), not in-app.
 - The sitemap is prerendered at build time; catalog changes require a rebuild.

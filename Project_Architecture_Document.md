@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.2.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.3.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 003 — regression fixes + a11y)
+**Last Updated:** 2026-11-20 (session 004 — gate-integrity fixes)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -112,8 +112,8 @@ src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (6 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
 tests/unit/         # 7 files / 52 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform (18 tests)
-scripts/            # seed-cli.ts (dotenv-first), smoke.sh (19 checks), capture-catalog.py,
+tests/e2e/          # mobile-navigation, storefront, seo-platform (23 tests)
+scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
 ```
@@ -187,8 +187,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 | Tier | Count | Runner | Location |
 |---|---|---|---|
 | Unit | 70 tests / 9 files | Vitest (node) | `tests/unit/` |
-| E2E | 18 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
-| Smoke | 19 checks | bash | `scripts/smoke.sh` |
+| E2E | 23 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
 
@@ -234,11 +234,21 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | src/db/schema.ts | The 6-table Drizzle schema |
 | src/db/seed.ts | Advisory-lock idempotent seed |
 | scripts/seed-cli.ts | dotenv-first db:seed entry |
-| scripts/smoke.sh | 19-check HTTP contract |
+| scripts/smoke.sh | 21-check HTTP contract |
 | tests/unit/tailwind-scan-guard.test.ts | The scanner-guard pin |
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.3.0 (2026-11-20, session 004)
+
+- `[CA]` **Correction of the session-003 gate claim**: "e2e 22/22 ×3 consecutive green" was FALSE — the new outside-click pin had never passed (it clicked the sr-only 1×1px `h1`; pointer events are intercepted by the article/sticky header). Root cause was the verification method: grepping the last line of Playwright output hid the `1 failed` tally. All e2e verdicts now come from the process exit code + full tally. The test was born failing and was fixed this session; the suite is now genuinely 23/23 ×3 (exit-code-verified).
+- `[SR]` M-1 fixed: the hero popover's shared `buttonRef` (bound inside the hotspot map) held only the last-rendered button — clicking the open hotspot's own button (or its inner dot) fired outside-close then a stale-true re-open (live-probed flicker `true→false→true`). Replaced with a `data-hotspot-open` marker on the open hotspot's container + `closest()` in the pointerdown guard; pinned by a new own-button-toggle e2e test (button click, inner-span click).
+- `[SR]` H-1 fixed: the outside-click e2e pin now clicks a genuinely visible element (the hero heading) instead of the sr-only `h1`.
+- `[QA]` L-4: popover e2e locators hardened to `data-testid="hotspot-popover"` (the old `[aria-label]` + hasText locator matched carousel ancestors). I-9 nit: the popover now exposes its name via `role="group"` + `aria-labelledby` instead of an unexposed `aria-label` on a role-less div.
+- `[CA]` L-3 fixed (was deferred L-C): `scripts/prune-abandoned-carts.mjs` (dry-run default, `--apply` to delete, `MAX_AGE_DAYS` override, default 180d = cookie maxAge; cart_items prunes on `updated_at`, favourites on `created_at`) — live-verified by backdating probe rows (found → deleted exactly them → fresh rows untouched). Operator cron, documented in DEPLOYMENT.md §6; deliberately not in the request path.
+- `[QA]` L-1: the e2e/smoke counts stale since session-002 ("18 tests"/"19 checks") swept to 23/21 across AGENTS/CLAUDE/README/PAD — the same commit that updated unit counts had left these. L-2: DEPLOYMENT.md §5 limiter list now includes favourites 120/min. I-2: `clientKey` JSDoc documents the depth-0 posture.
+- `[CA]` Deferred (documented in docs/plans/2026-11-20_session-004): CSP header (~½ day middleware+nonce; current surface small), migration journal (needs DB baselining), unused tree-shoken tokens, SearchAction/robots parity (inert; IKEA parity).
 
 ## Revision Block — v2.2.0 (2026-11-20, session 003)
 

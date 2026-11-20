@@ -15,7 +15,7 @@ An IKEA Singapore storefront re-creation: Next.js 16 App Router · React 19 · T
 | `npm run test:e2e` | Playwright (18 tests) against the production build on :3100 — **run `npm run build` first** |
 | `npm run db:setup` | `drizzle-kit push` + idempotent seed (23 categories / 242 products) |
 | `bash docs/setup_pg_z.sh` | Rootless local PostgreSQL on :5432 (postgres:postgres/app_db) |
-| `BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh` | 19-check HTTP smoke (server must be running) |
+| `BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh` | 21-check HTTP smoke (server must be running) |
 
 **Clean check order (the only gate — no hosted CI):**
 `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`
