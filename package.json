@@ -1,12 +1,19 @@
 {
-  "name": "nextjs-postgresql-template",
+  "name": "nordhem-furnishing-store",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:tests": "tsc -p tsconfig.tests.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "db:push": "drizzle-kit push",
+    "db:seed": "tsx scripts/seed-cli.ts",
+    "db:setup": "drizzle-kit push && tsx scripts/seed-cli.ts"
   },
   "dependencies": {
     "@fontsource/noto-sans": "^5.3.0",
@@ -19,16 +26,19 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/node": "^22.19.15",
     "@types/pg": "^8.18.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.3.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.4.2",
     "postcss": "^8.5.23",
     "tailwindcss": "^4.1.17",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vitest": "^5.1.0"
   }

@@ -1,6 +1,3 @@
-// S87-2 canonical config — restored by scripts/ensure-build-configs.mjs when
-// missing or empty (the gated npm scripts run that bootstrap first; keep the
-// CONFIG_FALLBACKS registry in sync — pinned by build-config-resilience.test.ts).
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
@@ -8,12 +5,9 @@
   },
   "include": [
     "tests/**/*.ts",
-    "tests/**/*.tsx",
-    "prisma/**/*.ts",
     "playwright.config.ts",
     "vitest.config.ts",
-    "scripts/**/*.ts",
-    "scripts/**/*.mjs"
+    "scripts/**/*.ts"
   ],
-  "exclude": ["node_modules", "skills", "docs", ".next"]
+  "exclude": ["node_modules"]
 }

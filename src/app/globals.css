@@ -1,7 +1,24 @@
 @import "tailwindcss";
 
-/* Prose (README, docs) and scraped content JSON must never feed Tailwind's class scanner. */
+/* Prose, docs, vendored skills, tests and scripts must never feed Tailwind's class scanner.
+   Run-75 lesson (inherited): a colon-form aspect-ratio arbitrary token written literally in
+   root markdown prose compiled to invalid aspect-ratio CSS and broke the production build
+   behind a warm Turbopack cache. @source paths are relative to THIS file (src/app/), so
+   root-level targets need the ../../ prefix — a bare "docs"/"skills" never matches them.
+   Pinned by tests/unit/tailwind-scan-guard.test.ts — never remove this guard (and never
+   write the literal poison token in a scanned file, comments included). */
 @source not "../../README.md";
+@source not "../../AGENTS.md";
+@source not "../../CLAUDE.md";
+@source not "../../Project_Architecture_Document.md";
+@source not "../../worklog.md";
+@source not "../../ely-beauty_SKILL.md";
+@source not "../../nordhem-furnishing-store_SKILL.md";
+@source not "../../docs";
+@source not "../../skills";
+@source not "../../tests";
+@source not "../../scripts";
+@source not "../../package-lock.json";
 @source not "../content";
 
 /* Tokens measured from ikea.com/sg main stylesheet (--colour-* custom properties). */

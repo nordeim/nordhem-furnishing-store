@@ -101,3 +101,6 @@ export function ensureCatalog(): Promise<void> {
   });
   return seeding;
 }
+
+// CLI entry is scripts/seed-cli.ts (npm run db:seed): dotenv must load BEFORE this module's
+// static imports pull in src/db, which throws when DATABASE_URL is missing at import time.

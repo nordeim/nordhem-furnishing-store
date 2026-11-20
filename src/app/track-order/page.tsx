@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { TrackForm } from "@/components/forms/track-form";
 import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 
-export const metadata: Metadata = { title: "Track your order" };
+export const metadata: Metadata = { title: "Track your order", robots: { index: false } };
 
 export default function TrackOrderPage() {
   return (
