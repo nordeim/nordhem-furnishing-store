@@ -2,7 +2,7 @@
 
 NORDHEM ships as a **single Next.js application over one PostgreSQL database**:
 one Node process plus Postgres, nothing else. This revision (2026-11-20,
-session 006) is rewritten from the operator's `docs/sample_DEPLOYMENT.md`
+session 008) is rewritten from the operator's `docs/sample_DEPLOYMENT.md`
 (structure and field-tested command sequences) with **every claim re-verified
 against this codebase** — the sample was written for a sibling repo and its
 facts (9 tables, 6 API routes, Pexels imagery, mock payments, an `{ok,data}`
@@ -39,7 +39,7 @@ posture (no static-catalog fallback).
   `/customer-service/track-manage-order` → `/track-order`,
   `/ikea-family/:path+` → `/ikea-family`), and since session-007 a
   **Content-Security-Policy** (`default-src 'self'; img-src 'self'
-  https://www.ikea.com data:; style-src 'self' 'unsafe-inline';
+  https://www.ikea.com; style-src 'self' 'unsafe-inline';
   script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';
   form-action 'self'; frame-ancestors 'none'` — the inline allowances are
   Next's RSC bootstrap and the two JSON-LD blocks). There is **no HSTS**
@@ -145,9 +145,9 @@ Seeding is `ensureCatalog()` in `src/db/seed.ts`: it runs lazily on the
 **first catalog read of a process** (every `src/lib/catalog.ts` query and
 `productExists()` call it), guarded by `pg_advisory_xact_lock(727_001)` and
 a row-count check on `categories`, with `onConflictDoNothing` — idempotent,
-single-flight, and it **never overwrites live rows**. It seeds **23
-categories** (21 from `src/content/home.json` + 2 synthetic collections:
-`lowest-price`, `recycled-materials-700324`) and **242 products** from
+single-flight, and it **never overwrites live rows**. It seeds **22
+categories** (21 from `src/content/home.json` + 1 synthetic collection:
+`lowest-price`) and **242 products** from
 `src/content/catalog.json`. The result is memoized per process; a failure is
 not cached (the next request retries).
 
@@ -266,11 +266,11 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 84 unit tests, 13 files
+npm test                                                      # Vitest: 90 unit tests, 14 files
 npm run build                                                 # cold build succeeds
 BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 21 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment
-npm run test:e2e                                              # 38 e2e against the production build on :3100 (incl. the axe a11y sweep — npx playwright install chromium first)
+npm run test:e2e                                              # 44 e2e against the production build on :3100 (incl. the axe a11y sweeps — npx playwright install chromium first)
 curl -s http://127.0.0.1:3000/api/health                      # {"ok":true} when the DB answers (SELECT 1)
 curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 275
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/no-such-page   # 404

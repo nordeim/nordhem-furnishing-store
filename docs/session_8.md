@@ -1,3 +1,25 @@
+# Session 008 — the thin-content collapse + dynamic-state a11y gate cycle
+
+**Baseline (re-clone to ef35f32 after a workspace reset, all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 84/84 · build cold ✓ · smoke 21/21 · e2e 38/38 · sitemap 275. PostgreSQL restored from the surviving data dir (the recycle pruned `pg_logical/mappings` — the recurring known failure mode). All session-007 fixes re-verified holding live.
+
+## What was done
+
+**Audit (read-only subagent + live probes; web-application + tdd skill methodology):** 0 CRITICAL · 0 HIGH · **4 MEDIUM · 6 LOW · 7 INFO**, plus verdicts on every deferred item (no config changes warranted; SearchAction parity trivial do-now; migration journal + CSP nonces do-later; Redis limiter / HSTS / LWW never/accept).
+
+**Browser verification (agent-browser):** mobile drawer state machine fully passes; hero popover; combobox ArrowDown; full cart→checkout→order→track round-trip. S8-M1 (favourite pressed-state label mismatch) and S8-M2 (garbage-under-prefix → 200 with default meta, no canonical) live-confirmed pre-fix.
+
+**Remediation (TDD, plan-008):**
+- **S8-M4+M3**: docs-counts guard extended (sitemap/category constants; SKILL + DEPLOYMENT coverage) — RED on exactly the drift sites session-007 missed, GREEN after the sweep ("No CSP yet" ×4, seed counts ×2, SKILL "276 locs", DEPLOYMENT revision line).
+- **S8-M1+L4**: new dynamic-state axe spec (favourited / drawer-open / cart-with-items / suggestions-open) — immediately caught and fixed two real bugs: the pressed-state Label-in-Name violation (visible text now matches the aria-label) and a nameless cart-thumbnail link.
+- **S8-M2**: the synthesized long tail collapsed — unique per-page descriptions + canonicals folding deep pages into prefix roots (exact prefixes self-canonical); e2e-pinned and live-verified; garbage paths still 404.
+- **S8-L5**: collection rails only on exact rule prefixes (`/new/new-products` no longer shows the Christmas rail). **S8-L1**: link census verifies `/cat/`+`/p/` existence against the catalog. **S8-L2**: paginated `/cat` pages self-canonicalize. **S8-I1**: unused CSP `data:` allowance dropped. **SearchAction** removed (robots parity). **S8-L3**: unused `@vitejs/plugin-react` removed.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 90/90 (14 files)** · build cold ✓ · smoke **21/21** · **e2e 44/44 ×3** · sitemap **275** · screenshots **12/12** PIL-valid.
+
+**Deferred (documented):** migration journal · CSP nonces · Redis limiter · HSTS · setCartQuantity LWW · vitest `isolate:false` nicety.
+
+---
+
 The workspace survived (repo clean at `c9c5e18`, PostgreSQL up with 242 products). There's a new remote commit `5c86ef8` — pulling now:
 Session 007 begins. The operator's new commit `5c86ef8` is doc-only: added `docs/session_7.md` (the session-006 record as this session's context), deleted the consumed `docs/sample_DEPLOYMENT.md`, and tweaked `prompt-to-review-4.md`. No code changes. Setting up the plan:
 Docs are in lockstep with the codebase (76 unit / 25 e2e / sitemap 276 / state lines all match). Stale servers stopped. Running the baseline gate:

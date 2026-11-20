@@ -6,12 +6,16 @@ import { describe, expect, it } from "vitest";
  * the suites. The counts drifted twice (sessions 005 and 006 updated AGENTS+SKILL but missed
  * README/CLAUDE/PAD). This file makes the drift a RED test instead of a manual sweep.
  * Update the constants when a suite grows — the failures name the exact doc + line.
+ * Session-008 M-4: scope extended — SKILL + DEPLOYMENT joined the census, and the sitemap /
+ * category counts are pinned too (both drifted in session 007: "276 locs", "23 categories").
  */
-const UNIT_TESTS = 84;
-const UNIT_FILES = 13;
-const E2E_TESTS = 38;
+const UNIT_TESTS = 90;
+const UNIT_FILES = 14;
+const E2E_TESTS = 44;
 const SMOKE_CHECKS = 21;
 const TABLES = 7;
+const SITEMAP_URLS = 275;
+const CATEGORIES = 22;
 
 const DOCS: Array<[string, RegExp[]]> = [
   ["README.md", [/\b(\d+) unit tests?/i, /\b(\d+) e2e tests?/i]],
@@ -84,5 +88,44 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
       }
     }
     expect(stale, `stale counts: ${stale.join("; ")}`).toEqual([]);
+  });
+
+  it("SKILL.md state line cites the current counts (session-008 M-4)", () => {
+    const s = read("nordhem-furnishing-store_SKILL.md");
+    const state = s.match(/\*\*Project state \(session \d+\): ([^*]+)\*\*/);
+    expect(state, "SKILL state line").not.toBeNull();
+    const unit = state![1].match(/(\d+) unit tests/);
+    expect(unit, "SKILL unit count").not.toBeNull();
+    expect(Number(unit![1])).toBe(UNIT_TESTS);
+    const e2e = state![1].match(/(\d+) e2e/);
+    expect(e2e, "SKILL e2e count").not.toBeNull();
+    expect(Number(e2e![1])).toBe(E2E_TESTS);
+    const sitemap = state![1].match(/sitemap (\d+) locs/);
+    expect(sitemap, "SKILL sitemap count").not.toBeNull();
+    expect(Number(sitemap![1])).toBe(SITEMAP_URLS);
+  });
+
+  it("docs cite the current sitemap and category counts (session-008 M-4)", () => {
+    // README: the SEO row carries both.
+    const r = read("README.md");
+    const rSitemap = r.match(/\+ (\d+) categories\/collections \+ all \d+ products = (\d+) URLs/);
+    expect(rSitemap, "README sitemap arithmetic row").not.toBeNull();
+    expect(Number(rSitemap![1])).toBe(CATEGORIES);
+    expect(Number(rSitemap![2])).toBe(SITEMAP_URLS);
+    // No live-tense "276" or "23 categories" survives anywhere in README.
+    expect(r.match(/\b276\b/g) ?? [], "README must not cite 276").toEqual([]);
+    const rSeed = r.match(/idempotent seed \((\d+) categories, (\d+) products\)/);
+    expect(rSeed, "README seed claim").not.toBeNull();
+    expect(Number(rSeed![1])).toBe(CATEGORIES);
+    // DEPLOYMENT: seeds line + sitemap verify line.
+    const d = read("docs/DEPLOYMENT.md");
+    const dSeed = d.match(/seeds \*\*(\d+)\n?\s*categories\*\*/);
+    expect(dSeed, "DEPLOYMENT seeds claim").not.toBeNull();
+    expect(Number(dSeed![1])).toBe(CATEGORIES);
+    const dSitemap = d.match(/grep -c "<url>"\s*#\s*(\d+)/);
+    expect(dSitemap, "DEPLOYMENT sitemap verify line").not.toBeNull();
+    expect(Number(dSitemap![1])).toBe(SITEMAP_URLS);
+    // DEPLOYMENT must not describe the removed 2nd synthetic collection.
+    expect(d.includes("recycled-materials-700324"), "DEPLOYMENT must not cite the removed collection").toBe(false);
   });
 });

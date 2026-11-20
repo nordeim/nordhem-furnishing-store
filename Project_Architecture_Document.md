@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.6.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.7.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 007 — CSRF-gate trust closure, dead-link repair, CSP + axe gates, empty-collection removal)
+**Last Updated:** 2026-11-20 (session 008 — thin-content collapse, dynamic-state a11y gate, census existence checks)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -87,7 +87,7 @@ Next.js 16 (App Router, node server, :3000/:3100)
    Images: hot-linked ikea.com CDN (SmartImage sizing via imwidth/f= params)
 ```
 
-Single instance; no CDN; security headers (nosniff, DENY, referrer, permissions) in `next.config.ts`; no CSP yet (needs per-request nonces — known issue).
+Single instance; no CDN; security headers (nosniff, DENY, referrer, permissions) in `next.config.ts`; CSP live since session-007 (nonce-based script tightening remains future work).
 
 ---
 
@@ -111,8 +111,8 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 13 files / 84 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility (38 tests)
+tests/unit/         # 14 files / 90 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (44 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -178,7 +178,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 | Headers | nosniff, X-Frame-Options DENY, strict referrer, restrictive Permissions-Policy |
 | Session cookie | httpOnly, SameSite=Lax, secure when x-forwarded-proto=https OR NODE_ENV=production (the production arm is unconditional), 180d, UUID-validated on read |
 
-**Known limitation (accepted):** in-memory rate limiter is single-instance. Proxy trust is opt-in since session-005: `TRUSTED_PROXY_DEPTH` unset/garbage = direct exposure (XFF ignored entirely, clients share the "unknown" bucket); a value ≥ 1 declares N trusted hops counted from the END of `x-forwarded-for`. No CSP yet.
+**Known limitation (accepted):** in-memory rate limiter is single-instance. Proxy trust is opt-in since session-005: `TRUSTED_PROXY_DEPTH` unset/garbage = direct exposure (XFF ignored entirely, clients share the "unknown" bucket); a value ≥ 1 declares N trusted hops counted from the END of `x-forwarded-for`. CSP is live (session-007); the residual is `'unsafe-inline'` script/style for Next's RSC bootstrap, JSON-LD blocks and React style attributes.
 
 ---
 
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 84 tests / 13 files | Vitest (node) | `tests/unit/` |
-| E2E | 38 tests / 4 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 90 tests / 14 files | Vitest (node) | `tests/unit/` |
+| E2E | 44 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -214,7 +214,7 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 
 | Priority | Issue | Impact | Status |
 |---|---|---|---|
-| HIGH | No CSP header (needs per-request nonces on Next 16) | XSS defense-in-depth gap | Open |
+| LOW | CSP `unsafe-inline` script/style (Next RSC bootstrap, JSON-LD, style attrs) | Residual inline allowance; nonce-based script tightening is future work | Open (low) |
 | MEDIUM | `drizzle-kit push` dev posture — no migration journal | Prod schema drift risk | Open (accept for demo) |
 | MEDIUM | In-memory rate limiter (single instance) | Multi-instance would share nothing | Accepted, documented |
 | LOW | ikea.com image dependency | Offline = placeholder tiles | Accepted |
@@ -239,6 +239,28 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.7.0 (2026-11-20, session 008)
+
+- `[SEO]` **S8-M2: the synthesized long tail collapsed.** The broad RULES prefixes (session-007 M-2) had re-opened an unbounded indexable thin-content surface — any ≤6-segment path under a known prefix rendered 200 with the layout-default description and NO canonical. `resolveInfoPage` now emits a unique per-page `description` (title + rule lead + "part of" context) and a `canonicalPath` that folds deep pages into the prefix root (exact prefixes keep self-canonicals); the catch-all `generateMetadata` wires both. Live-verified: `/customer-service/faq` and even garbage-under-prefix now carry unique descriptions + prefix canonicals; `/totally-unknown-page-xyz` still 404s.
+- `[QA]` **S8-M1+L4: dynamic-state a11y gate.** New `tests/e2e/accessibility-states.spec.ts` scans four STATES, not just pages: favourited product (pressed), mobile drawer open, cart with a line item, search-suggestions panel open. It immediately caught two real bugs the static sweeps missed for seven sessions: the favourite button's pressed state still violated Label-in-Name (visible "Saved … to shopping list" vs aria-label "Remove … from shopping list" — now aligned) and the cart thumbnail link was nameless (decorative alt="" inside a link; now carries `aria-label`). 
+- `[SEO]` **S8-L2: paginated self-canonicals.** `/cat/*?page=N` canonicalized to page 1, risking tail deindexing (lowest-price spans 6 pages); page > 1 now self-canonicalizes.
+- `[QA]` **S8-L1: link census verifies existence.** The census now resolves every censused `/cat/` and `/p/` href against the catalog + seed derivation — a typo'd slug can no longer pass the prefix check and 404 live.
+- `[QA]` **S8-L5: collection rails scoped to exact prefixes.** `/new/new-products` no longer inherits the Christmas rail (rule collections render only on the rule's landing page).
+- `[SEC]` **S8-I1 + SearchAction parity.** The unused CSP `img-src data:` allowance dropped (every image is self or IKEA CDN); the WebSite JSON-LD SearchAction removed — it advertised a sitelinks searchbox targeting `/search`, which robots.txt disallows.
+- `[QA]` **S8-M4+M3: doc-drift guard extended.** `docs-counts.test.ts` now pins the sitemap (275) and category (22) counts and covers SKILL.md + DEPLOYMENT.md; it went RED on exactly the sites session-007's sweep missed (SKILL "276 locs", DEPLOYMENT "23 categories", four "No CSP yet" claims, README seed count) before the GREEN sweep.
+- `[DEP]` **S8-L3:** unused devDependency `@vitejs/plugin-react` removed.
+
+## Revision Block — v2.7.0 (2026-11-20, session 008)
+
+- `[SEO]` **S8-M2: the synthesized long tail collapsed.** The broad RULES prefixes (session-007 M-2) had re-opened an unbounded indexable thin-content surface — any ≤6-segment path under a known prefix rendered 200 with the layout-default description and NO canonical. `resolveInfoPage` now emits a unique per-page `description` (title + rule lead + "part of" context) and a `canonicalPath` that folds deep pages into the prefix root (exact prefixes keep self-canonicals); the catch-all `generateMetadata` wires both. Live-verified: `/customer-service/faq` and even garbage-under-prefix now carry unique descriptions + prefix canonicals; `/totally-unknown-page-xyz` still 404s.
+- `[QA]` **S8-M1+L4: dynamic-state a11y gate.** New `tests/e2e/accessibility-states.spec.ts` scans four STATES, not just pages: favourited product (pressed), mobile drawer open, cart with a line item, search-suggestions panel open. It immediately caught two real bugs the static sweeps missed for seven sessions: the favourite button's pressed state still violated Label-in-Name (visible "Saved … to shopping list" vs aria-label "Remove … from shopping list" — now aligned) and the cart thumbnail link was nameless (decorative alt="" inside a link; now carries `aria-label`). 
+- `[SEO]` **S8-L2: paginated self-canonicals.** `/cat/*?page=N` canonicalized to page 1, risking tail deindexing (lowest-price spans 6 pages); page > 1 now self-canonicalizes.
+- `[QA]` **S8-L1: link census verifies existence.** The census now resolves every censused `/cat/` and `/p/` href against the catalog + seed derivation — a typo'd slug can no longer pass the prefix check and 404 live.
+- `[QA]` **S8-L5: collection rails scoped to exact prefixes.** `/new/new-products` no longer inherits the Christmas rail (rule collections render only on the rule's landing page).
+- `[SEC]` **S8-I1 + SearchAction parity.** The unused CSP `img-src data:` allowance dropped (every image is self or IKEA CDN); the WebSite JSON-LD SearchAction removed — it advertised a sitelinks searchbox targeting `/search`, which robots.txt disallows.
+- `[QA]` **S8-M4+M3: doc-drift guard extended.** `docs-counts.test.ts` now pins the sitemap (275) and category (22) counts and covers SKILL.md + DEPLOYMENT.md; it went RED on exactly the sites session-007's sweep missed (SKILL "276 locs", DEPLOYMENT "23 categories", four "No CSP yet" claims, README seed count) before the GREEN sweep.
+- `[DEP]` **S8-L3:** unused devDependency `@vitejs/plugin-react` removed.
 
 ## Revision Block — v2.6.0 (2026-11-20, session 007)
 

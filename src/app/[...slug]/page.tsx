@@ -22,7 +22,17 @@ function validSegments(slug: string[]): string[] | null {
 
 export async function generateMetadata({ params }: InfoPageProps): Promise<Metadata> {
   const segments = validSegments((await params).slug);
-  return { title: segments ? resolveInfoPage(segments).title : "Page not found" };
+  if (!segments) return { title: "Page not found" };
+  // Session-008 S8-M2: unique description + canonical that folds the synthesized long tail
+  // into the prefix root (exact prefixes keep their self-canonical) — kills the thin-content
+  // surface the broad prefixes opened (every page previously carried the layout-default
+  // description and no canonical at all).
+  const page = resolveInfoPage(segments);
+  return {
+    title: page.title,
+    description: page.description,
+    alternates: { canonical: page.canonicalPath },
+  };
 }
 
 /**

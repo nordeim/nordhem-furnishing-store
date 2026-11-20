@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.6.0
+version: 1.7.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.6.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.7.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 007): 84 unit tests / 38 e2e / 21 smoke checks; sitemap 276 locs; checkout locks only the session's cart rows (FOR UPDATE OF cartItems); ALL client-supplied IP headers are untrusted without declared proxy depth (XFF and x-real-ip); unknown content paths 404 (no soft-200s); scanner guard covers docker-compose.yml; mobile drawer focus-trapped; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 008): 90 unit tests / 44 e2e / 21 smoke checks; sitemap 275 locs; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -69,6 +69,22 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
+
+## §16 Lessons (session 008)
+1. Scan STATES, not just pages: the favourite pressed-state violation survived seven sessions because every axe run analyzed freshly-loaded pages. Any interactive component with state-dependent labels/roles needs a scan per state (pressed, open, loaded-with-data).
+2. A link wrapping a decorative image is itself nameless: alt="" is correct for the image, but the link still needs an aria-label — the two accessibility decisions interact.
+3. Broad acceptance rules trade one failure class for another: killing dead links with broad prefixes (session-007) re-opened indexable thin content (session-008). Every routing acceptance rule needs a metadata-collapse story (unique description + canonical folding) in the same change.
+4. A count guard must cover every doc that makes the claim: docs-counts.test.ts caught README/AGENTS/CLAUDE/PAD drift but not SKILL/DEPLOYMENT or sitemap/category counts — and exactly those drifted. Enumerate claim sites from the docs' perspective, not the test's.
+5. Canonicals on paginated series should self-reference: canonical-to-page-1 tells crawlers the tail is duplicate; Google's guidance prefers self-canonical per page.
+6. Crawlable metadata must match robots policy: advertising a SearchAction into a disallowed path is a mixed signal — drop the advertisement, don't open the path.
+
+## §16 Lessons (session 008)
+1. Scan STATES, not just pages: the favourite pressed-state violation survived seven sessions because every axe run analyzed freshly-loaded pages. Any interactive component with state-dependent labels/roles needs a scan per state (pressed, open, loaded-with-data).
+2. A link wrapping a decorative image is itself nameless: alt="" is correct for the image, but the link still needs an aria-label — the two accessibility decisions interact.
+3. Broad acceptance rules trade one failure class for another: killing dead links with broad prefixes (session-007) re-opened indexable thin content (session-008). Every routing acceptance rule needs a metadata-collapse story (unique description + canonical folding) in the same change.
+4. A count guard must cover every doc that makes the claim: docs-counts.test.ts caught README/AGENTS/CLAUDE/PAD drift but not SKILL/DEPLOYMENT or sitemap/category counts — and exactly those drifted. Enumerate claim sites from the docs' perspective, not the test's.
+5. Canonicals on paginated series should self-reference: canonical-to-page-1 tells crawlers the tail is duplicate; Google's guidance prefers self-canonical per page.
+6. Crawlable metadata must match robots policy: advertising a SearchAction into a disallowed path is a mixed signal — drop the advertisement, don't open the path.
 
 ## §15 Lessons (session 007)
 1. A correct fix can create link rot: killing soft-404s (session-006 M-3) was right, but nobody census'd the footer long tail — 17 rendered links started 404ing. After any routing-behavior change, crawl every internal link the site actually renders (the link-census unit test now does this permanently).

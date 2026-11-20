@@ -6,6 +6,14 @@ export interface InfoPage {
   /** Collection slug whose products are featured under the lead copy. */
   collection?: string;
   officialPath: string;
+  /**
+   * Session-008 S8-M2: deep paths under a broad prefix canonicalize to the prefix root so
+   * the synthesized long tail collapses into one crawlable unit; the exact prefix keeps
+   * its self-canonical.
+   */
+  canonicalPath: string;
+  /** Unique per-page meta description (never the layout default — thin-content guard). */
+  description: string;
 }
 
 interface PageRule {
@@ -44,11 +52,18 @@ export function resolveInfoPage(segments: string[]): InfoPage {
   const path = segments.join("/");
   const rule = RULES.find((candidate) => path === candidate.prefix || path.startsWith(`${candidate.prefix}/`));
   const last = segments[segments.length - 1] ?? "";
-  const title = rule?.title && path === rule.prefix ? rule.title : slugToTitle(last);
+  const isExact = path === rule?.prefix;
+  const title = rule?.title && isExact ? rule.title : slugToTitle(last);
+  // S8-L5: the product rail belongs to the rule's landing page only — a deep story page
+  // under the same prefix must not inherit the landing page's collection.
+  const collection = isExact ? rule?.collection : undefined;
   return {
     title,
     lead: rule?.lead ?? `Find out more about ${title.toLowerCase()} at IKEA Singapore.`,
-    collection: rule?.collection,
+    collection,
     officialPath: path,
+    // S8-M2: exact prefix = self; deeper synthesized pages fold into the prefix root.
+    canonicalPath: isExact ? `/${path}` : `/${rule?.prefix ?? path}`,
+    description: `${title} — ${rule?.lead ?? `find out more at IKEA Singapore.`} ${isExact ? "" : `Part of ${rule ? slugToTitle(rule.prefix) : "IKEA"}.`}`.replace(/\s+/g, " ").trim(),
   };
 }

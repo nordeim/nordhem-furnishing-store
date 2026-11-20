@@ -55,7 +55,15 @@ export function CartView({ initial }: { initial: CartSnapshot }) {
             const busy = busyId === line.productId;
             return (
               <li key={line.productId} className="flex gap-4 py-5" aria-busy={busy}>
-                <AppLink href={`/p/${line.slug}`} className="shrink-0">
+                {/* The thumbnail link needs its own accessible name — the image inside is
+                    decorative (alt="") because the product name is linked right beside it,
+                    which left this link nameless (axe link-name, surfaced by the session-008
+                    state-scans). */}
+                <AppLink
+                  href={`/p/${line.slug}`}
+                  aria-label={`${line.name} — product image`}
+                  className="shrink-0"
+                >
                   <SmartImage src={line.image} alt="" size="s" className="size-24 object-contain mix-blend-multiply md:size-32" />
                 </AppLink>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">

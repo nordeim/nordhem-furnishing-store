@@ -80,7 +80,7 @@ test("Content-Security-Policy is set with the app's source allowlist (session-00
   const csp = response.headers()["content-security-policy"];
   expect(csp).toBeDefined();
   expect(csp).toContain("default-src 'self'");
-  expect(csp).toContain("img-src 'self' https://www.ikea.com data:");
+  expect(csp).toContain("img-src 'self' https://www.ikea.com");
   expect(csp).toContain("object-src 'none'");
   expect(csp).toContain("frame-ancestors 'none'");
 });
@@ -131,4 +131,26 @@ test("footer long-tail links resolve — no dead content routes (session-007 M-2
 test("the health endpoint is never cached (session-007 L-3)", async ({ request }) => {
   const response = await request.get("/api/health");
   expect(response.headers()["cache-control"]).toBe("no-store");
+});
+
+test("synthesized deep pages carry a unique description and fold into the prefix canonical (session-008 S8-M2)", async ({ page }) => {
+  await page.goto("/customer-service/faq");
+  // Unique, page-specific description (not the layout default).
+  const description = await page.locator('meta[name="description"]').getAttribute("content");
+  expect(description).toBeTruthy();
+  expect(description).toContain("Faq");
+  expect(description).not.toBe(
+    "Discover affordable furniture and home furnishing for all homes. Find quality storage solutions, mattresses, sofas and more. Be inspired and shop now!",
+  );
+  // The deep page canonicalizes to the prefix root; the exact prefix keeps its self-canonical.
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/customer-service$/);
+  await page.goto("/planners/");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/planners$/);
+});
+
+test("paginated category pages self-canonicalize (session-008 S8-L2)", async ({ page }) => {
+  await page.goto("/cat/lowest-price?page=2");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price\?page=2$/);
+  await page.goto("/cat/lowest-price");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price$/);
 });

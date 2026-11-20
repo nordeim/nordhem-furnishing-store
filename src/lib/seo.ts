@@ -20,11 +20,9 @@ export function buildWebsiteJsonLd(base: string) {
     "@type": "WebSite",
     name: "Nordhem Furnishing Store",
     url: base,
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${base}/search?q={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
+    // Session-008 parity fix: no SearchAction — robots.txt disallows /search (it is a
+    // private, session-less utility surface), so advertising a sitelinks searchbox would
+    // send crawlers to a disallowed target. Dropped rather than opening /search.
   };
 }
 

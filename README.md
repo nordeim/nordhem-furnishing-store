@@ -1,6 +1,6 @@
 # Nordhem Furnishing Store — an IKEA Singapore storefront re-creation
 
-![Next.js](https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs) ![React](https://img.shields.io/badge/React-19-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4_CSS--first-38bdf8) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql) ![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-c5f74f) ![Vitest](https://img.shields.io/badge/Vitest-84_passing-6e9f18) ![Playwright](https://img.shields.io/badge/Playwright-38_passing-2ead33?logo=playwright) ![License](https://img.shields.io/badge/license-Educational_Demo-grey)
+![Next.js](https://img.shields.io/badge/Next.js-16-000?logo=nextdotjs) ![React](https://img.shields.io/badge/React-19-61dafb) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6) ![Tailwind CSS](https://img.shields.io/badge/Tailwind-v4_CSS--first-38bdf8) ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql) ![Drizzle ORM](https://img.shields.io/badge/Drizzle_ORM-0.45-c5f74f) ![Vitest](https://img.shields.io/badge/Vitest-90_passing-6e9f18) ![Playwright](https://img.shields.io/badge/Playwright-44_passing-2ead33?logo=playwright) ![License](https://img.shields.io/badge/license-Educational_Demo-grey)
 
 An independent, educational re-creation of <https://www.ikea.com/sg/en/> built on Next.js 16 (App Router), React 19,
 TypeScript (strict), Tailwind CSS 4 and PostgreSQL via Drizzle ORM. It reproduces the live home page's structure and
@@ -15,7 +15,7 @@ This repo reproduces the live IKEA Singapore home page's structure, design token
 flows the marketing site only gestures at: a fully working cart, checkout, order tracking, favourites (shopping list)
 and IKEA Family sign-up. The server is the sole price authority — totals are recomputed from database prices inside the
 checkout transaction, and money is integer cents end-to-end. Identity is an opaque session cookie (no accounts, no
-credentials to leak). Everything is verified by a three-tier test suite (84 unit / 38 e2e / 21 smoke checks) that gates
+credentials to leak). Everything is verified by a three-tier test suite (90 unit / 44 e2e / 21 smoke checks) that gates
 every commit.
 
 ## Environment variables
@@ -54,9 +54,9 @@ every commit.
 npm install
 bash docs/setup_pg_z.sh         # OPTIONAL: rootless local PostgreSQL on :5432 (postgres:postgres/app_db)
 cp .env.example .env            # DATABASE_URL + NEXT_PUBLIC_SITE_URL
-npm run db:setup                # drizzle-kit push + idempotent seed (23 categories, 242 products)
+npm run db:setup                # drizzle-kit push + idempotent seed (22 categories, 242 products)
 npm run dev                     # http://localhost:3000 — the catalog seeds itself on first request
-npm test                        # unit tests (Vitest, 84 tests)
+npm test                        # unit tests (Vitest, 90 tests)
 npm run test:e2e                # Playwright against the production build on :3100 (build first)
 npm run build && npm start      # production
 BASE_URL=http://127.0.0.1:3000 scripts/smoke.sh   # HTTP end-to-end smoke test (server must be running)
@@ -99,7 +99,7 @@ npm run lint && npm run typecheck && npm run typecheck:tests && npm test && npm 
 
 - Checkout is a demo: no payment, no inventory, no emails. Delivery fee / free-delivery threshold are demo constants in `src/lib/cart-math.ts`.
 - Rate limiting is per-process memory; a multi-instance deployment needs a shared store.
-- No Content-Security-Policy header yet (needs per-request nonces with Next 16); other security headers are set in `next.config.ts`.
+- CSP is live but allows `'unsafe-inline'` script/style (Next's RSC bootstrap + JSON-LD blocks + React style attributes); nonce-based script tightening is future work (needs per-request nonces with Next 16); other security headers are set in `next.config.ts`.
 - Images load from ikea.com; if that host is unreachable tiles fall back to a neutral placeholder.
 - Rooms, ideas, services and policy pages are summarised, not fully re-authored.
 - Playwright runs Chromium only (the headless-shell build); WebKit/Firefox are not installable in the target sandbox.
@@ -108,6 +108,6 @@ npm run lint && npm run typecheck && npm run typecheck:tests && npm test && npm 
 
 | Tier | Runner | Scope |
 |---|---|---|
-| Unit (84 tests, 13 files) | Vitest | Pure seams: cart math, money, validation schemas, paths/search helpers, rate-limit windows, content contracts, SEO builders, the Tailwind scan guard |
+| Unit (90 tests, 14 files) | Vitest | Pure seams: cart math, money, validation schemas, paths/search helpers, rate-limit windows, content contracts, SEO builders, the Tailwind scan guard |
 | E2E (Chromium) | Playwright | `mobile-navigation` (iPhone 13 viewport — the conditional-mount drawer), `storefront` (home/listing/product/search/cart), `seo-platform` (sitemap, robots, manifest, JSON-LD, noindex) |
 | Smoke (21 checks) | bash `scripts/smoke.sh` | Pages, validation rejections, cart → checkout → track round-trip, cross-session order isolation |

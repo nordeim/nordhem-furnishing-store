@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { isKnownInfoPath, resolveInfoPage } from "@/content/pages";
 import home from "@/content/home.json";
+import catalog from "@/content/catalog.json";
 
 /**
  * Session-007 M-2 pin: every internal link the site actually renders (sitewide footer +
@@ -9,6 +10,9 @@ import home from "@/content/home.json";
  * known info-page rule, or an external URL. Pre-fix, 17 footer/home links 404'd because the
  * RULES prefixes covered only part of the long tail that the soft-404 fix (session-006 M-3)
  * started rejecting for real.
+ *
+ * Session-008 S8-L1: /cat/ and /p/ hrefs are additionally checked for EXISTENCE against the
+ * catalog — a typo'd slug would otherwise pass the prefix check and 404 live.
  */
 const NAV_SRC = readFileSync("src/content/nav.ts", "utf8");
 
@@ -17,12 +21,31 @@ const APP_ROUTES = new Set([
   "/", "/cart", "/checkout", "/favourites", "/ikea-family", "/search", "/track-order",
 ]);
 
+const CATEGORY_SLUGS = new Set(
+  (catalog as Array<{ category?: string }>).map((entry) => entry.category).filter(Boolean) as string[],
+);
+const PRODUCT_SLUGS = new Set(
+  (catalog as Array<{ slug?: string }>).map((entry) => entry.slug).filter(Boolean) as string[],
+);
+// The seed derives category rows from home.json's categoryNav hrefs (plus the synthetic
+// collection below) — mirror that derivation so the census stays honest.
+for (const category of home.categoryNav) {
+  const slug = category.href.replace(/^\/cat\//, "").replace(/\/+$/, "");
+  if (slug) CATEGORY_SLUGS.add(slug);
+}
+CATEGORY_SLUGS.add("lowest-price"); // the one synthetic collection (session-007 M-4)
+
 function classify(href: string): "app" | "cat" | "known-info" | "external" | "dead" {
   if (/^https?:\/\//.test(href)) return "external";
   if (href.startsWith("mailto:") || href.startsWith("tel:")) return "external";
   const path = href.split("#")[0].replace(/\/+$/, "");
   if (APP_ROUTES.has(path)) return "app";
-  if (path.startsWith("/cat/") || path.startsWith("/p/")) return "cat";
+  if (path.startsWith("/cat/")) {
+    return CATEGORY_SLUGS.has(path.slice("/cat/".length)) ? "cat" : "dead";
+  }
+  if (path.startsWith("/p/")) {
+    return PRODUCT_SLUGS.has(path.slice("/p/".length)) ? "cat" : "dead";
+  }
   if (path === "") return "app"; // bare "#anchor" on the current page
   const segments = path.replace(/^\//, "").split("/");
   return isKnownInfoPath(segments) ? "known-info" : "dead";

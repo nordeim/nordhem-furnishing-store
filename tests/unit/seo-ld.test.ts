@@ -27,15 +27,12 @@ describe("JSON-LD builders", () => {
     });
   });
 
-  it("builds a WebSite node with a SearchAction pointing at /search", () => {
+  it("builds a WebSite node WITHOUT a SearchAction — /search is robots-disallowed (session-008 parity)", () => {
     const node = buildWebsiteJsonLd("https://store.example.com");
     expect(node["@type"]).toBe("WebSite");
     expect(node.url).toBe("https://store.example.com");
-    expect(node.potentialAction).toEqual({
-      "@type": "SearchAction",
-      target: "https://store.example.com/search?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    });
+    // Advertising a sitelinks searchbox would point crawlers at a disallowed target.
+    expect("potentialAction" in node).toBe(false);
   });
 });
 

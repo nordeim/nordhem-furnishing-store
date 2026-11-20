@@ -48,9 +48,9 @@ export function FavouriteButton({
       )}
     >
       <Icon name="heart" filled={active} className="size-5" />
-      {/* Visible text must be contained in the accessible name (axe label-content-name-mismatch):
-          the visible label includes the product name, so the aria-label does too. */}
-      {label && <span>{active ? `Saved ${name} to shopping list` : `Save ${name} to shopping list`}</span>}
+      {/* Visible text must be contained in the accessible name (axe label-content-name-mismatch)
+          in BOTH states — session-008 S8-M1 extends the session-007 fix to the pressed state. */}
+      {label && <span>{active ? `Remove ${name} from shopping list` : `Save ${name} to shopping list`}</span>}
     </button>
   );
 }
