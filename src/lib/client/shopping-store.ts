@@ -77,9 +77,18 @@ export async function refreshSummary(): Promise<void> {
   setState({ cartCount: result.data.cartCount, favouriteIds: result.data.favouriteIds });
 }
 
+let summaryInflight: Promise<void> | undefined;
+
+/**
+ * Collapses concurrent callers (every FavouriteButton mount effect + the header badge) into a
+ * single in-flight request while still allowing a retry after a failure. Pinned by
+ * tests/unit/shopping-store.test.ts.
+ */
 export function ensureSummaryLoaded(): void {
-  if (!summaryLoaded) {
-    void refreshSummary();
+  if (!summaryLoaded && !summaryInflight) {
+    summaryInflight = refreshSummary().finally(() => {
+      summaryInflight = undefined;
+    });
   }
 }
 
@@ -114,6 +123,11 @@ export async function toggleFavourite(productId: number, name: string): Promise<
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+/** Test seam: the current store snapshot without a React render context. */
+export function getShoppingSnapshot(): ShoppingState {
+  return state;
 }
 
 export function useShopping(): ShoppingState {

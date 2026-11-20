@@ -33,6 +33,32 @@ describe("clientKey (X-Forwarded-For trust depth)", () => {
     const req = request({ "x-forwarded-for": "1.2.3.4" });
     expect(clientKey(req, { proxyDepth: 3 })).toBe("unknown");
   });
+
+  it("honors TRUSTED_PROXY_DEPTH=0 as 'no trusted proxy — ignore x-forwarded-for entirely'", () => {
+    const env = process.env.TRUSTED_PROXY_DEPTH;
+    process.env.TRUSTED_PROXY_DEPTH = "0";
+    try {
+      // Even a multi-hop XFF is attacker-authored on direct exposure — must not key the bucket.
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).not.toBe("10.0.0.1");
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).toBe("unknown");
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4", "x-real-ip": "9.9.9.9" }))).toBe("9.9.9.9");
+    } finally {
+      if (env === undefined) delete process.env.TRUSTED_PROXY_DEPTH;
+      else process.env.TRUSTED_PROXY_DEPTH = env;
+    }
+  });
+
+  it("explicit proxyDepth=0 (option form) also ignores XFF; garbage env falls back to 1", () => {
+    expect(clientKey(request({ "x-forwarded-for": "1.2.3.4" }), { proxyDepth: 0 })).toBe("unknown");
+    const env = process.env.TRUSTED_PROXY_DEPTH;
+    process.env.TRUSTED_PROXY_DEPTH = "garbage";
+    try {
+      expect(clientKey(request({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" }))).toBe("10.0.0.1");
+    } finally {
+      if (env === undefined) delete process.env.TRUSTED_PROXY_DEPTH;
+      else process.env.TRUSTED_PROXY_DEPTH = env;
+    }
+  });
 });
 
 describe("hasForeignOrigin (CSRF guard)", () => {

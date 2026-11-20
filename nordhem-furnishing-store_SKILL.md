@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.1.0
+version: 1.2.0
 last_updated: 2026-11-20
 ---
 
 # Nordhem Furnishing Store — Engineering Skill (v1.0.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 002): 65 unit tests / 18 e2e (3× consecutive green) / 19 smoke checks; sitemap covers 100% of the catalog (267 locs); production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 003): 70 unit tests / 22 e2e (3× consecutive green) / 21 smoke checks; sitemap covers 100% of the catalog (267 locs); mobile drawer focus-trapped; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -62,3 +62,10 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. Playwright `:visible` does NOT exclude `aria-hidden` links; `.click()` resolves at dispatch, not navigation. Click a named/visible target and assert the URL before reading the DOM — otherwise the test races (or silently passes against the previous page).
 4. `toHaveURL(/^\/p\//)` fails on absolute URLs — Playwright matches the full URL; drop the anchor or match the host too.
 5. Node's `Request` does NOT populate a `host` header from the URL — set it explicitly in unit tests that exercise host-dependent logic (the CSRF guard).
+
+## §11 Lessons (session 003)
+1. A doc/impl mismatch is its own vulnerability class: .env.example promised `TRUSTED_PROXY_DEPTH=0` = "ignore XFF" while `Math.max(1, …)` made 0 unreachable — live curl proved forged single-hop XFF still minted fresh rate-limit buckets on direct exposure. Docs that promise security behavior must be pinned by a test of that exact behavior.
+2. Removing a synchronous guard flag without adding an in-flight promise turns every mount effect into its own fetch: 25 FavouriteButtons = 25 parallel /api/summary requests. Retry-on-failure and request-collapsing are two separate requirements; the guard must cover both.
+3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
+4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
+5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.

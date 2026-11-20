@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # End-to-end HTTP smoke test: pages, validation, cart → checkout → track-order.
 # Usage: BASE_URL=http://127.0.0.1:3000 scripts/smoke.sh   (server must already be running)
+#
+# NOTE: the session cookie is Secure in production, and curl only returns Secure cookies to
+# plain-HTTP hosts on localhost/127.0.0.1 — point BASE_URL at a loopback host (or use https://).
 set -euo pipefail
 
 BASE="${BASE_URL:-http://127.0.0.1:3000}"
@@ -34,6 +37,8 @@ check "invalid body rejected" 422 "$(status -b "$JAR" -H 'Content-Type: applicat
 check "unknown product rejected" 404 "$(status -b "$JAR" -H 'Content-Type: application/json' -d '{"productId":999999}' "$BASE/api/cart")"
 check "foreign origin rejected" 403 "$(status -b "$JAR" -H 'Origin: https://evil.example' -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/cart")"
 check "invalid checkout rejected" 422 "$(status -b "$JAR" -H 'Content-Type: application/json' -d '{"name":"A","email":"bad","phone":"1","address":"x","postalCode":"12","method":"delivery"}' "$BASE/api/checkout")"
+check "non-JSON content type rejected" 415 "$(status -b "$JAR" -H 'Content-Type: text/plain' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/cart")"
+check "oversized body rejected" 413 "$(status -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID,\"junk\":\"$(printf 'x%.0s' {1..20000})\"}" "$BASE/api/cart")"
 
 ORDER="$(json -b "$JAR" -d '{"name":"Smoke Test","email":"Smoke@Example.com","phone":"+65 9123 4567","address":"1 Jurong West Street 21","postalCode":"649423","method":"delivery"}' "$BASE/api/checkout")"
 ORDER_NO="$(echo "$ORDER" | field "['orderNo']")"

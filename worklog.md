@@ -47,3 +47,23 @@ Work Log:
 - Docs: README/AGENTS/CLAUDE counts swept (65/8), PAD v2.1.0 (revision block; the false sitemap known-issue row removed; deferred items recorded), SKILL v1.1.0 (§10 session-002 lessons), .env.example documents TRUSTED_PROXY_DEPTH.
 Stage Summary: 3 HIGH + 4 MEDIUM + 7 LOW fixed TDD-first; unit +13; e2e flake eliminated; sitemap 24→267 URLs; docs lockstep.
 Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.
+
+Task ID: 121
+Agent: session-003 executor (the regression + a11y cycle)
+Task: The operator's standing instruction: refresh, review session-002 docs (docs/session_2.md, plan-002, worklog), validate alignment, restore PostgreSQL, audit the codebase esp. recent changes, browser-verify mobile nav, plan + execute remediation TDD, refresh screenshots + docs + SKILL, push to main via the SSH wrapper.
+Work Log:
+- Workspace: sandbox recycled cold again — fresh clone at c3852cb (one operator doc-only commit: docs/session_2.md, the session-002 transcript). PostgreSQL data dir survived but pg_tblspc/pg_logical subdirs vanished (the known recycle pattern) — recreated, server up, catalog intact (242/23). npm + paramiko reinstalled; .env restored.
+- Baseline gates: lint ✓ · typecheck ✓ · typecheck:tests ✓ · unit 65/65 ✓ · build ✓ · smoke 19/19 ✓ · sitemap 267 locs ✓ · e2e 18/18 ×3 ✓. Alignment: every session-002 claim re-verified true on the fresh clone.
+- Audit (read-only subagent, web-application skill; src/ + docs; live curl + psql probes): 0 CRITICAL · 1 HIGH · 2 MEDIUM · 5 LOW · 8 INFO. All TEN session-002 changes verified genuinely correct, except the findings below. The subagent live-reproduced the first-request session race (L-C) and the forged-XFF bucketing (H-1) against the running server.
+- Remediation (docs/plans/2026-11-20_session-003_remediation-plan.md, TDD):
+  - H-1: .env.example promised TRUSTED_PROXY_DEPTH=0 = "ignore XFF" but clientKey clamped depth to Math.max(1,…) — explicit 0 unreachable; live-verified forged single-hop XFF still minted fresh rate-limit buckets on direct exposure. Fixed: depth 0 honored (XFF ignored entirely → x-real-ip/unknown); 2 new unit pins (13 total in http.test.ts).
+  - M-1 (session-002 regression): ensureSummaryLoaded lost its in-flight guard — every FavouriteButton mount fired its own /api/summary (≈25/page). Fixed with an in-flight promise memo; retry-on-failure preserved; 3 new tests (tests/unit/shopping-store.test.ts, fetch-stubbed: 25 callers → 1 request).
+  - M-2: docs/DEPLOYMENT.md still described the pre-rewrite ElyBeauty app (SQLite, Prisma, AUTH_SECRET, Stripe, admin console, CF-Connecting-IP — none exist). Rewritten for this stack (Postgres/Drizzle, TRUSTED_PROXY_DEPTH postures, Secure-cookie note, smoke/verify checklists).
+  - L-E (deferred M3): mobile drawer now focus-trapped (Tab wraps inside #mobile-drawer; aria-modal honest) + focus restores to the hamburger on close; hero hotspot popover dropped role="dialog" (it is non-modal) and closes on Escape + outside click. 2+2 new e2e pins.
+  - L-A: sitemap DB-outage catch logs sitemap.db_unavailable. L-B: smoke.sh +2 checks (415 non-JSON, 413 >16 KB) = 21 total + loopback Secure-cookie note. L-D: pool error listener attaches at construction only (no HMR duplicate listeners). I-5: legacy !p-0 prefixes → v4 suffix form. I-6: MAX_JSON_BYTES units documented.
+  - Deferred (documented): L-C orphan-row sweep, I-4 unused tree-shaken tokens, I-7 SearchAction parity (deliberate), CSP, migration journal.
+- Final gates: lint ✓ · typecheck ✓ · typecheck:tests ✓ · unit 70/70 (9 files, +5) · build ✓ · smoke 21/21 (+2) · e2e 22/22 (+4) × THREE consecutive runs · sitemap 267 unchanged.
+- Browser verification: mobile drawer screenshots re-captured and inspected (Menu header, close button, Products submenu with category list — the conditional-mount state machine intact, no Tailwind v4 display-utility bug, zero classList in src/); keyboard pass: focus starts on close, wraps at the last link, restores to the hamburger (the 2 new e2e pins).
+- Docs: README/AGENTS/CLAUDE counts (70/9, 22, 21); PAD v2.2.0 (revision block; deferred items); SKILL v1.2.0 (§11 session-003 lessons); DEPLOYMENT.md rewritten; worklog Task 121.
+Stage Summary: 1 HIGH + 2 MEDIUM + 4 LOW + 2 INFO fixed TDD-first; unit +5; e2e +4; smoke +2; a doc-truth vulnerability class closed (docs now pinned by tests of the exact promised behavior).
+Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.

@@ -35,6 +35,7 @@ export function Header() {
   const [panel, setPanel] = useState<Panel>(null);
   const [mobileProductsOpen, setMobileProductsOpen] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const { cartCount, favouriteIds } = useShopping();
 
@@ -58,11 +59,36 @@ export function Header() {
 
   useEffect(() => {
     if (panel !== "mobile") return;
-    const previous = document.body.style.overflow;
+    const drawer = document.getElementById("mobile-drawer");
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     closeRef.current?.focus();
+    // aria-modal="true" promises the background is inert — enforce it: wrap Tab inside the
+    // drawer, and restore focus to the hamburger when it closes.
+    function onTab(event: KeyboardEvent) {
+      if (event.key !== "Tab" || !drawer) return;
+      const focusables = Array.from(
+        drawer.querySelectorAll<HTMLElement>("button:not([disabled]), a[href]"),
+      ).filter((el) => el.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement as HTMLElement | null;
+      if (event.shiftKey) {
+        if (active === first || !drawer.contains(active)) {
+          event.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !drawer.contains(active)) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
+    document.addEventListener("keydown", onTab, true);
     return () => {
-      document.body.style.overflow = previous;
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onTab, true);
+      menuButtonRef.current?.focus();
     };
   }, [panel]);
 
@@ -111,7 +137,7 @@ export function Header() {
           <IconLink href="/track-order" label="Track order" icon="truck" />
           <IconLink href="/favourites" label="Shopping list" icon="heart" count={favouriteIds.length} />
           <IconLink href="/cart" label="Shopping cart" icon="cart" count={cartCount} />
-          <button type="button" aria-label="Menu" aria-expanded={panel === "mobile"} aria-controls="mobile-drawer" onClick={() => setPanel("mobile")} className="grid size-12 place-items-center rounded-full hover:bg-surface lg:hidden">
+          <button ref={menuButtonRef} type="button" aria-label="Menu" aria-expanded={panel === "mobile"} aria-controls="mobile-drawer" onClick={() => setPanel("mobile")} className="grid size-12 place-items-center rounded-full hover:bg-surface lg:hidden">
             <Icon name="menu" />
           </button>
         </nav>

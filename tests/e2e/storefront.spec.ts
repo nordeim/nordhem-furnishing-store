@@ -57,3 +57,25 @@ test("health endpoint responds ok", async ({ request }) => {
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ ok: true });
 });
+
+test("hero hotspot popover opens, closes on Escape, and is not announced as a dialog", async ({ page }) => {
+  await page.goto("/");
+  const firstHotspot = page.getByRole("button", { name: /^Product information:/ }).first();
+  await firstHotspot.click();
+  const popover = page.locator("[aria-label]").filter({ hasText: "View product" }).first();
+  await expect(popover).toBeVisible();
+  // Non-modal by design: no dialog role, no aria-modal.
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await expect(popover).toHaveCount(0);
+  await expect(firstHotspot).toBeVisible();
+});
+
+test("hero hotspot popover closes on outside click", async ({ page }) => {
+  await page.goto("/");
+  await page.getByRole("button", { name: /^Product information:/ }).first().click();
+  const popover = page.locator("[aria-label]").filter({ hasText: "View product" }).first();
+  await expect(popover).toBeVisible();
+  await page.getByRole("heading", { level: 1 }).click({ position: { x: 5, y: 5 } });
+  await expect(popover).toHaveCount(0);
+});

@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.1.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.2.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 002 — audit + hardening)
+**Last Updated:** 2026-11-20 (session 003 — regression fixes + a11y)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -186,7 +186,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 65 tests / 8 files | Vitest (node) | `tests/unit/` |
+| Unit | 70 tests / 9 files | Vitest (node) | `tests/unit/` |
 | E2E | 18 tests / 3 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 19 checks | bash | `scripts/smoke.sh` |
 
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.2.0 (2026-11-20, session 003)
+
+- `[CA]` H-1 fixed: `TRUSTED_PROXY_DEPTH=0` is now honored as "no trusted proxy — ignore x-forwarded-for entirely" (previously clamped to ≥1 by `Math.max`, so the documented direct-exposure posture did not exist; forged single-hop XFF still minted fresh limiter buckets — live-verified). Unit-pinned (2 new tests); `.env.example` now matches the implementation.
+- `[SR]` M-1 fixed (session-002 regression): `ensureSummaryLoaded` gained an in-flight promise guard — 25 concurrent mount effects now collapse into ONE /api/summary request (was: one per FavouriteButton until the first success). Retry-on-failure preserved. Pinned by `tests/unit/shopping-store.test.ts`.
+- `[SR]` M-2: `docs/DEPLOYMENT.md` rewritten for this stack — the old file described the pre-rewrite ElyBeauty app (SQLite, Prisma, AUTH_SECRET, Stripe, admin console, CF-Connecting-IP; none exist here).
+- `[CA]` L-E fixed (was deferred M3): the mobile drawer now traps focus (Tab wraps inside `#mobile-drawer`) and restores focus to the hamburger on close; the hero hotspot popover dropped its false `role="dialog"` and closes on Escape + outside click. Pinned by 2+2 new e2e tests (22 total).
+- `[SR]` L-A: sitemap DB-outage fallback now logs `sitemap.db_unavailable` instead of silently shipping a 2-URL sitemap. L-D: the pg pool `error` listener attaches at construction only (no duplicate listeners under dev HMR). L-B: smoke.sh gained 415/413 body-gate checks (21 total) and documents the loopback Secure-cookie requirement. I-5: legacy `!p-0`-style prefixes converted to the v4 suffix form. I-6: MAX_JSON_BYTES comment states its true units.
+- `[CA]` Deferred (documented in docs/plans/2026-11-20_session-003): cart/favourites orphan-row sweep (L-C), unused icons/tokens (I-4, tree-shaken — zero runtime cost), SearchAction-vs-robots parity (I-7, IKEA-parity deliberate), CSP header, migration journal.
 
 ## Revision Block — v2.1.0 (2026-11-20, session 002)
 

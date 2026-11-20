@@ -11,17 +11,18 @@ const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;
 };
 
-export const pool =
-  globalForDb.__arenaNextJsPostgresqlPool ??
-  new Pool({
-    connectionString: databaseUrl,
+function createPool(): Pool {
+  const created = new Pool({ connectionString: databaseUrl });
+  // An unhandled pool-level 'error' (idle client / backend disconnect) would crash the process;
+  // log it instead so the failure surfaces per-request via guard(). Attached here (not at module
+  // scope) so dev HMR reloads never stack duplicate listeners on the cached pool.
+  created.on("error", (error) => {
+    console.error(JSON.stringify({ event: "db.pool_error", message: error instanceof Error ? error.message : String(error) }));
   });
+  return created;
+}
 
-// An unhandled pool-level 'error' (idle client / backend disconnect) would crash the process;
-// log it instead so the failure surfaces per-request via guard().
-pool.on("error", (error) => {
-  console.error(JSON.stringify({ event: "db.pool_error", message: error instanceof Error ? error.message : String(error) }));
-});
+export const pool = globalForDb.__arenaNextJsPostgresqlPool ?? createPool();
 
 if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listAllCategorySlugs, listAllProductSlugs } from "@/lib/catalog";
+import { logError } from "@/lib/http";
 import { siteBaseUrl } from "@/lib/seo";
 
 /**
@@ -28,7 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
     return [...staticRoutes, ...categoryRoutes, ...productRoutes];
-  } catch {
+  } catch (error) {
+    logError("sitemap.db_unavailable", error); // never ship a silent 2-URL sitemap
     return staticRoutes;
   }
 }

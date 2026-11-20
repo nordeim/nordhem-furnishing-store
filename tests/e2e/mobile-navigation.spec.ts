@@ -70,4 +70,37 @@ test.describe("mobile navigation drawer", () => {
     await page.getByRole("dialog", { name: "Menu" }).getByRole("button", { name: "Close menu" }).click();
     await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
   });
+
+  test("focus is trapped in the drawer: Tab wraps from the last link back to the close button", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    await expect(drawer).toBeVisible();
+    // Focus starts on the close button (initial focus).
+    await expect(drawer.getByRole("button", { name: "Close menu" })).toBeFocused();
+
+    // Tab through every focusable in the drawer: focus must never escape the drawer, and the
+    // press that would leave the last link must WRAP to the first focusable (the close button).
+    const focusables = await drawer.locator("button, a[href]").all();
+    expect(focusables.length).toBeGreaterThan(1);
+    for (let i = 0; i < focusables.length - 1; i += 1) {
+      await page.keyboard.press("Tab");
+      await expect
+        .poll(() => page.evaluate(() => document.getElementById("mobile-drawer")?.contains(document.activeElement)))
+        .toBe(true);
+    }
+    // We are now on the last focusable; the next Tab wraps to the first (close button).
+    await page.keyboard.press("Tab");
+    await expect(drawer.getByRole("button", { name: "Close menu" })).toBeFocused();
+  });
+
+  test("focus restores to the hamburger button after the drawer closes", async ({ page }) => {
+    await page.goto("/");
+    const hamburger = page.getByRole("button", { name: "Menu", exact: true });
+    await hamburger.click();
+    await expect(page.getByRole("dialog", { name: "Menu" })).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
+    await expect(hamburger).toBeFocused();
+  });
 });

@@ -42,23 +42,30 @@ export function hasForeignOrigin(request: Request): boolean {
  * bucket) rather than trusting an attacker-controlled entry. Pinned by tests/unit/http.test.ts.
  */
 export function clientKey(request: Request, options?: { proxyDepth?: number }): string {
-  const depth = Math.max(1, options?.proxyDepth ?? trustedProxyDepth());
+  const depth = options?.proxyDepth ?? trustedProxyDepth();
   const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) {
+  // depth 0 = NO trusted proxy: every x-forwarded-for value is client-authored and ignored.
+  if (forwarded && depth >= 1) {
     const hops = forwarded.split(",").map((hop) => hop.trim()).filter(Boolean);
     if (hops.length >= depth) return hops[hops.length - depth];
   }
   return request.headers.get("x-real-ip") || "unknown";
 }
 
+/** Unset/garbage → 1 (one trusted proxy); explicit "0" → direct exposure (XFF untrusted). */
 function trustedProxyDepth(): number {
   const raw = process.env.TRUSTED_PROXY_DEPTH;
   if (raw === undefined || raw === "") return 1;
   const parsed = Number(raw);
+  if (parsed === 0) return 0;
   return Number.isInteger(parsed) && parsed >= 1 ? parsed : 1;
 }
 
-/** Bodies larger than this are rejected before parsing — all API schemas are tiny. */
+/**
+ * Bodies larger than this are rejected before parsing — all API schemas are tiny. The read-path
+ * check counts UTF-16 code units (JS string length), so the true byte ceiling is up to ~2× for
+ * astral-plane input; every real schema is small ASCII, which is what the cap is sized for.
+ */
 const MAX_JSON_BYTES = 16 * 1024;
 
 type ParsedBody<T> = { ok: true; data: T } | { ok: false; response: Response };

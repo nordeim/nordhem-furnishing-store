@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AppLink } from "@/components/ui/app-link";
 import { Carousel } from "@/components/ui/carousel";
 import { SmartImage } from "@/components/ui/smart-image";
@@ -23,6 +23,28 @@ export interface HeroSlide {
 
 export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  // The popover is NON-modal (it never traps focus or blocks the page) — so it closes on
+  // outside pointerdown and Escape, like a disclosure, instead of pretending to be a dialog.
+  useEffect(() => {
+    if (!openKey) return;
+    function onPointerDown(event: PointerEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node) && buttonRef.current !== event.target) {
+        setOpenKey(null);
+      }
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpenKey(null);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [openKey]);
 
   return (
     <Carousel
@@ -37,6 +59,7 @@ export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
             return (
               <div key={key} className="absolute" style={{ left: `${spot.x}%`, top: `${spot.y}%` }}>
                 <button
+                  ref={buttonRef}
                   type="button"
                   aria-expanded={isOpen}
                   aria-label={`Product information: ${spot.name}`}
@@ -47,7 +70,7 @@ export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
                 </button>
                 {isOpen && (
                   <div
-                    role="dialog"
+                    ref={popoverRef}
                     aria-label={spot.name}
                     className="absolute z-20 mt-3 w-52 -translate-x-1/2 rounded-lg bg-white p-3 text-left shadow-xl"
                     style={{ left: spot.x > 70 ? "-30%" : spot.x < 30 ? "30%" : "0" }}

@@ -122,7 +122,7 @@ export function ListingView({ title, crumbs, result, query, basePath, searchTerm
               <AppLink
                 href={pageHref(basePath, query, searchTerm, candidate)}
                 aria-current={candidate === page ? "page" : undefined}
-                className={candidate === page ? "btn btn-dark size-12 !p-0" : "btn btn-light size-12 !p-0"}
+                className={candidate === page ? "btn btn-dark size-12 p-0!" : "btn btn-light size-12 p-0!"}
               >
                 {candidate}
               </AppLink>

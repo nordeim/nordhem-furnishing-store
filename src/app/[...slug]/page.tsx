@@ -71,7 +71,7 @@ export default async function InfoPage({ params }: InfoPageProps) {
         <ul className="flex flex-wrap gap-2">
           {productCategories.map((category) => (
             <li key={category.href}>
-              <AppLink href={category.href} className="btn btn-light min-h-10 !px-4 !py-2 font-normal">
+              <AppLink href={category.href} className="btn btn-light min-h-10 px-4! py-2! font-normal">
                 {category.label}
               </AppLink>
             </li>

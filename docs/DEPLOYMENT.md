@@ -1,239 +1,121 @@
-# Deployment Guide — ElyBeauty
+# Deployment Guide — Nordhem Furnishing Store
 
-ElyBeauty ships as a single Next.js **standalone** build with a SQLite
-file database — one Node process, zero external services. This guide covers
-the supported production paths and the environment contract. (Rewritten in
-session 6 to match the actual codebase — the previous revision was a template
-from another project; rebranded in session 75 after the run-72 re-skin.)
+Nordhem is a Next.js 16 (App Router) storefront with a **PostgreSQL** database
+accessed through Drizzle ORM. This guide covers the supported production paths
+and the environment contract. (Rewritten in session 003 — the previous revision
+described the pre-rewrite ElyBeauty app: SQLite, Prisma, AUTH_SECRET, an admin
+console, Stripe, and Cloudflare client-IP handling that this codebase never
+had.)
 
 ## 1. Prerequisites
 
-- Node ≥ 20, npm ≥ 10 (npm is the package manager — there is no committed
-  `bun.lock`; `bun.lock` is git-ignored by policy).
-- No database server: SQLite ships as a file.
+- Node ≥ 20, npm ≥ 10.
+- A PostgreSQL 15+ server (managed or self-hosted). For local development,
+  `docs/setup_pg_z.sh` + `skills/rootless-postgresql/SKILL.md` set up a
+  rootless PostgreSQL 17 in `pg/`.
 
 ## 2. Build
 
 ```bash
-npm install            # approve @prisma/engines, esbuild, unrs-resolver postinstall scripts if npm asks
-npm run db:setup       # prisma db push + idempotent seed (safe to re-run)
-npm run build          # next build + standalone assembly (.next/standalone)
+npm install
+npm run db:setup       # drizzle-kit push (creates/updates tables) + idempotent seed
+npm run build          # next build (Turbopack)
 ```
 
-The build compiles the storefront, admin console, and the REST route handlers
-(`src/app/api/*`), then copies `.next/static` and `public/` into
-`.next/standalone/` (see the `build` script in `package.json`).
-`next.config.ts` pins `outputFileTracingRoot` to the repo root — keep it; the
-standalone trace depends on it. The build also copies `.env` into
-`standalone/`, so environment changes need a rebuild.
+`db:seed` is idempotent: it seeds the catalog (23 categories / 242 products
+from `src/content/catalog.json`) only when the tables are empty, so re-running
+is always safe.
+
+`NEXT_PUBLIC_SITE_URL` is baked into the sitemap, robots, canonical URLs, and
+JSON-LD **at build time** — set it to the public origin before
+`npm run build`. Editing it without rebuilding leaves the sitemap/robots on
+the old origin while per-request canonicals flip: a silent divergence.
 
 ## 3. Run
 
 ```bash
-npm run start          # NODE_ENV=production node .next/standalone/server.js
+npm run start          # next start on $PORT (default 3000)
 ```
 
-The server listens on port 3000 by default (`PORT` overrides) and logs are
-tee'd to `server.log`. Always start it from the repo root via the npm script —
-the script guarantees the working directory that the SQLite path resolution
-and the standalone trace rely on. Behind a reverse proxy, forward
-`X-Forwarded-For` (appending — do not pass the client's value through
-untouched) and `X-Forwarded-Proto` so rate-limit keys and cookie attributes
-derive correctly. Behind Cloudflare, `CF-Connecting-IP` is picked up
-automatically by the limiter (`src/lib/rate-limit.ts`).
+Health probe: `GET /api/health` returns `{"ok":true}` when the database
+answers (`SELECT 1`).
 
-## 4. Environment variables
+## 4. Environment contract
 
-| Variable | Required | Purpose |
-|----------|----------|---------|
-| `DATABASE_URL` | Yes | SQLite connection string. See §5. |
-| `AUTH_SECRET` | **Yes in production** | HMAC secret for session cookies and receipt/order-access tokens. Generate with `openssl rand -hex 32`. The server **refuses to start** in production without a strong value (`src/lib/auth-secret.ts` throws at module load). |
-| `NEXT_PUBLIC_SITE_URL` | Recommended | Canonical public origin, used for metadata URLs, `sitemap.xml`, `robots.txt`, and JSON-LD (e.g. `https://shop.example.com`). |
-| `NEXT_PUBLIC_DEMO_MODE` | Optional | The login page's demo-credentials quick-fill box. **Production builds hide it by default** (it names the seeded admin account); set `true` to opt in for an evaluation deploy. In development the box is shown unless explicitly `false`. Since session-13 (S13-1) the credentials are passed server-side as props only when enabled — a default production build ships **no credential strings** in the client bundle at all. |
-| `TRUST_CF_CONNECTING_IP` | Optional (default: trust) | Session-13 (S13-7): set `"false"` on **direct deployments** (no Cloudflare edge) so the client-forgeable `cf-connecting-ip` header cannot rotate per-IP rate-limit buckets. Keep the default (or unset) behind Cloudflare. |
-| `STRIPE_BDT_PER_USD` | **Required with the Stripe keys** | The taka-per-dollar FX rate (a positive number, e.g. `120`). Stripe cannot charge BDT, so the card path converts the server-derived ৳ total through this rate (`stripeChargeAmount`). **Without it the Card option stays OFF even with keys set** — keys alone would mint a USD intent whose amount equals the poisha count (a ~120× overcharge). See "The FX rate gate" below. |
-| `STRIPE_SECRET_KEY` | Optional | Session-61 (the Stripe retrofit): the secret key (`sk_live_…`/`sk_test_…`). **Empty = the demo checkout** (clearly labeled, no charges). Set together with the publishable key to activate the real card path: the Payment Element island (PCI SAQ-A — card data never touches this app), a server-minted PaymentIntent (the amount is re-derived server-side from the live cart + coupon + settings), and webhook-driven order placement for interrupted checkouts. |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Optional | The publishable key (`pk_live_…`/`pk_test_…`) for the client island. Must be set for the element to mount; the server/client "configured" checks share one truth table (`src/lib/stripe-config.ts`). |
-| `STRIPE_WEBHOOK_SECRET` | Optional | The signing secret (`whsec_…`) for `POST /api/stripe/webhook` — from the Stripe dashboard's webhook endpoint (add the events `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded`) or `stripe listen --forward-to localhost:3000/api/stripe/webhook` locally. The backstop for interrupted checkouts (payment captured, browser died before placement) — the dedup row commits WITH the placement; a transient failure answers 500 so Stripe retries. |
+| Variable | Required | Notes |
+|---|---|---|
+| `DATABASE_URL` | yes | `postgresql://user:pass@host:5432/app_db` |
+| `NEXT_PUBLIC_SITE_URL` | build | Public origin, e.g. `https://nordhem.example` — feeds sitemap/robots/canonicals/JSON-LD |
+| `TRUSTED_PROXY_DEPTH` | no | See §5. Unset = 1 (one trusted proxy). |
 
 Start from `.env.example` (`cp .env.example .env`) — it documents every
 variable above.
 
-**Stripe activation checklist (the three vars set):** the checkout's card
-method renders the Payment Element (test cards: `4242 4242 4242 4242`
-succeeds, `4000 0000 0000 0002` declines); the CSP header gains the
-`js.stripe.com` / `api.stripe.com` / `frame-src` family automatically; the
-admin console gains the Payments ledger (`/admin/payments` — a succeeded
-event with no linked order is the **Refund needed** signal); refunds fire
-from the order dialog's "Refund via Stripe" (one idempotent full refund per
-payment) and the order's payment state updates when Stripe delivers
-`charge.refunded`. Keep the webhook secret in sync whenever you rotate the
-endpoint — a mismatched secret answers 400 `Invalid signature.` and Stripe
-retries with backoff.
+The session cookie (`ikea_sid`) is `HttpOnly`, `SameSite=Lax`, and `Secure`
+whenever `x-forwarded-proto: https` **or** `NODE_ENV=production`. A production
+server that terminates TLS itself (no proxy) must therefore serve HTTPS or
+the browser will refuse the cookie.
 
-## 5. Database location
+## 5. Reverse proxy and rate limiting
 
-`DATABASE_URL` accepts three forms:
+All API limiters (cart 120/min, search 90/min, checkout 10/min, order
+tracking 10/min, family 5/min) key on the client IP derived from
+`x-forwarded-for` (`src/lib/http.ts` → `clientKey`):
 
-1. **Relative `file:` URL (the default, zero-config local story).**
-   ```
-   DATABASE_URL="file:../db/custom.db"
-   ```
-   Relative URLs resolve against the **`prisma/` directory that owns
-   `schema.prisma`** — exactly like the Prisma CLI — so this string points
-   at `<repo>/db/custom.db` for `prisma db push`, `prisma/seed.ts`,
-   `next build` and the running server alike, regardless of the process
-   working directory. The resolution rule lives in
-   `src/lib/db-path.ts` and is pinned by `tests/unit/db-path.test.ts`.
-   `db/` sits at the repo root and is git-ignored.
+- **Behind a proxy** (the supported posture): the proxy **appends** the client
+  IP to `x-forwarded-for`, so the key counts `TRUSTED_PROXY_DEPTH` hops from
+  the END (default 1 = the proxy-added entry — trustworthy). Two chained
+  proxies → `TRUSTED_PROXY_DEPTH=2`.
+- **Direct exposure** (no proxy): set `TRUSTED_PROXY_DEPTH=0` — client-supplied
+  `x-forwarded-for` values are ignored entirely and every caller shares the
+  `unknown` bucket (fail closed; without a real proxy there is no per-client
+  IP signal anyway — `x-real-ip` still works if your LB sets it).
+- Forward `X-Forwarded-Proto: https` from the proxy so cookie attributes and
+  the CSRF origin check stay correct.
 
-2. **Absolute `file:` URL (recommended for production).**
-   ```
-   DATABASE_URL="file:/var/lib/homenest/custom.db"
-   ```
-   Absolute paths pass through untouched — immune to any working-directory
-   ambiguity across service managers, containers, or cron wrappers. Point
-   them at a persisted volume and back the file up.
+The limiters are in-memory fixed windows (per server instance). A
+multi-instance deployment needs an external store to keep them accurate.
 
-3. **PostgreSQL.** Switch `provider = "postgresql"` in
-   `prisma/schema.prisma`, set a `postgresql://` URL, then
-   `npm run db:push && npm run db:seed`.
-
-Initialize (or reset) the database with:
-
-```bash
-npm run db:push        # apply schema (db push — no migrations folder)
-npm run db:seed        # idempotent seed: catalog, settings, coupons, demo users
-```
-
-The seed is **create-or-refresh by design** (scoped in session 7, `src/lib/seed-policy.ts`):
-product upserts refresh CATALOG CONTENT only (name, copy, category, images, tags,
-specs) — price, compare-at price, stock, rating, reviewCount, sku, badge,
-featured/new-arrival flags and active state are admin- or traffic-owned and a
-reseed never resets them; settings and carousel slides are create-only (missing
-keys/slides are created, existing values survive), exactly like the coupon
-bookkeeping (fresh databases additionally get deterministic, minute-spaced
-coupon `createdAt` values — session-51 S51-1 — so the admin coupons grid's
-newest-first order is stable; existing rows keep their own timestamps). Re-running the seed after real traffic is therefore safe — it
-cannot corrupt the stock ledger, collapse customer-grown review aggregates, or
-revert admin edits.
-
-> **Demo credentials:** the seed creates `admin@elybeauty.com` /
-> `Admin123!` and `demo@elybeauty.com` / `Demo1234!`. Production builds
-> hide the login page's quick-fill box by default (session-12 S12-2) — for a
-> real store, still change the admin password (or reseed with your own
-> credentials) before going live, and leave `NEXT_PUBLIC_DEMO_MODE` unset
-> (set `true` only for evaluation deploys that want the box back).
-> Since S92-2 the change has a UI path: sign in as the admin →
-> **/account → Profile → Password** (verify the current password, set the
-> new one — every other device is signed out), and the admin dashboard
-> itself warns with a **Default admin password active** card while the
-> seeded credential is still live on a production build.
-
-## 6. Custom-domain production deploy (the run-92 workflow)
-
-The verified path for putting the store on a real domain (field-proven on
-`https://ely-beauty.jesspete.shop` — every step below was observed green
-on that deploy, including the built sitemap/robots on the custom domain
-and the health round-trip):
-
-1. **Point the domain at the server** (an A/AAAA/CNAME record at your
-   provider) and terminate TLS at a reverse proxy (Caddy/Nginx) that
-   forwards to the Node port — forward `X-Forwarded-For` (appending) and
-   `X-Forwarded-Proto` as §3 describes.
-2. **Set the env for the domain** in `.env`:
-   - `NEXT_PUBLIC_SITE_URL=https://your-domain.example` — the canonical
-     origin. Everything public composes from this single seam
-     (`siteBaseUrl()`, `src/lib/seo.ts`): metadata, canonicals, OpenGraph,
-     JSON-LD, `sitemap.xml`, `robots.txt`.
-   - `AUTH_SECRET` — a strong value (`openssl rand -hex 32`). The
-     server refuses to start in production without one.
-   - `TRUST_CF_CONNECTING_IP` — decide by edge topology: **unset (trust)
-     behind Cloudflare; `"false"` on a direct deploy** so the
-     client-forgeable `cf-connecting-ip` header cannot mint fresh per-IP
-     rate-limit buckets. (On any single-homed direct deploy, header IPs
-     are advisory at best — the per-email budgets on credential routes
-     remain the authoritative bound.)
-3. **Provision the database**: `npm run db:setup` (creates
-   `<repo>/db/custom.db`, pushes the schema, seeds the catalog — see §5
-   for the reseed-safety contract).
-4. **Build**: `npm run build` — assembles `.next/standalone/` and copies
-   `.env`, `.next/static`, and `public/` into it.
-5. **Start**: `npm run start` (or a process manager running the same
-   command from the repo root).
-6. **Rotate the admin password** before taking orders: sign in as the
-   seeded admin → /account → Profile → Password (S92-2). The dashboard's
-   advisory card stays up until this is done — treat it as the deploy's
-   final checklist item.
-7. **Verify** with the §8 checklist plus the domain surfaces:
-   `curl -s https://your-domain.example/sitemap.xml | grep -c "<loc>"`
-   (28 public locs on the custom domain) and the canonical/og tags in the
-   home page source.
-
-> **Rebuild after env changes — the baked-sitemap trap.** `sitemap.xml`
-> and `robots.txt` are **prerendered at build time** (they are the only
-> static routes in the build output), while page canonicals/JSON-LD render
-> per request. Editing `NEXT_PUBLIC_SITE_URL` in `.env` WITHOUT rebuilding
-> leaves the sitemap/robots on the old domain while the canonicals flip —
-> a silent divergence search engines will happily index. The §2 note
-> ("environment changes need a rebuild") covers this; this is the concrete
-> symptom it prevents.
-
-## 7. Updating
+## 6. Updating
 
 ```bash
 git pull
 npm install
-npm run db:generate    # after schema changes
-npm run db:push
+npm run db:setup       # after schema changes (drizzle-kit push)
 npm run build
 # restart the server process
 ```
 
-## 8. Verification checklist
+## 7. Smoke test and verification checklist
 
 ```bash
-curl -s localhost:3000/api/health            # {"status":"ok","db":"up",...}
-npm run lint
-npm run typecheck && npm run typecheck:tests
-npm run test                                 # Vitest unit suite
+BASE_URL=http://127.0.0.1:3000 scripts/smoke.sh   # 21 checks
+curl -s $ORIGIN/api/health                        # {"ok":true}
+curl -s $ORIGIN/sitemap.xml | grep -c "<loc>"     # 267 (2 static + 23 cats + 242 products)
+curl -s $ORIGIN/robots.txt                        # sitemap pointer + disallows
+npm run lint && npm run typecheck && npm run typecheck:tests
+npm run test                                      # Vitest unit suite
 npm run build
-npm run test:e2e                             # Playwright suite (starts the standalone server on :3100 itself; a fresh start first restores the demo stock — scripts/restore-demo-stock.ts, S14-4)
+npm run test:e2e                                  # Playwright (boots :3100 itself)
 ```
 
-The clean-check order in `AGENTS.md` is the deploy gate: every step must exit
-0. Regenerate the documentation screenshots with
-`npx tsx scripts/capture-screenshots.ts` (server on :3000).
+Loopback host required for the smoke cookie jar — the production cookie is
+`Secure`, and curl only returns Secure cookies to plain-HTTP loopback hosts
+(see the note in the script header).
 
-## 9. Common production issues
+## 8. Common production issues
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `Error code 14: Unable to open the database file` | Server started from a directory that has no `prisma/schema.prisma` and no absolute `DATABASE_URL` | Start via `npm run start`, or set an absolute `file:` URL (§5) |
-| `db/custom.db` appears elsewhere / rows survive a "fresh" reseed | `DATABASE_URL` shadowed by the process env (Prisma never overrides existing env) | `node -e "console.log(process.env.DATABASE_URL)"` — converge or unset |
-| Page paints but never hydrates, zero console errors | Static prerender baked without the per-request CSP nonce | Make the route render per-request (`await connection()` — see `(auth)/layout.tsx`) |
-| Logins loop back to `/login` | `AUTH_SECRET` changed between restarts | Keep the secret stable across restarts |
-| 429s on login/checkout | Per-email (10/min) + per-IP (30/min) fixed-window limiter | Wait for `Retry-After` — **every metered route carries it** (session-15 S15-3); in-memory buckets reset on restart (single-node) |
-| 429s on "Add All to Cart" with a huge wishlist | The bulk endpoint is limiter-budgeted at 10 requests/min (up to 100 lines each) | Wait for `Retry-After`; split unusually large operations |
-| 429s on the cart drawer loading behind a shared IP | `GET /api/cart-summary` is metered at 120 requests/min per IP (session-9 — the last unmetered public route) | Wait for `Retry-After`; raise the budget only alongside the limiter's other read budgets |
-| 429s on review submissions from one network | Reviews are two-tier metered (session-11): 20/min per IP (authoritative anti-spam ceiling) + 5/min per author per product | Wait for `Retry-After`; raise the per-IP ceiling only with a shared-store limiter decision |
-| `noindex` on pages you expected indexed | Session-8: cart/account/checkout/track-order/auth/wishlist/admin ship `robots: noindex` by design | Public catalog surfaces (`/`, `/shop`, `/product/*`, `/about`, `/contact`, `/legal/*`) stay indexable |
-| `EADDRINUSE :3100` during e2e | A previous standalone server is alive (process renames to `next-server`) | `pkill -f next-server` |
-| Stock-assuming e2e pins fail after many suite runs ("In Stock" gone, sold-out 409s on seeded products) | E2E checkouts are traffic that permanently drains the demo DB's traffic-owned stock (the seed policy never refreshes it — S14-4) | `npx tsx scripts/restore-demo-stock.ts` (the e2e webServer runs it automatically on a fresh server start); run it BEFORE suspecting code |
-| The auth e2e fails at its FIRST assertion (profile name `expected "Ayesha Rahman"`) | A previously crashed/killed e2e run died mid-flow and left the demo profile name edited — the test restores it only on success (the seed's `update: {}` policy never re-resets the name) | One-line SQLite fix: `UPDATE User SET name = 'Ayesha Rahman' WHERE email = 'demo@elybeauty.com'` — then re-run; run BEFORE suspecting code |
+| Cookie never sent; cart always empty | Production server on plain HTTP without `x-forwarded-proto: https` → `Secure` cookie refused | Serve HTTPS or terminate TLS at a proxy that forwards the header |
+| 429s from a single office/CGNAT IP | Limiters key per-IP behind the proxy; shared egress IPs share buckets | Wait for `Retry-After`; move to a shared-store limiter if it recurs |
+| Sitemap shows the old domain | `NEXT_PUBLIC_SITE_URL` changed without a rebuild (prerendered route) | Rebuild |
+| `EADDRINUSE :3100` during e2e | A previous server is alive (process renames to `next-server`) | `pkill -f next-server` |
+| `DATABASE_URL is required` at boot | `.env` missing or not readable by the process | `cp .env.example .env`, fill values, restart |
 
+## 9. Known limitations
 
-## The FX rate gate (S74-11)
-
-Stripe cannot charge BDT. The card path therefore converts the server-derived
-BDT total (poisha) through the explicit operator rate `STRIPE_BDT_PER_USD`
-via the single `stripeChargeAmount(totalPoisha, rate)` seam
-(`src/lib/stripe-payment.ts`): a ৳288 order at rate 120 mints a $2.40
-PaymentIntent. **Without a valid positive rate the Card option does not
-render even when Stripe keys are set** — keys alone used to mint a USD intent
-whose amount equaled the poisha count (a ~120x overcharge). The gate is
-enforced in three places: the checkout page's `cardEnabled`, the mint route
-(503 without the rate), and the placement's in-tx amount guard (which
-converts through the same rate before comparing). The idempotency key hashes
-the CONVERTED amount, so changing the rate mints a fresh intent instead of
-replaying a stale one. Keep the rate current with your pricing FX.
+- No CSP header yet (needs per-request nonces on Next 16).
+- `drizzle-kit push` dev posture — no migration journal for auditable DDL history.
+- Cart/favourites rows from abandoned first-visit sessions are never swept.
+- The sitemap is prerendered at build time; catalog changes require a rebuild.
