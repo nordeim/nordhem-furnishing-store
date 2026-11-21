@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.16.0
+version: 1.17.0
 last_updated: 2026-11-21
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.16.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.17.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 017): 115 unit tests / 55 e2e / 26 smoke checks; sitemap 274 locs (canonical roots only); CHECK-constraint SQL is DDL-legal (sql.raw constants — fresh-clone `db:setup` verified on an empty DB); every live-tense count shape in every doc is regex-pinned (prose, tables, tree comments, badges); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 018): 117 unit tests / 55 e2e / 26 smoke checks; sitemap 274 locs (canonical roots only); CHECK-constraint SQL is DDL-legal (sql.raw constants — fresh-clone `db:setup` verified on an empty DB); the docs-counts census derives its constants from the tree itself (specs, files, smoke checks, categories, products, tables, sitemap, page/API routes, rate-limit literals) and pins every count shape it knows — prose, tables, tree comments, badges, the rate-limit table; the tailwind root census treats gitignored local files as scanner-benign (the oxide scanner's own .gitignore behavior); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -76,6 +76,13 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+## §25 Lessons (session 018)
+1. A count guard's weakest link is upstream of the guard: comparing docs to hand-set constants verifies nothing about the constants. Derive what is derivable (readdir, source grep, the seed's own content arithmetic) and the guard's inputs become unfalsifiable — only the two run-derived totals stay hand-set.
+2. Two ignore policies that drift apart become each other's false alarm: `.gitignore` blessed `.env*`/`*.log` while the scanner census condemned them by exact name. The oxide scanner respects .gitignore — derive the census's ignore decision from `git check-ignore` and the two policies can never diverge again.
+3. Dead weight ships forever unless something pins structure: a byte-identical duplicated §16 survived nine sessions of count sweeps because every check read content, never shape. A heading-uniqueness pin costs six lines and closes the class.
+4. An absolute claim in a state line ("every shape is pinned") is itself a finding waiting to happen — the session after you write it will enumerate your exceptions. Word state lines to what is verifiably true today and name the mechanism, not the totality.
+5. A wrap-aware regex is a wrap-aware test: prose reflows (markdown doesn't preserve your line breaks), so census shapes that span a bold phrase must ride `**N\s+categories**` with `\s+`, and a table claim split across lines needs the wrap in the pattern — otherwise the pin silently covers only the unwrapped variant.
+
 ## §24 Lessons (session 017)
 1. A drizzle `sql` template binds every interpolated JS primitive as `$N` — legal in DML, ILLEGAL in the DDL that `drizzle-kit push` emits for CHECK constraints/defaults. Constants that must reach DDL use `sql.raw(String(…))`. The bug shipped invisibly because warm-DB pushes SKIP same-name altered checks — only a fresh empty database exercises the CREATE path.
 2. "Generated SQL verified unchanged" must mean the emitted TEXT, not the bound value: S15-L3 verified `params:[99]` and called it `between 1 and 99`. Serialize through the same dialect the tool uses (`PgDialect.sqlToQuery`) and pin the TEXT in a unit test — a DDL-legality invariant belongs in the suite, not in a one-off manual check.
@@ -132,14 +139,6 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 4. Metadata that re-derives a value the body computes is a divergence waiting to happen: the canonical clamped `?page` its own way while the listing pipeline clamped another. Share ONE cached loader between generateMetadata and the page (primitive cache keys — both callers hold different searchParams objects).
 5. An a11y pin that asserts an exact count (`toHaveCount(1)`) is a catalog-refresh time bomb; pin "at least one + first matches the query".
 6. Images that fail BEFORE hydration fire onError before React attaches it — the SmartImage fallback never renders for them (observed live, documented); pin the DOM contract, not the failure path.
-
-## §16 Lessons (session 008)
-1. Scan STATES, not just pages: the favourite pressed-state violation survived seven sessions because every axe run analyzed freshly-loaded pages. Any interactive component with state-dependent labels/roles needs a scan per state (pressed, open, loaded-with-data).
-2. A link wrapping a decorative image is itself nameless: alt="" is correct for the image, but the link still needs an aria-label — the two accessibility decisions interact.
-3. Broad acceptance rules trade one failure class for another: killing dead links with broad prefixes (session-007) re-opened indexable thin content (session-008). Every routing acceptance rule needs a metadata-collapse story (unique description + canonical folding) in the same change.
-4. A count guard must cover every doc that makes the claim: docs-counts.test.ts caught README/AGENTS/CLAUDE/PAD drift but not SKILL/DEPLOYMENT or sitemap/category counts — and exactly those drifted. Enumerate claim sites from the docs' perspective, not the test's.
-5. Canonicals on paginated series should self-reference: canonical-to-page-1 tells crawlers the tail is duplicate; Google's guidance prefers self-canonical per page.
-6. Crawlable metadata must match robots policy: advertising a SearchAction into a disallowed path is a mixed signal — drop the advertisement, don't open the path.
 
 ## §16 Lessons (session 008)
 1. Scan STATES, not just pages: the favourite pressed-state violation survived seven sessions because every axe run analyzed freshly-loaded pages. Any interactive component with state-dependent labels/roles needs a scan per state (pressed, open, loaded-with-data).

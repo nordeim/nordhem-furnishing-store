@@ -1,5 +1,6 @@
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { INFO_SITEMAP_ROUTES, STATIC_SITEMAP_ROUTES } from "@/app/sitemap";
 
 /**
  * Session-007 M-3 pin: live-tense count claims in the root docs must stay in lockstep with
@@ -8,18 +9,71 @@ import { describe, expect, it } from "vitest";
  * Update the constants when a suite grows — the failures name the exact doc + line.
  * Session-008 M-4: scope extended — SKILL + DEPLOYMENT joined the census, and the sitemap /
  * category counts are pinned too (both drifted in session 007: "276 locs", "23 categories").
+ *
+ * Session-018 S18-02: constants ↔ reality. The census used to compare docs to HAND-SET
+ * constants — a suite growth without a constant update shipped stale docs silently (the
+ * "53 through a counts-swept commit" incident, twice). Every statically-derivable constant
+ * is now DERIVED from the tree at load; only the two run-derived counts stay hand-set
+ * (UNIT_TESTS, E2E_TESTS — they need a suite run, not a readdir). A derived constant can
+ * never drift from the tree; a doc can never drift from a derived constant.
  */
-const UNIT_TESTS = 115;
-const UNIT_FILES = 19;
-const E2E_TESTS = 55;
-const E2E_SPECS = 5;
-const SMOKE_CHECKS = 26;
+const UNIT_TESTS = 117; // run-derived: `npm test` tally — sweep every doc when this moves
+const E2E_TESTS = 55; // run-derived: `npm run test:e2e` tally — sweep every doc when this moves
+const E2E_SPECS = readdirSync("tests/e2e").filter((f) => f.endsWith(".spec.ts")).length;
+const UNIT_FILES = readdirSync("tests/unit").filter((f) => f.endsWith(".test.ts")).length;
+const SMOKE_CHECKS = readFileSync("scripts/smoke.sh", "utf8").match(/^check /gm)?.length ?? 0;
+// The seed's own derivation (src/db/seed.ts): home.json nav /cat/ rows + the synthetic
+// lowest-price collection; products = catalog entries whose category is in that set.
+const HOME = JSON.parse(readFileSync("src/content/home.json", "utf8")) as {
+  categoryNav: Array<{ href: string }>;
+};
+const CATALOG = JSON.parse(readFileSync("src/content/catalog.json", "utf8")) as Array<{
+  category: string;
+}>;
+const NAV_CATEGORY_ROWS = HOME.categoryNav.filter((item) => item.href.startsWith("/cat/")).length;
+const CATEGORIES = NAV_CATEGORY_ROWS + 1; // + the synthetic "lowest-price" collection
+const KNOWN_CATEGORY_SLUGS = new Set([
+  ...HOME.categoryNav
+    .filter((item) => item.href.startsWith("/cat/"))
+    .map((item) => item.href.split("/").filter(Boolean).pop() as string),
+  "lowest-price",
+]);
+const PRODUCTS = CATALOG.filter((entry) => KNOWN_CATEGORY_SLUGS.has(entry.category)).length;
+// schema.ts: one `= pgTable(` per table.
+const TABLES = (readFileSync("src/db/schema.ts", "utf8").match(/= pgTable\(/g) ?? []).length;
 // Session-016 S16-L1: the per-spec pin note in PAD's §3 ("mobile-navigation.spec.ts (N tests)")
 // — a stale 8 sat there through session-015's sweep because no regex covered the shape.
-const MOBILE_NAV_E2E = 10;
-const TABLES = 7;
-const SITEMAP_URLS = 274;
-const CATEGORIES = 22;
+const MOBILE_NAV_E2E =
+  readFileSync("tests/e2e/mobile-navigation.spec.ts", "utf8").match(/^\s*test\(/gm)?.length ?? 0;
+// The sitemap's own arithmetic: static + info routes (exported by src/app/sitemap.ts —
+// the same constants seo-routes.test.ts pins the degrade contract with) + every category
+// and product page.
+const SITEMAP_URLS = STATIC_SITEMAP_ROUTES.length + INFO_SITEMAP_ROUTES.length + CATEGORIES + PRODUCTS;
+// App Router structure: pages, API route files, exported HTTP methods.
+function walk(dir: string, pred: (name: string) => boolean): string[] {
+  const hits: string[] = [];
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    const full = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) hits.push(...walk(full, pred));
+    else if (pred(entry.name)) hits.push(full);
+  }
+  return hits;
+}
+const PAGE_ROUTES = walk("src/app", (n) => n === "page.tsx").length;
+const API_ROUTE_FILES = walk("src/app/api", (n) => n === "route.ts");
+const API_ROUTES = API_ROUTE_FILES.length;
+const API_METHODS = API_ROUTE_FILES.reduce(
+  (sum, f) =>
+    sum + (readFileSync(f, "utf8").match(/export (?:async )?function (?:GET|POST|PATCH|PUT|DELETE)/g)?.length ?? 0),
+  0,
+);
+// Per-route rate-limit literals (src/app/api/*/route.ts `createRateLimiter({ limit: N`) —
+// the DEPLOYMENT §8 table is pinned against this map. /api/health has no limiter.
+const RATE_LIMITS: Record<string, number> = {};
+for (const f of API_ROUTE_FILES) {
+  const m = readFileSync(f, "utf8").match(/createRateLimiter\(\{ limit: (\d+)/);
+  if (m) RATE_LIMITS[`/api/${f.replace(/^src\/app\/api\/|\/route\.ts$/g, "")}`] = Number(m[1]);
+}
 
 // Session-017 S17-03: this was Array<[string, RegExp[]]> but the consumer only ever read the
 // doc name — the per-doc regexes were dead code implying coverage the sweep did not provide
@@ -162,6 +216,67 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
       for (const m of s.matchAll(/Playwright-(\d+)_passing/g)) {
         if (Number(m[1]) !== E2E_TESTS) stale.push(`${doc}: ${m[0]}`);
       }
+      // Session-018 S18-01: the residual count shapes the S17-02 generation still could not
+      // see — the README quickstart/overview/db-setup/SEO-table rows, the AGENTS db:setup row
+      // (the PRODUCTS count had NO constant at all until S18-02 derived it), the three "tables"
+      // shapes, DEPLOYMENT's seed prose (line-wrapped bold), its structural route claims, and
+      // its §8 rate-limit table (pinned in a dedicated it against the derived code literals).
+      for (const m of s.matchAll(/unit tests \(Vitest, (\d+) tests?\)/g)) {
+        if (Number(m[1]) !== UNIT_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/(\d+) unit \/ (\d+) e2e \/ (\d+) smoke checks/g)) {
+        if (Number(m[1]) !== UNIT_TESTS || Number(m[2]) !== E2E_TESTS || Number(m[3]) !== SMOKE_CHECKS) {
+          stale.push(`${doc}: ${m[0]}`);
+        }
+      }
+      for (const m of s.matchAll(/\((\d+) categories? \/ (\d+) products?\)/g)) {
+        if (Number(m[1]) !== CATEGORIES || Number(m[2]) !== PRODUCTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/\((\d+) categories?, (\d+) products?\)/g)) {
+        if (Number(m[1]) !== CATEGORIES || Number(m[2]) !== PRODUCTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/(\d+) categories\/collections \+ all (\d+) products = (\d+) URLs/g)) {
+        if (Number(m[1]) !== CATEGORIES || Number(m[2]) !== PRODUCTS || Number(m[3]) !== SITEMAP_URLS) {
+          stale.push(`${doc}: ${m[0]}`);
+        }
+      }
+      for (const m of s.matchAll(/(\d+) real products/g)) {
+        if (Number(m[1]) !== PRODUCTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/(\d+)-table Drizzle schema/g)) {
+        if (Number(m[1]) !== TABLES) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/schema\.ts \((\d+) tables?\)/g)) {
+        if (Number(m[1]) !== TABLES) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/\*\*(\d+) tables?\*\* —/g)) {
+        if (Number(m[1]) !== TABLES) stale.push(`${doc}: ${m[0]}`);
+      }
+      // DEPLOYMENT's seed prose wraps mid-bold ("It seeds **22\ncategories** (21 from …") —
+      // \s+ rides the line wrap; the 21+1=22 arithmetic is pinned alongside the parts.
+      for (const m of s.matchAll(/seeds \*\*(\d+)\s+categories\*\* \((\d+) from [^)]*\+ (\d+) synthetic/g)) {
+        if (
+          Number(m[1]) !== CATEGORIES ||
+          Number(m[2]) !== NAV_CATEGORY_ROWS ||
+          Number(m[3]) !== 1 ||
+          Number(m[2]) + Number(m[3]) !== Number(m[1])
+        ) {
+          stale.push(`${doc}: ${m[0]}`);
+        }
+      }
+      for (const m of s.matchAll(/(\d+) page routes/g)) {
+        if (Number(m[1]) !== PAGE_ROUTES) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/(\d+) API route files/g)) {
+        if (Number(m[1]) !== API_ROUTES) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/route files\s*\((\d+) methods?\)/g)) {
+        if (Number(m[1]) !== API_METHODS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/\| `\/api\/([\w/-]+)` \|[^|]+\|\s*(\d+)\/min/g)) {
+        const derived = RATE_LIMITS[`/api/${m[1]}`];
+        if (derived === undefined || Number(m[2]) !== derived) stale.push(`${doc}: ${m[0]}`);
+      }
     }
     expect(stale, `stale counts: ${stale.join("; ")}`).toEqual([]);
   });
@@ -179,6 +294,27 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
     const sitemap = state![1].match(/sitemap (\d+) locs/);
     expect(sitemap, "SKILL sitemap count").not.toBeNull();
     expect(Number(sitemap![1])).toBe(SITEMAP_URLS);
+    // Session-018 S18-01: the state line also carries smoke + product counts — both sat
+    // unpinned through every count-shape sweep (the audit's enumeration).
+    const smoke = state![1].match(/(\d+) smoke checks/);
+    expect(smoke, "SKILL smoke count").not.toBeNull();
+    expect(Number(smoke![1])).toBe(SMOKE_CHECKS);
+    // "242-product catalog" sits in the §1 prose ahead of the state line, not inside it.
+    const products = s.match(/(\d+)-product catalog/);
+    expect(products, "SKILL product count").not.toBeNull();
+    expect(Number(products![1])).toBe(PRODUCTS);
+  });
+
+  it("SKILL section headings are unique (session-018 S18-04)", () => {
+    // A byte-identical duplicated "## §16 Lessons (session 008)" block shipped in
+    // session-008's own commit and survived nine sessions of doc-integrity work — the
+    // census only ever read the state line. Heading uniqueness is now pinned so a
+    // copy-paste section can never land again.
+    const s = read("nordhem-furnishing-store_SKILL.md");
+    const headings = [...s.matchAll(/^## (§\d+ .+)$/gm)].map((m) => m[1]);
+    expect(headings.length, "SKILL must carry its lesson sections").toBeGreaterThan(10);
+    const dupes = headings.filter((h, i) => headings.indexOf(h) !== i);
+    expect(dupes, `duplicated SKILL section headings: ${dupes.join("; ")}`).toEqual([]);
   });
 
   it("docs cite the current sitemap and category counts (session-008 M-4)", () => {
@@ -203,5 +339,20 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
     expect(Number(dSitemap![1])).toBe(SITEMAP_URLS);
     // DEPLOYMENT must not describe the removed 2nd synthetic collection.
     expect(d.includes("recycled-materials-700324"), "DEPLOYMENT must not cite the removed collection").toBe(false);
+  });
+
+  it("DEPLOYMENT §8 rate-limit table matches the code literals (session-018 S18-01)", () => {
+    // The table is pinned BOTH directions against the derived per-route literals: a code
+    // limit change without a table update goes RED, and a table row for a route that no
+    // longer exists (or gained/lost its limiter) goes RED too.
+    const s = read("docs/DEPLOYMENT.md");
+    const rows = [...s.matchAll(/\| `\/api\/([\w/-]+)` \|[^|]+\|\s*(\d+)\/min/g)];
+    expect(rows.length, "every limited route must appear in the table").toBe(Object.keys(RATE_LIMITS).length);
+    for (const m of rows) {
+      expect(Number(m[2]), `limit for /api/${m[1]}`).toBe(RATE_LIMITS[`/api/${m[1]}`]);
+    }
+    // /api/health is the deliberate unlimited exception — no limiter in code, "unlimited" in prose.
+    expect(s).toContain("| `/api/health` | GET | unlimited");
+    expect(RATE_LIMITS["/api/health"], "health must have no limiter").toBeUndefined();
   });
 });

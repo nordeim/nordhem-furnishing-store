@@ -26,9 +26,14 @@ check "hostile listing params fall back" 200 "$(status "$BASE/cat/beds-mattresse
 check "search" 200 "$(status "$BASE/search?q=sofa")"
 check "content page via redirect" 200 "$(status -L "$BASE/campaigns/christmas/")"
 
-PRODUCT_JSON="$(curl -s "$BASE/api/search?q=billy")"
-PRODUCT_ID="$(echo "$PRODUCT_JSON" | field "['products'][0]['id']")"
-PRODUCT_SLUG="$(echo "$PRODUCT_JSON" | field "['products'][0]['slug']")"
+# Session-018 S18-08: the prerequisite assignments below used to abort under set -e with a
+# bare python/curl traceback — no FAIL row, no summary line. Each now fails with a labeled
+# line so a mid-run outage (dead server, error envelope, seeded-DB loss) reads like any
+# other failed check. The check() rows were already failure-tolerant; only these
+# assignment-level substitutions needed wrapping.
+PRODUCT_JSON="$(curl -s "$BASE/api/search?q=billy")" || { echo "FAIL prerequisite: search API unreachable"; exit 1; }
+PRODUCT_ID="$(echo "$PRODUCT_JSON" | field "['products'][0]['id']")" || { echo "FAIL prerequisite: no product id in search response"; exit 1; }
+PRODUCT_SLUG="$(echo "$PRODUCT_JSON" | field "['products'][0]['slug']")" || { echo "FAIL prerequisite: no product slug in search response"; exit 1; }
 check "product page" 200 "$(status "$BASE/p/$PRODUCT_SLUG")"
 
 check "add to cart" 201 "$(status -c "$JAR" -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID,\"quantity\":2}" "$BASE/api/cart")"
@@ -52,8 +57,8 @@ check "favourite added via POST" "$PRODUCT_ID" "$(json -b "$JAR" -H 'Content-Typ
 check "favourite removed via DELETE" "[]" "$(json -X DELETE -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/favourites" | python3 -c "import sys,json;print(json.load(sys.stdin)['favouriteIds'])")"
 check "cart re-added after removal" 201 "$(status -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID,\"quantity\":1}" "$BASE/api/cart")"
 
-ORDER="$(json -b "$JAR" -d '{"name":"Smoke Test","email":"Smoke@Example.com","phone":"+65 9123 4567","address":"1 Jurong West Street 21","postalCode":"649423","method":"delivery"}' "$BASE/api/checkout")"
-ORDER_NO="$(echo "$ORDER" | field "['orderNo']")"
+ORDER="$(json -b "$JAR" -d '{"name":"Smoke Test","email":"Smoke@Example.com","phone":"+65 9123 4567","address":"1 Jurong West Street 21","postalCode":"649423","method":"delivery"}' "$BASE/api/checkout")" || { echo "FAIL prerequisite: checkout API call failed"; exit 1; }
+ORDER_NO="$(echo "$ORDER" | field "['orderNo']")" || { echo "FAIL prerequisite: no orderNo in checkout response"; exit 1; }
 check "order page for owning session" 200 "$(status -b "$JAR" "$BASE/orders/$ORDER_NO")"
 check "order page hidden from other sessions" 404 "$(status "$BASE/orders/$ORDER_NO")"
 check "cart emptied by checkout" 0 "$(curl -s -b "$JAR" "$BASE/api/summary" | field "['cartCount']")"

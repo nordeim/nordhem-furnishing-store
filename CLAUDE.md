@@ -71,13 +71,13 @@ npm run dev
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` / `typecheck:tests` | tsc for app / tests |
-| `npm test` | Vitest (115 unit tests) |
+| `npm test` | Vitest (117 unit tests) |
 | `npm run test:e2e` | Playwright (55 tests, build first) |
 | `npm run db:setup` | Schema push + seed |
 
 ## Testing Strategy
 
-- **Unit (Vitest, 115 tests)**: pure seams only — cart-math, money, validation, paths, rate-limit, content contracts, seo builders, tailwind-scan-guard. New logic in `src/lib/*` gets its spec in the same change (TDD).
+- **Unit (Vitest, 117 tests)**: pure seams only — cart-math, money, validation, paths, rate-limit, content contracts, seo builders, tailwind-scan-guard. New logic in `src/lib/*` gets its spec in the same change (TDD).
 - **E2E (Playwright, 55 tests)**: mobile-navigation (conditional-mount drawer state machine), storefront (home/listing/product/search/cart + desktop mega-menu), seo-platform (sitemap/robots/manifest/JSON-LD/noindex), accessibility + accessibility-states (axe). Against the production build on :3100.
 - **Smoke (26 checks)**: `scripts/smoke.sh` — full cart→checkout→track round-trip including cross-session isolation, cart PATCH/DELETE and favourite POST/DELETE mutation probes.
 

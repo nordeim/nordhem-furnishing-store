@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -87,9 +88,34 @@ const IGNORED_ROOT_ENTRIES = new Set([
 
 // tsc incremental artifacts — *.tsbuildinfo is gitignored (*.tsbuildinfo in .gitignore)
 // and never committed; match by suffix.
+//
+// Session-018 S18-03: gitignored root files are scanner-benign BY CONSTRUCTION — Tailwind v4's
+// oxide scanner respects .gitignore, so a file git refuses to track (.env.local, *.log, *.key,
+// dev-server runtime logs) never reaches the scanner. The census's job is what git WOULD track:
+// a new tracked-or-untracked-ungitignored root file (the NOTES.md class) must stay RED. git
+// reports tracked files as not-ignored even when a pattern matches, so a tracked file can never
+// false-pass through here. If git itself is unavailable, this derivation fails closed (treated
+// as not ignored — same behavior as before this change).
+const gitIgnoreCache = new Map<string, boolean>();
+function isGitIgnored(entry: string): boolean {
+  const cached = gitIgnoreCache.get(entry);
+  if (cached !== undefined) return cached;
+  let ignored = false;
+  try {
+    // check-ignore -q: exit 0 = ignored, 1 = not ignored; anything else (git missing) = closed.
+    ignored =
+      spawnSync("git", ["check-ignore", "-q", "--", entry], { stdio: "ignore" }).status === 0;
+  } catch {
+    ignored = false;
+  }
+  gitIgnoreCache.set(entry, ignored);
+  return ignored;
+}
+
 function isIgnored(entry: string): boolean {
   if (IGNORED_ROOT_ENTRIES.has(entry)) return true;
-  return entry.endsWith(".tsbuildinfo");
+  if (entry.endsWith(".tsbuildinfo")) return true;
+  return isGitIgnored(entry);
 }
 
 function rootEntries(): { files: string[]; dirs: string[] } {

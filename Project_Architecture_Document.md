@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.16.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.17.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 017 — DDL-param bootstrap fix, count-shape completion, env-file ignore gap)
+**Last Updated:** 2026-11-21 (session 018 — census constants derived from the tree, gitignore-census reconciliation, SKILL dedup)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -108,10 +108,13 @@ src/app/api/        # cart, checkout, favourites, family, orders/track, search, 
 src/app/globals.css # @theme tokens + @utility set + THE @source not GUARD
 src/app/{sitemap,robots,manifest}.ts   # MetadataRoute generators (session 001)
 src/components/     # layout (header+drawer, footer, search-box, toaster), shop, home, forms, ui
+                    # z-scale: drawer at z-50; the toaster is the sole arbitrary layer
+                    # (z-[60], src/components/layout/toaster.tsx) — toasts must clear the
+                    # open drawer. No other arbitrary z-index exists in src/.
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 19 files / 115 tests
+tests/unit/         # 19 files / 117 tests
 tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (55 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (26 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
@@ -178,7 +181,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 | Headers | nosniff, X-Frame-Options DENY, strict referrer, restrictive Permissions-Policy |
 | Session cookie | httpOnly, SameSite=Lax, secure when x-forwarded-proto=https OR NODE_ENV=production (the production arm is unconditional), 180d, UUID-validated on read |
 
-**Known limitation (accepted):** in-memory rate limiter is single-instance. Proxy trust is opt-in since session-005: `TRUSTED_PROXY_DEPTH` unset/garbage = direct exposure (XFF ignored entirely, clients share the "unknown" bucket); a value ≥ 1 declares N trusted hops counted from the END of `x-forwarded-for`. CSP is live (session-007); the residual is `'unsafe-inline'` script/style for Next's RSC bootstrap, JSON-LD blocks and React style attributes.
+**Known limitation (accepted):** in-memory rate limiter is single-instance. Proxy trust is opt-in since session-005: `TRUSTED_PROXY_DEPTH` unset/garbage = direct exposure (XFF ignored entirely, clients share the "unknown" bucket); a value ≥ 1 declares N trusted hops counted from the END of `x-forwarded-for`. One deliberate exception (recorded session-018): `x-forwarded-proto` is read ungated for the session cookie's `Secure` flag — unlike XFF/`x-real-ip`/`x-forwarded-host` it can only ever SET the flag (harden), never clear it; a spoofed `https` over plain HTTP produces a `Secure` cookie the browser refuses to store (self-DoS, no downgrade path), so gating it would break legitimate proxy setups for zero security gain. CSP is live (session-007); the residual is `'unsafe-inline'` script/style for Next's RSC bootstrap, JSON-LD blocks and React style attributes.
 
 ---
 
@@ -186,7 +189,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 115 tests / 19 files | Vitest (node) | `tests/unit/` |
+| Unit | 117 tests / 19 files | Vitest (node) | `tests/unit/` |
 | E2E | 55 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 26 checks | bash | `scripts/smoke.sh` |
 
@@ -218,6 +221,7 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | MEDIUM | `drizzle-kit push` dev posture — no migration journal | Prod schema drift risk | Open (accept for demo) |
 | MEDIUM | In-memory rate limiter (single instance) | Multi-instance would share nothing | Accepted, documented |
 | LOW | ikea.com image dependency | Offline = placeholder tiles | Accepted |
+| LOW | `joinFamily` upsert is latest-writer-wins on email (`onConflictDoUpdate`) — recorded session-018 | Anyone who knows an email can rewrite the stored name/marketing consent (identical 201 either way — anti-enumeration by design; rate-limited 5/min) | Accepted (demo: no credentials exist to verify email ownership; first-write-wins would silently drop consent changes by the legitimate subscriber) |
 
 ---
 
@@ -239,6 +243,17 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.17.0 (2026-11-21, session 018)
+
+- `[QA]` **S18-01/02: the docs-counts census now derives its constants from the tree itself.** Every statically-derivable count — e2e specs, unit files, smoke checks, categories (the seed's own home.json derivation: 21 nav rows + 1 synthetic), products (the seed's filter), tables (`= pgTable(` count), mobile-nav tests, sitemap URLs (static + info + categories + products, from the exported sitemap constants), page routes, API route files, API methods, and the per-route rate-limit literals — is computed at test load instead of hand-set. Only the two run-derived counts (unit total, e2e total) stay hand-set. Constants ↔ reality is now gated, not remembered: a 6th spec file or a rate-limit change goes RED until the docs match. Fourteen more count-shape families joined the sweep (quickstart/overview/db-setup/SEO-table rows, the categories/products pairs — **PRODUCTS had no constant at all before this session** — the three "tables" shapes, DEPLOYMENT's seed prose with its line-wrapped bold, its structural route claims, and its §8 rate-limit table, now pinned both directions against the code literals); the SKILL state line gained smoke + product pins. Pin-bite: all fourteen corrupted probe sites were named RED before restore; the E2E_SPECS corruption probe proved the derived values feed the pins.
+- `[QA]` **S18-03: the tailwind root census and `.gitignore` are reconciled.** S17-04's `.env*` broadening made `.env.local`/`*.log`/`*.key` legitimate gitignored local files, but the census still failed on them by exact name — `cp .env.example .env.local` (standard Next convention) false-RED'd the unit gate (reproduced live this session). The census now derives the ignore decision from `git check-ignore` — the same policy the oxide scanner itself uses (Tailwind v4 respects .gitignore), so gitignored files are scanner-benign by construction and tracked/untracked-ungitignored files (the NOTES.md class) stay RED. Probe matrix: `.env.local` present → GREEN; `NOTES.md` probe → still RED; clean tree → GREEN.
+- `[QA]` **S18-04/05: the SKILL doc's nine-session-old duplicate removed and the state line reworded to the truth.** A byte-identical duplicated `## §16 Lessons (session 008)` block had shipped in session-008's own commit and survived every doc sweep (the census only read the state line). New pin: SKILL section headings must be unique — RED on the duplicate, GREEN after deleting the second copy. The state line's session-017 overclaim ("every live-tense count shape in every doc is regex-pinned") is replaced by what is true: the census derives its constants from the tree and pins every count shape it knows.
+- `[DOC]` **S18-06: the proxy-trust doctrine now records the `x-forwarded-proto` exception** — read ungated for the cookie `Secure` flag because it can only ever set the flag (harden), never clear it; a spoofed `https` over plain HTTP is self-DoS with no downgrade path (§6).
+- `[DOC]` **S18-07: `joinFamily`'s latest-writer-wins upsert semantics recorded in the known-issues register** (§10) — unauthenticated by design, identical 201 either way (anti-enumeration), rate-limited 5/min; first-write-wins would silently drop consent changes by the legitimate subscriber.
+- `[FIX]` **S18-08: smoke.sh prerequisite failures are labeled.** The assignment-level substitutions (`PRODUCT_ID=…`, `ORDER_NO=…`) aborted under `set -e` with bare Python tracebacks; each now prints a `FAIL prerequisite: …` line and exits 1 (negative-probe-verified against a dead port: 7 labeled check FAILs + the labeled prerequisite + exit 1). **S18-09:** the `live-verifyig` JSDoc typo fixed; the toaster's `z-[60]` exception documented in §3's component tree (toasts clear the drawer's z-50 — the only arbitrary z-index in src/).
+- **Count lockstep:** unit 115→**117** (the rate-table + unique-headings pins), e2e 55, smoke 26, sitemap 274 (now derived), 22/242, 7 tables, 11 pages / 8 API files / 12 methods unchanged; every count site swept in-commit.
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **117/117 (19 files)** · build cold ✓ · smoke **26/26** · e2e **55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server. Config instruction (vitest/playwright): audited sound — documented no-op, 12th consecutive session.
 
 ## Revision Block — v2.16.0 (2026-11-21, session 017)
 

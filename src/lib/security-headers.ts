@@ -1,7 +1,7 @@
 /**
  * Session-009 S9-H1: the security-header set, built per NODE_ENV.
  *
- * Two dev-server defects surfaced while live-verifyig `npm run dev` this session:
+ * Two dev-server defects surfaced while live-verifying `npm run dev` this session:
  *  1. The session-007 CSP shipped identical in `next dev`, where React's development
  *     runtime wants eval() for callstack reconstruction — it logged "eval() is not
  *     supported" on every load. The dev server now opts into 'unsafe-eval' for
