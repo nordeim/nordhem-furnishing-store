@@ -51,7 +51,14 @@ const optionalDollars = z
   .transform((value) => {
     if (value === undefined || value.trim() === "") return undefined;
     const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) : undefined;
+    if (!Number.isFinite(parsed) || parsed < 0) return undefined;
+    // Session-013 S13-M1: bound the CENT output, not just the dollar input —
+    // Math.round(1e308 * 100) is Infinity and 1e17 dollars is 1e19 cents (over
+    // int8 max); both used to flow into the gte/lte binds and 500 the page
+    // (live-confirmed on /cat/*?max=1e308 and /search?max=1e17) instead of
+    // falling back. int32-max cents ($21,474,836.47) is a comfortable ceiling.
+    const cents = Math.round(parsed * 100);
+    return Number.isSafeInteger(cents) && cents <= 2_147_483_647 ? cents : undefined;
   });
 
 /** Lenient parser for URL query strings: bad values fall back to defaults instead of erroring. */

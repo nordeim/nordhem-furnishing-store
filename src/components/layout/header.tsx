@@ -49,6 +49,22 @@ export function Header() {
     if (panel !== "mobile") setMobileProductsOpen(false);
   }, [panel]);
 
+  // Session-013 S13-L2: the drawer is hidden with lg:hidden rather than unmounted,
+  // so crossing the lg breakpoint while it was open left the scroll lock and the Tab
+  // focus trap live with no visible drawer. Crossing upward now closes it through the
+  // normal path (panel -> null), which also releases the lock and re-runs the submenu
+  // reset above.
+  useEffect(() => {
+    if (panel !== "mobile") return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const closeIfDesktop = () => {
+      if (mq.matches) setPanel(null);
+    };
+    closeIfDesktop();
+    mq.addEventListener("change", closeIfDesktop);
+    return () => mq.removeEventListener("change", closeIfDesktop);
+  }, [panel]);
+
   useEffect(() => {
     if (!panel) return;
     function onKeyDown(event: KeyboardEvent) {

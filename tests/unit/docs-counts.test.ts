@@ -9,9 +9,9 @@ import { describe, expect, it } from "vitest";
  * Session-008 M-4: scope extended — SKILL + DEPLOYMENT joined the census, and the sitemap /
  * category counts are pinned too (both drifted in session 007: "276 locs", "23 categories").
  */
-const UNIT_TESTS = 108;
+const UNIT_TESTS = 110;
 const UNIT_FILES = 17;
-const E2E_TESTS = 52;
+const E2E_TESTS = 53;
 const SMOKE_CHECKS = 21;
 const TABLES = 7;
 const SITEMAP_URLS = 274;
@@ -22,6 +22,7 @@ const DOCS: Array<[string, RegExp[]]> = [
   ["AGENTS.md", [/\((\d+) tests?, (\d+) files?\)/, /Playwright \((\d+) tests\)/, /\((\d+) tests?, (\d+) files?\)/]],
   ["CLAUDE.md", [/Vitest \((\d+) unit tests?\)/, /Playwright, (\d+) tests\)/]],
   ["Project_Architecture_Document.md", [/\((\d+) tests? \/ (\d+) files?\)/, /(\d+) tests \/ \d+ specs/, /(\d+)-table Drizzle schema/]],
+  ["docs/DEPLOYMENT.md", [/Vitest: (\d+) unit tests, (\d+) files/, /(\d+) e2e against the production build/]],
 ];
 
 function read(doc: string): string {
@@ -29,6 +30,20 @@ function read(doc: string): string {
 }
 
 describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
+  it("DEPLOYMENT cites the current gate counts (session-013 S13-M2)", () => {
+    // §10's verification checklist is operator-facing — stale counts there (they sat at
+    // the session-008 figures for five sessions) mislead exactly the person running the
+    // gate. DEPLOYMENT is now inside the census so it cannot drift again.
+    const s = read("docs/DEPLOYMENT.md");
+    const unit = s.match(/Vitest: (\d+) unit tests, (\d+) files/);
+    expect(unit, "DEPLOYMENT §10 must state the unit-test and file counts").not.toBeNull();
+    expect(Number(unit![1])).toBe(UNIT_TESTS);
+    expect(Number(unit![2])).toBe(UNIT_FILES);
+    const e2e = s.match(/(\d+) e2e against the production build/);
+    expect(e2e, "DEPLOYMENT §10 must state the e2e count").not.toBeNull();
+    expect(Number(e2e![1])).toBe(E2E_TESTS);
+  });
+
   it("README cites the current unit/e2e counts", () => {
     const s = read("README.md");
     const unit = s.match(/\b(\d+)\s+unit\b/i) ?? s.match(/unit tests \(Vitest, (\d+)\)/i);

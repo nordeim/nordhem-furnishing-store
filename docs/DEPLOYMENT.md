@@ -1,12 +1,13 @@
 # Deployment Guide — Nordhem Furnishing Store
 
 NORDHEM ships as a **single Next.js application over one PostgreSQL database**:
-one Node process plus Postgres, nothing else. This revision (2026-11-20,
-session 008) is rewritten from the operator's `docs/sample_DEPLOYMENT.md`
+one Node process plus Postgres, nothing else. This revision (2026-11-21,
+session 013) is rewritten from the operator's `docs/sample_DEPLOYMENT.md`
 (structure and field-tested command sequences) with **every claim re-verified
 against this codebase** — the sample was written for a sibling repo and its
 facts (9 tables, 6 API routes, Pexels imagery, mock payments, an `{ok,data}`
-envelope, HSTS) do not apply here. Verified truths this guide is built on:
+envelope) do not apply here. (§1's header posture and §10's gate counts were
+re-censed in session-013 — the repo has shipped HSTS since session-009.) Verified truths this guide is built on:
 Drizzle ORM over `node-postgres` (`src/db/index.ts`, single `db` export), 7
 tables in `src/db/schema.ts`, 11 page routes + 8 API route files under
 `src/app/`, integer-cents money re-derived server-side at checkout
@@ -31,10 +32,13 @@ posture (no static-catalog fallback).
   payment is taken and no real order is placed". Identity is an opaque
   session cookie; there are no credentials to leak.
 - The build output is the plain `.next/` directory served by `next start`.
-  `next.config.ts` sets: `poweredByHeader: false`, four security headers
+  `next.config.ts` sets: `poweredByHeader: false`, six security headers
   (X-Content-Type-Options `nosniff`, X-Frame-Options `DENY`,
   Referrer-Policy `strict-origin-when-cross-origin`, Permissions-Policy
-  `camera=(), microphone=(), geolocation=(), payment=()` — e2e-pinned) and
+  `camera=(), microphone=(), geolocation=(), payment=()`, and — since
+  session-009 — `Strict-Transport-Security: max-age=31536000;
+  includeSubDomains` (HSTS; the dev/prod split is in §8) — all
+  e2e-pinned) and
   three 307 redirects (`/profile` → `/ikea-family`,
   `/customer-service/track-manage-order` → `/track-order`,
   `/ikea-family/:path+` → `/ikea-family`), and since session-007 a
@@ -42,8 +46,7 @@ posture (no static-catalog fallback).
   https://www.ikea.com; style-src 'self' 'unsafe-inline';
   script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self';
   form-action 'self'; frame-ancestors 'none'` — the inline allowances are
-  Next's RSC bootstrap and the two JSON-LD blocks). There is **no HSTS**
-  (set it at the TLS edge).
+  Next's RSC bootstrap and the two JSON-LD blocks).
 
 ## 2. Prerequisites
 
@@ -282,11 +285,11 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 90 unit tests, 14 files
+npm test                                                      # Vitest: 110 unit tests, 17 files
 npm run build                                                 # cold build succeeds
 BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 21 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment
-npm run test:e2e                                              # 44 e2e against the production build on :3100 (incl. the axe a11y sweeps — npx playwright install chromium first)
+npm run test:e2e                                              # 53 e2e against the production build on :3100 (incl. the axe a11y sweeps — npx playwright install chromium first)
 curl -s http://127.0.0.1:3000/api/health                      # {"ok":true} when the DB answers (SELECT 1)
 curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 274
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/no-such-page   # 404

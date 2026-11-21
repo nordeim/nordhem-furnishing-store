@@ -60,6 +60,19 @@ describe("listing query schema", () => {
     expect(parsed).toEqual({ sort: "relevance", page: 1, min: undefined, max: undefined });
   });
 
+  it("rejects overflow dollar bounds instead of passing unbounded cents to the DB (session-013 S13-M1)", () => {
+    // 1e308 dollars -> Math.round(1e308*100) === Infinity; 1e17 dollars -> 1e19 cents
+    // (over int8 max). Both used to flow straight into the gte/lte binds and 500 the
+    // page — the schema's contract is "bad values fall back to defaults instead of
+    // erroring" (live-confirmed: /cat/*?max=1e308 -> 500, /search?q=billy&max=1e17 -> 500).
+    const parsed = listingQuerySchema.parse({ min: "1e308", max: "1e17" });
+    expect(parsed.min).toBeUndefined();
+    expect(parsed.max).toBeUndefined();
+    // Boundary: int32-max cents ($21,474,836.47) is the ceiling; one cent more drops out.
+    expect(listingQuerySchema.parse({ min: "21474836.47" }).min).toBe(2147483647);
+    expect(listingQuerySchema.parse({ max: "21474836.48" }).max).toBeUndefined();
+  });
+
   it("converts dollar bounds to cents", () => {
     const parsed = listingQuerySchema.parse({ sort: "price-asc", page: "3", min: "10.5", max: "99" });
     expect(parsed).toEqual({ sort: "price-asc", page: 3, min: 1050, max: 9900 });

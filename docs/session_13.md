@@ -1,3 +1,21 @@
+# Session 013 — the overflow-bound + census + lg-breakpoint cycle
+
+**Environment:** the sandbox was RECYCLED before this session — fresh `git clone` at `1bf5db8` (operator doc-only: session_13.md), `npm install` (lockfile clean, zero drift), `.env` recreated, chromium-1255 restored (`npx playwright install chromium`), and the PG data dir **repaired in place**: the reset pruned only its *empty* subdirectories (pg_notify, pg_stat, pg_logical/snapshots, pg_multixact/*, …), which were recreated with mode 700; the server then recovered cleanly with the data intact (22 / 242 — no reseed).
+
+**Baseline (all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 108/108 (17 files) · build cold ✓ · e2e 52/52 · smoke 21/21 · sitemap 274. Dev server re-verified live on both origins (S12-I4 submenu reset holding); no Tailwind v4 bug.
+
+## What was done
+
+**Audit (read-only subagent; web-application + tdd methodology; deep pass over the session-012 changeset 7d51eed):** 0 CRITICAL · 0 HIGH · **2 MEDIUM · 2 LOW · 3 INFO.** All nine session-012 areas verified correct. The MEDIUMs: `optionalDollars` validated the dollar input but never bounded the cent output — `?max=1e308` → Infinity cents, `?max=1e17` → 1e19 cents, both blowing the Postgres bind and 500ing every `/cat/*` and `/search` render (live-confirmed: both URLs 500) in violation of the fallback contract; DEPLOYMENT §10's gate counts had sat at session-008 figures (90/14/44) for five sessions because the docs-counts census did not cover DEPLOYMENT.md. LOWs: DEPLOYMENT §1 self-contradicted §8 (claimed four headers/no HSTS while the code ships six incl. HSTS since session-009); the drawer stayed scroll-locked with a live focus trap when the viewport crossed lg (live-confirmed at 1440px). Config instruction: documented no-op (sixth consecutive session). Deferred verdicts: migration journal do-later · CSP nonces never · Redis limiter do-later.
+
+**Remediation (TDD, plan-013):** S13-M1 `optionalDollars` now returns `undefined` unless the cents are a safe integer ≤ int32 max — unit RED (1e308 / 1e17 / 21474836.48 boundary) → GREEN, and all three URLs verified **200** live (the $21,474,836.47 boundary still filters) · S13-M2 DEPLOYMENT.md joined the docs-counts census (DOCS array + per-doc it, RED vs the stale 90/14/44) and §10 now reads 110/17/53 · S13-L1 §1 states the six-header truth incl. HSTS, the intro marker moved to session-013, and the stale "HSTS does not apply here" sample-facts item was dropped · S13-L2 a `matchMedia("(min-width: 1024px)")` listener closes the drawer through the normal path when the viewport crosses lg — e2e RED → GREEN (drawer unmounted, scroll unlocked) · S13-I2 both cosmetic script nits fixed.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 110/110 (17 files)** · build cold ✓ · smoke 21/21 · **e2e 53/53 ×3** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server.
+
+**Deferred (documented):** migration journal · CSP nonces (never, per threat model) · Redis limiter · checkout-lock tx-body extraction · pre-hydration image-failure fallback · allowedDevOrigins automated gate · docs-counts DOCS-regex duplication · info pages keeping the layout's og · e2e summary-bucket sharing (benign, documented).
+
+---
+
 I'll start by organizing this large task into a structured TODO list, then begin execution.
 Session 012 of the standing instruction. Checking workspace state and pulling the operator's new commit (`docs/session_12.md`):
 Pulled `b5dfb2f` — doc-only, adds `docs/session_12.md` (the session-011 record). Reviewing it and restoring the environment:

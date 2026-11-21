@@ -24,7 +24,7 @@ for (const shot of shots) {
   const context = await browser.newContext({ ...devices["Desktop Chrome"], viewport: shot.viewport });
   const page = await context.newPage();
   await page.goto(BASE + shot.url, { waitUntil: "load" });
-    await page.waitForTimeout(1500);
+  await page.waitForTimeout(1500);
   if (shot.firstProduct) {
     await page.locator("a[href^='/p/']:visible").first().click();
     await page.waitForTimeout(1200);

@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.11.0
+version: 1.12.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.11.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.12.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 012): 108 unit tests / 52 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 013): 110 unit tests / 53 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -73,6 +73,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+
+
+## §21 Lessons (session 013)
+1. Validate the OUTPUT of a transform, not just its input: "finite dollars" said nothing about "roundable to a sane integer of cents". Infinity and int8-overflow live one multiplication away from every unit-converting Zod transform.
+2. A count-census is only as good as its coverage list. DEPLOYMENT.md drifted five sessions while four other docs tracked — when you build a lockstep mechanism, enumerate EVERY doc that states the claim, and add new claim-stating docs to it the day they appear.
+3. `lg:hidden` hides; it does not unmount. Any state tied to a conditional *visibility* class (scroll locks, focus traps, listeners) must also watch the breakpoint itself — matchMedia is the close companion of every responsive-hide utility class.
+4. A recycler that prunes empty directories can kill a PostgreSQL cluster without touching a single row: the eleven standard empty subdirs (pg_notify, pg_stat, pg_logical/snapshots, …) ARE part of the format. Recreating them with mode 700 recovered the cluster with zero data loss — worth knowing before reaching for a reseed.
+5. When a doc says "X does not apply here", put a date on it: the sample-facts list said HSTS did not apply, which was true for five sessions and then silently became false.
 
 ## §20 Lessons (session 012)
 1. "Probe" is a load-bearing word in a rate-limit table: a select-1 health check and a cookie-keyed two-query read are both GETs, but only one deserves "unlimited". Audit doc tables for posture words, not just numbers.

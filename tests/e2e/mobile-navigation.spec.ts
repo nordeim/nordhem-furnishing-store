@@ -114,6 +114,21 @@ test.describe("mobile navigation drawer", () => {
     );
   });
 
+  test("drawer closes when the viewport crosses the lg breakpoint (session-013 S13-L2)", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Menu", exact: true }).click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    await expect(drawer).toBeVisible();
+    // Widening past lg used to leave the drawer hidden-but-mounted (lg:hidden) with the
+    // scroll lock and the Tab focus trap still live and no visible drawer. It must
+    // close through the normal path: unmounted, scroll unlocked.
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await expect(drawer).toHaveCount(0);
+    await expect
+      .poll(() => page.evaluate(() => document.body.style.overflow))
+      .toBe("");
+  });
+
   test("focus restores to the hamburger button after the drawer closes", async ({ page }) => {
     await page.goto("/");
     const hamburger = page.getByRole("button", { name: "Menu", exact: true });

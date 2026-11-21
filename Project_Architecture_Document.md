@@ -2,7 +2,7 @@
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 012 — summary GET throttle, api-surface hardening, category og:image, drawer submenu reset)
+**Last Updated:** 2026-11-21 (session 013 — optionalDollars bound, DEPLOYMENT census, lg-breakpoint drawer close)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,8 +111,8 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 17 files / 108 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (52 tests)
+tests/unit/         # 17 files / 110 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (53 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 108 tests / 17 files | Vitest (node) | `tests/unit/` |
-| E2E | 52 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 110 tests / 17 files | Vitest (node) | `tests/unit/` |
+| E2E | 53 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -239,6 +239,16 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.12.0 (2026-11-21, session 013)
+
+- `[SEC]` **S13-M1: the listing min/max filter can no longer 500 a page.** `optionalDollars` validated the *dollar* input but not the *cent* output — `?max=1e308` produced `Infinity` cents and `?max=1e17` produced 1e19 cents (over int8 max), both blowing up the Postgres bind on every `/cat/*` and `/search` render (live-confirmed: both URLs returned 500) in violation of the schema's "bad values fall back to defaults" contract. The transform now returns `undefined` unless the cents are a safe integer ≤ int32 max ($21,474,836.47 — pinned as the boundary in unit tests); all three URLs verified 200 live, including the still-filtering boundary value.
+- `[QA]` **S13-M2: DEPLOYMENT.md joins the docs-counts census.** §10's operator checklist had sat at the session-008 counts (90/14/44) for five sessions while every censused doc tracked — the exact independent-drift failure the lockstep mechanism exists to prevent. DEPLOYMENT.md is now in the `DOCS` array and has its own per-doc assertions (unit+files, e2e); §10 reads 110/17/53.
+- `[DOC]` **S13-L1: DEPLOYMENT §1 no longer self-contradicts §8.** It claimed "four security headers … no HSTS" while the seam has shipped six incl. HSTS since session-009 and §8 of the same file said so. §1 now states the six-header truth; the intro's revision marker moved to session-013 and the stale "HSTS does not apply here" sample-facts item was dropped (it now does apply).
+- `[UX]` **S13-L2: crossing the lg breakpoint closes the mobile drawer.** The drawer is hidden via `lg:hidden` rather than unmounted, so widening the viewport while it was open left the scroll lock and the Tab focus trap live with no visible drawer (live-confirmed at 1440px: still in DOM, `overflow: hidden`). A `matchMedia("(min-width: 1024px)")` listener now closes it through the normal path — releasing the lock and re-running the S12-I4 submenu reset. e2e-pinned.
+- `[QA]` **S13-I2:** cosmetic script nits fixed (stray indent in capture-screenshots.mjs; `//` comments inside the `/** */` block in prune-abandoned-carts.mjs).
+- **Environment note:** the sandbox was recycled before this session — fresh clone, `npm install` (lockfile clean), chromium-1255 restored, and the PG data dir repaired in place (the reset pruned only its *empty* subdirectories, which were recreated; 22/242 verified intact, no reseed).
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **110/110 (17 files)** · build cold ✓ · smoke 21/21 · e2e **53/53 ×3** · sitemap **274**.
 
 ## Revision Block — v2.11.0 (2026-11-21, session 012)
 
