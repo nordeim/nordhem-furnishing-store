@@ -11,11 +11,11 @@ An IKEA Singapore storefront re-creation: Next.js 16 App Router · React 19 · T
 | `npm run lint` | ESLint — app boundary only |
 | `npm run typecheck` | `tsc --noEmit` (app code) |
 | `npm run typecheck:tests` | tsc over tests + configs (`tsconfig.tests.json`) |
-| `npm test` | Vitest unit suite (112 tests, 18 files) |
-| `npm run test:e2e` | Playwright (53 tests) against the production build on :3100 — **run `npm run build` first** |
+| `npm test` | Vitest unit suite (113 tests, 18 files) |
+| `npm run test:e2e` | Playwright (55 tests) against the production build on :3100 — **run `npm run build` first** |
 | `npm run db:setup` | `drizzle-kit push` + idempotent seed (22 categories / 242 products) |
 | `bash docs/setup_pg_z.sh` | Rootless local PostgreSQL on :5432 (postgres:postgres/app_db) |
-| `BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh` | 21-check HTTP smoke (server must be running) |
+| `BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh` | 26-check HTTP smoke (server must be running) |
 
 **Clean check order (the only gate — no hosted CI):**
 `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`
@@ -49,7 +49,7 @@ A warm Turbopack cache can mask this class of failure — `rm -rf .next` before 
 - Money is **integer cents** at every boundary (`priceCents`, `computeTotals`); floats never reach a total.
 - The server is the sole price authority: checkout re-reads prices inside the transaction; clients never send amounts.
 - Session identity is an opaque UUID cookie (`ikea_sid`, httpOnly, lax, 180 days) — no accounts, no PII in sessions.
-- Every mutation: Zod parse → rate limit → CSRF origin check (`hasForeignOrigin`) → parameterised Drizzle query. Errors return the `{ error: { code, message } }` envelope, never a throw.
+- Every mutation: rate limit → CSRF origin check (`hasForeignOrigin`) → Zod parse → parameterised Drizzle query. Errors return the `{ error: { code, message } }` envelope, never a throw.
 - Order confirmation is session-scoped; `/api/orders/track` needs order number + email and answers identically for "wrong email" and "no such order" (no enumeration).
 - Search input is `escapeLike`-escaped before ILIKE; listing query params fall back to defaults on bad input.
 - Seeding is idempotent under a Postgres advisory lock, memoised per process.

@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.7.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.14.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 014 — rem-unit breakpoint query, logo focus at lg, total lenient schema)
+**Last Updated:** 2026-11-21 (session 015 — lint-gate repair, mutation-surface smoke probes, root-census scan guard)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -79,7 +79,7 @@ Browser (Chromium e2e / desktop / mobile 390px)
    ▼
 Next.js 16 (App Router, node server, :3000/:3100)
    ├── Server Components ──► src/lib/catalog.ts, shopping.ts ─┐
-   ├── Route Handlers /api/* (Zod → rate-limit → CSRF → Drizzle)
+   ├── Route Handlers /api/* (rate-limit → CSRF → Zod → Drizzle)
    ├── sitemap.ts / robots.ts / manifest.ts (MetadataRoute)
    └── Pool (pg) ─────────────────────────────────────────────┼──► PostgreSQL 17 (:5432, app_db)
                                                                │    (categories, products, cart_items,
@@ -112,7 +112,7 @@ src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
 tests/unit/         # 18 files / 112 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (53 tests)
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (55 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -186,9 +186,9 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 112 tests / 18 files | Vitest (node) | `tests/unit/` |
-| E2E | 53 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
-| Smoke | 21 checks | bash | `scripts/smoke.sh` |
+| Unit | 113 tests / 18 files | Vitest (node) | `tests/unit/` |
+| E2E | 55 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Smoke | 26 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
 
@@ -234,11 +234,23 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | src/db/schema.ts | The 7-table Drizzle schema |
 | src/db/seed.ts | Advisory-lock idempotent seed |
 | scripts/seed-cli.ts | dotenv-first db:seed entry |
-| scripts/smoke.sh | 21-check HTTP contract |
+| scripts/smoke.sh | 26-check HTTP contract |
 | tests/unit/tailwind-scan-guard.test.ts | The scanner-guard pin |
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.14.0 (2026-11-21, session 015)
+
+- `[QA]` **S15-H1: the lint gate is green again — its first ever red fixed.** `react-hooks/set-state-in-effect` errored at `header.tsx:49` (the session-012 S12-I4 submenu-reset effect called setState synchronously in its body) plus an `exhaustive-deps` warning at `:126` (the S14-I1 logo-focus cleanup read `headerRef.current` uncaptured). The reset effect is GONE: `close()` (a `useCallback` funnel) now resets both `panel` and `mobileProductsOpen`, and every leave path (Escape, outside pointerdown, the close button, link navigation, the lg-breakpoint closer) routes through it. The cleanup captures `headerRef.current` at effect start like the file's own session-005 L-5 precedent.
+- `[QA]` **S15-H2: the historical "lint 0/0 · exit-code-checked" claims of sessions 012–014 do not reproduce** with the pinned toolchain (eslint-plugin-react-hooks 7.1.1 via eslint-config-next 16.4.2 — lockfile unchanged since session-008); the erroring effect dated to session-012. This session's records state the real outputs; see SKILL §23 for the honesty lesson.
+- `[QA]` **S15-M1: the three untested mutation surfaces are now smoke-probed** — cart PATCH (quantity set), cart DELETE (remove line) and favourites POST→DELETE had zero coverage in ANY tier. smoke.sh 21 → **26 checks** (+ favourite-POST pin, PATCH, cart DELETE, favourite DELETE, cart re-add).
+- `[HYG]` **S15-M2: junk files removed from tracking** — `docs/start_server_log.txt` (a pasted foreign-project `.env` diff disclosing a production domain and a redacted `AUTH_SECRET`), `docs/status_pg.txt`, `docs/nordherm-sonnet5.5.zip` (324 KB binary bloat). The paramiko shims stay — the push runbook references them.
+- `[QA]` **S15-L2: the scan guard is now a root CENSUS, not a fixed list.** A new unit test enumerates the repo root and fails on any file neither `@source not`-excluded nor scanner-benign (and any unexpected root directory) — the "new unguarded root file" incident class is now a RED test instead of a broken build. The fence itself was complete today; the census pins it.
+- `[QA]` **S15-L3: the cart_items quantity check interpolates `MAX_LINE_QUANTITY`** instead of the literal `99` — changing the constant can no longer silently diverge the DB constraint. Generated SQL verified unchanged (`between 1 and 99`).
+- `[DOC]` **S15-I1: AGENTS/CLAUDE/PAD now state the real mutation pipeline order** (rate limit → CSRF → Zod parse → Drizzle).
+- `[QA]` **S15-I3: the desktop Products mega-menu has e2e pins** (open → panel visible + aria-expanded + category links; outside pointerdown on `<main>` → unmounted + aria-expanded=false — a real hero click lands ON the open panel, inside the header the guard ignores).
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **113/113 (18 files)** · build cold ✓ · smoke **26/26** · e2e **55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server. Unit 112→113, e2e 53→55, smoke 21→26; all count docs swept in-commit.
 
 ## Revision Block — v2.13.0 (2026-11-21, session 014)
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon, type IconName } from "@/components/icons";
 import { SearchBox } from "@/components/layout/search-box";
 import { AppLink } from "@/components/ui/app-link";
@@ -41,13 +41,17 @@ export function Header() {
 
   useEffect(() => ensureSummaryLoaded(), []);
 
-  // Session-012 S12-I4: the drawer unmounts on close but the submenu flag lives here,
-  // so it survived a close/reopen round-trip and the drawer came back pre-expanded.
-  // Reset it on every path that leaves the mobile panel (Escape, outside click, the
-  // close button, and link navigation all funnel through panel leaving "mobile").
-  useEffect(() => {
-    if (panel !== "mobile") setMobileProductsOpen(false);
-  }, [panel]);
+  // Session-012 S12-I4 / session-015 S15-H1: the drawer unmounts on close but the submenu
+  // flag lives here, so it survived a close/reopen round-trip and the drawer came back
+  // pre-expanded. The reset originally lived in a panel-watching effect; that effect called
+  // setState synchronously in its body (react-hooks/set-state-in-effect — the lint gate's
+  // first ever red, fixed session-015). Instead, every path that leaves the mobile panel
+  // funnels through close() below (Escape, outside click, the close button, link navigation,
+  // and the lg breakpoint closer), which resets both pieces of state at once.
+  const close = useCallback(() => {
+    setPanel(null);
+    setMobileProductsOpen(false);
+  }, []);
 
   // Session-013 S13-L2: the drawer is hidden with lg:hidden rather than unmounted,
   // so crossing the lg breakpoint while it was open left the scroll lock and the Tab
@@ -62,20 +66,25 @@ export function Header() {
     // recurs in the divergence band.
     const mq = window.matchMedia("(min-width: 64rem)");
     const closeIfDesktop = () => {
-      if (mq.matches) setPanel(null);
+      // Session-015 S15-L1: this one-shot guard re-checks the query at effect mount (the
+      // listener alone only fires on CHANGE — a drawer opened below lg could already be
+      // past it if the viewport moved between click and effect). It deliberately routes
+      // through the same funnel as every other close path; the async change-listener
+      // callback is the lint-clean setState site.
+      if (mq.matches) close();
     };
     closeIfDesktop();
     mq.addEventListener("change", closeIfDesktop);
     return () => mq.removeEventListener("change", closeIfDesktop);
-  }, [panel]);
+  }, [panel, close]);
 
   useEffect(() => {
     if (!panel) return;
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setPanel(null);
+      if (event.key === "Escape") close();
     }
     function onPointerDown(event: PointerEvent) {
-      if (panel === "products" && headerRef.current && !headerRef.current.contains(event.target as Node)) setPanel(null);
+      if (panel === "products" && headerRef.current && !headerRef.current.contains(event.target as Node)) close();
     }
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("pointerdown", onPointerDown);
@@ -83,13 +92,16 @@ export function Header() {
       document.removeEventListener("keydown", onKeyDown);
       document.removeEventListener("pointerdown", onPointerDown);
     };
-  }, [panel]);
+  }, [panel, close]);
 
   useEffect(() => {
     if (panel !== "mobile") return;
-    // Capture the button now: menuButtonRef.current at cleanup time may be stale
-    // (react-hooks/exhaustive-deps) — session-005 L-5.
+    // Capture the buttons/refs now: menuButtonRef.current and headerRef.current at cleanup
+    // time may be stale (react-hooks/exhaustive-deps) — session-005 L-5, and the header
+    // half joined it in session-015 (S15-H1's warning half: the S14-I1 logo-focus cleanup
+    // read headerRef.current uncaptured, 35 lines below the file's own precedent).
     const menuButton = menuButtonRef.current;
+    const header = headerRef.current;
     const drawer = document.getElementById("mobile-drawer");
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -123,14 +135,12 @@ export function Header() {
       // (S13-L2), the hamburger is display:none and .focus() is a silent no-op —
       // focus would strand on <body>. Send it to the always-visible logo link instead.
       if (window.matchMedia("(min-width: 64rem)").matches) {
-        headerRef.current?.querySelector<HTMLAnchorElement>('a[aria-label^="IKEA logotype"]')?.focus();
+        header?.querySelector<HTMLAnchorElement>('a[aria-label^="IKEA logotype"]')?.focus();
       } else {
         menuButton?.focus();
       }
     };
   }, [panel]);
-
-  const close = () => setPanel(null);
 
   return (
     <header ref={headerRef} className="sticky top-0 z-40 border-b border-line bg-white">

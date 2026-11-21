@@ -40,6 +40,18 @@ check "invalid checkout rejected" 422 "$(status -b "$JAR" -H 'Content-Type: appl
 check "non-JSON content type rejected" 415 "$(status -b "$JAR" -H 'Content-Type: text/plain' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/cart")"
 check "oversized body rejected" 413 "$(status -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID,\"junk\":\"$(printf 'x%.0s' {1..20000})\"}" "$BASE/api/cart")"
 
+# Session-015 S15-M1: the quantity stepper (PATCH), the Remove button (cart DELETE) and
+# un-favouriting (favourites DELETE) had zero coverage in any tier — a regression in
+# setCartQuantity/removeFromCart/removeFavourite would have shipped green through the
+# whole gate. All three surfaces are probed here against the session's own line.
+# favouriteIds[0] is compared to $PRODUCT_ID itself (the row the POST pinned). The
+# cart DELETE empties the line, so the round-trip re-adds it before checkout below.
+check "cart quantity set via PATCH" 3 "$(json -X PATCH -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID,\"quantity\":3}" "$BASE/api/cart" | field "['lines'][0]['quantity']")"
+check "cart line removed via DELETE" 0 "$(json -X DELETE -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/cart" | field "['totals']['itemCount']")"
+check "favourite added via POST" "$PRODUCT_ID" "$(json -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/favourites" | field "['favouriteIds'][0]")"
+check "favourite removed via DELETE" "[]" "$(json -X DELETE -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID}" "$BASE/api/favourites" | python3 -c "import sys,json;print(json.load(sys.stdin)['favouriteIds'])")"
+check "cart re-added after removal" 201 "$(status -b "$JAR" -H 'Content-Type: application/json' -d "{\"productId\":$PRODUCT_ID,\"quantity\":1}" "$BASE/api/cart")"
+
 ORDER="$(json -b "$JAR" -d '{"name":"Smoke Test","email":"Smoke@Example.com","phone":"+65 9123 4567","address":"1 Jurong West Street 21","postalCode":"649423","method":"delivery"}' "$BASE/api/checkout")"
 ORDER_NO="$(echo "$ORDER" | field "['orderNo']")"
 check "order page for owning session" 200 "$(status -b "$JAR" "$BASE/orders/$ORDER_NO")"

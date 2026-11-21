@@ -35,7 +35,7 @@ An independent educational re-creation of the IKEA Singapore storefront with wor
 ### Next.js 16 Specific
 - App Router conventions; Server Components by default; `"use client"` only for interactivity.
 - `export const dynamic = "force-dynamic"` on every data route and DB-backed page.
-- Route Handlers stay thin: Zod parse → rate limit → CSRF check → Drizzle → envelope (`src/lib/route.ts` `guard()`).
+- Route Handlers stay thin: rate limit → CSRF check → Zod parse → Drizzle → envelope (`src/lib/route.ts` `guard()`).
 - Metadata API for SEO; `metadataBase` from `siteBaseUrl()`; JSON-LD via `jsonLdScript()` (escapes `<`).
 
 ### TypeScript Strict Mode
@@ -71,15 +71,15 @@ npm run dev
 | `npm run start` | Serve production build |
 | `npm run lint` | ESLint |
 | `npm run typecheck` / `typecheck:tests` | tsc for app / tests |
-| `npm test` | Vitest (112 unit tests) |
+| `npm test` | Vitest (113 unit tests) |
 | `npm run test:e2e` | Playwright (53 tests, build first) |
 | `npm run db:setup` | Schema push + seed |
 
 ## Testing Strategy
 
-- **Unit (Vitest, 112 tests)**: pure seams only — cart-math, money, validation, paths, rate-limit, content contracts, seo builders, tailwind-scan-guard. New logic in `src/lib/*` gets its spec in the same change (TDD).
-- **E2E (Playwright, 53 tests)**: mobile-navigation (conditional-mount drawer state machine), storefront (home/listing/product/search/cart/health), seo-platform (sitemap/robots/manifest/JSON-LD/noindex). Against the production build on :3100.
-- **Smoke (21 checks)**: `scripts/smoke.sh` — full cart→checkout→track round-trip including cross-session isolation.
+- **Unit (Vitest, 113 tests)**: pure seams only — cart-math, money, validation, paths, rate-limit, content contracts, seo builders, tailwind-scan-guard. New logic in `src/lib/*` gets its spec in the same change (TDD).
+- **E2E (Playwright, 55 tests)**: mobile-navigation (conditional-mount drawer state machine), storefront (home/listing/product/search/cart + desktop mega-menu), seo-platform (sitemap/robots/manifest/JSON-LD/noindex), accessibility + accessibility-states (axe). Against the production build on :3100.
+- **Smoke (26 checks)**: `scripts/smoke.sh` — full cart→checkout→track round-trip including cross-session isolation, cart PATCH/DELETE and favourite POST/DELETE mutation probes.
 
 ## Error Handling & Debugging
 

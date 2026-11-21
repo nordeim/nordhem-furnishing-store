@@ -11,6 +11,7 @@ import {
   timestamp,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { MAX_LINE_QUANTITY } from "@/lib/cart-math";
 
 export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
@@ -63,7 +64,10 @@ export const cartItems = pgTable(
   },
   (t) => [
     uniqueIndex("cart_items_session_product_uq").on(t.sessionId, t.productId),
-    check("cart_items_qty_range", sql`${t.quantity} between 1 and 99`),
+    // Session-015 S15-L3: MAX_LINE_QUANTITY is the single authority (cart-math.ts) — the
+    // check interpolated the literal 99, so changing the constant would silently diverge
+    // the DB constraint while unit tests stayed green. Same generated SQL today (99).
+    check("cart_items_qty_range", sql`${t.quantity} between 1 and ${MAX_LINE_QUANTITY}`),
   ],
 );
 

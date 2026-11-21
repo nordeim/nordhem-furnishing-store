@@ -1,31 +1,19 @@
-I'll start by setting up a TODO plan for this comprehensive task, then work through it systematically.
-Session 014 of the standing instruction. Checking workspace state and pulling the operator's new commit:
-Pulled `c5d7183` — doc-only, adds `docs/session_14.md` (the session-013 record). Workspace survived this time. Verifying environment and reviewing the new session doc:
-Environment fully intact (node_modules, paramiko, chromium-1255, PG 22/242, .env). Running the baseline gate:
-**Baseline fully green**: unit 110/110 · build cold · e2e 53/53 · smoke 21/21 · sitemap 274. All session-013 fixes hold. Launching the session-014 audit subagent:
-Audit complete: **0 CRITICAL / 0 HIGH / 0 MEDIUM / 3 LOW / 8 INFO** — session-013 changes all correct. The LOWs: the matchMedia query hard-codes `1024px` while Tailwind v4's `lg` is `64rem` (diverges under a non-default user font size — the S13-L2 bug can recur in a band), the e2e drawer pin can't distinguish "unmounted" from `display:none`, and a stale §6 reference in the prune script. Now browser verification:
-Drawer machine verified on 127.0.0.1. Now the localhost origin, the S13-L2 lg-crossing fix live, and the desktop check:
-All browser checks green — the S13-L2 lg-closer is holding live (open+locked at 390px → unmounted+unlocked at 1440px). Checking the header markup for the focus-restore fix, then writing plan-014:
-All context gathered. Writing plan-014:
-All three REDs confirmed. Writing the GREEN batch:
-Unit **112/112 (18 files)** GREEN. Rebuilding and running the full gate:
-Full gate GREEN — e2e **53/53 ×3** with the hardened pins (logo-focus poll was RED, now GREEN). Capturing dev-server screenshots:
-12/12 PIL-valid. Running the docs sweep (PAD v2.13.0, SKILL v1.13.0 §22, counts 112/18, worklog Task 132, session_14.md record):
-All green. Saving deliverables, committing, and pushing:
-Committed `2896613`. Pushing via the SSH wrapper:
-# Session 014 — complete (pushed as `2896613` to `main` on `nordeim/nordhem-furnishing-store`, remote ref verified by the SSH wrapper)
+# Session 015 — the lint-gate repair + mutation-surface probes + root-census cycle
 
-**Environment** — The workspace survived this time (no reset): pulled `c5d7183` (operator doc-only — adds `docs/session_14.md`, the session-013 raw record). PG 22/242 intact, node_modules, paramiko, chromium-1255 and `.env` all present. Baseline gate fully green before any changes (unit 110/110 · build cold · e2e 53/53 · smoke 21/21 · sitemap 274), and the dev server verified live on both origins: the S12-I4 submenu reset holding, drawer navigation working, and the S13-L2 lg-crossing closer holding live (open + scroll-locked at 390px → unmounted + unlocked at 1440px). Desktop clean; no Tailwind v4 bug.
+**Environment:** workspace rebuilt from a fresh clone (sandbox recycled): npm install (lockfile clean, zero drift), rootless PostgreSQL 17 via docs/setup_pg_z.sh, db:setup → 22/242, chromium-1255 restored for Playwright 1.65.1, paramiko reinstalled. Fresh clone at b333b72.
 
-**Audit** (read-only subagent, web-application + tdd skills; deep pass over session-013's `808e783`): **0 CRITICAL · 0 HIGH · 0 MEDIUM · 3 LOW · 8 INFO** — all eight session-013 areas verified correct (boundary arithmetic traced end-to-end, effect/listener symmetry, census regexes, count lockstep by grep). Config instruction: documented no-op (seventh consecutive session). Deferred verdicts: migration journal do-later · CSP nonces do-later · Redis limiter never-until-multi-instance.
+**Baseline (exit-code-checked):** typecheck ✓ · typecheck:tests ✓ · unit 112/112 (18 files) · sitemap 274 (live) · dev server hydrated on BOTH origins. **lint ✗ — 1 error + 1 warning (header.tsx:49/:126) — the repo's first red lint**, while sessions 012–014 all recorded "lint 0/0 · exit-code-checked". Live browser verification (agent-browser): drawer open/close/reopen + S12-I4 submenu reset, Escape + focus restore, scroll lock/unlock, S13-L2 lg-crossing + S14-I1 logo focus, desktop mega-menu open/outside-close, no horizontal overflow at 390/768/1440, zero console errors — **no Tailwind v4 display-utility bug; the conditional-mount pattern holds**.
 
-**Remediation (plan-014, every behavioral fix captured RED first):**
-- **S14-L1** the drawer-close media query now uses `(min-width: 64rem)` instead of `1024px` — Tailwind v4's `lg` is rem-based and media-query rem follows the *user's default font size*, so the pixel literal diverged from the CSS under any non-default root font, recreating the S13-L2 bug in the divergence band. Pinned by a declaration tripwire (new `tests/unit/header-source.test.ts` with a candid NOTE — Playwright cannot emulate the browser's default font size).
-- **S14-I1** focus continuity: when the drawer closes via the breakpoint, focus now lands on the always-visible logo link instead of silently stranding on `<body>` (the hamburger is `display:none` at ≥lg). e2e-pinned via an activeElement poll.
-- **S14-L2** the S13-L2 e2e now also counts `#mobile-drawer` DOM nodes — a role-locator count-0 can't distinguish "unmounted" from "hidden by `lg:hidden`".
-- **S14-I3** `optionalDollars` carries `.catch(undefined)` — the "bad values fall back" contract now holds for non-string inputs too (a number/null `min` used to make `parse` throw).
-- **S14-L3 / I2 / I4 / I5** doc fixes: prune JSDoc §6→§9; README sitemap prose names both static routes; docs-counts sweep renamed "five docs"; DEPLOYMENT §1's HSTS parenthetical corrected.
+**Audit** (read-only subagent; web-application + tdd + tailwind-patterns methodology): **0 CRITICAL · 2 HIGH · 2 MEDIUM · 3 LOW · 3 INFO**. S15-H1/H2 lint-gate red + gate-truth broken; M1 cart PATCH/DELETE + favourites DELETE untested in every tier; M2 junk/secret-adjacent tracked files; L1 indirection setState; L2 fixed-list scan guard; L3 hard-coded 99; I1/I3 doc order + unpinned desktop mega-menu; I2 zod email soft-deprecation (documented no-action). Config instruction (vitest/playwright): audited sound — documented no-op, 9th consecutive session.
 
-**Final gate (exit-code-checked):** lint 0/0 · typecheck ✓✓ · **unit 112/112 (18 files)** · build cold ✓ · smoke 21/21 · **e2e 53/53 ×3 consecutive** · sitemap **274** · screenshots **12/12 PIL-valid from the dev server**. Docs: PAD v2.13.0, SKILL v1.13.0 (§22 lessons), all count docs in lockstep (112/18/53), worklog Task 132, session_14.md record, plan-014, `.env.example` re-verified (no env changes this session). Key shredded after the verified push.
+**Remediation (plan-015, TDD):**
+- **S15-H1** RED (lint exit 1) → GREEN (exit 0): the S12-I4 submenu-reset effect is deleted; `close()` (useCallback) resets both `panel` and `mobileProductsOpen`, and every leave path funnels through it; the S14-I1 cleanup captures `headerRef.current` at effect start. Drawer semantics re-verified live post-refactor.
+- **S15-M1** smoke 21 → **26**: favourite POST pin, cart PATCH (quantity→3), cart DELETE (itemCount→0), favourite DELETE (favouriteIds→[]), cart re-add — verified exit 0 on dev (:3000) and prod (:3100).
+- **S15-M2** `git rm docs/start_server_log.txt docs/status_pg.txt docs/nordherm-sonnet5.5.zip` (foreign `.env` diff w/ production domain + redacted AUTH_SECRET; shell-history paste; 324 KB binary).
+- **S15-L2** the scan guard gains a root CENSUS test (any root file neither excluded nor benign → RED; unexpected root dirs → RED). Born-GREEN: the fence was complete; `.gitignore`/`*.tsbuildinfo` documented in the ignore set.
+- **S15-L3** `cart_items_qty_range` interpolates MAX_LINE_QUANTITY; constraint SQL verified byte-identical (`between 1 and 99`); db:push clean.
+- **S15-I1** AGENTS/CLAUDE/PAD state the real pipeline order (rate limit → CSRF → Zod → Drizzle). **S15-I3** two desktop mega-menu e2e pins (the first outside-close draft RED — the open panel overlays the hero; dispatches pointerdown on `<main>`, then GREEN alone and in-suite).
 
-Saved for you in download/: [session-014_summary.md](/home/z/my-project/download/session-014_summary.md), [2026-11-21_session-014_remediation-plan.md](/home/z/my-project/download/2026-11-21_session-014_remediation-plan.md), [session_14.md](/home/z/my-project/download/session_14.md), [DEPLOYMENT.md](/home/z/my-project/download/DEPLOYMENT.md), [nordhem-furnishing-store_SKILL.md](/home/z/my-project/download/nordhem-furnishing-store_SKILL.md). The repo is clean at `/home/z/my-project/nordhem-furnishing-store`, `main` synced with origin at `2896613`.
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 113/113 (18 files)** · build cold ✓ · smoke **26/26** · **e2e 55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server.
+
+**Deferred (documented):** migration journal · CSP nonces · Redis limiter · I-2 `z.string().email()` soft-deprecation (migrate at next validation touch) · checkout-lock tx-body extraction · pre-hydration image-failure fallback.

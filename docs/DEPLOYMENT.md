@@ -284,11 +284,11 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 112 unit tests, 18 files
+npm test                                                      # Vitest: 113 unit tests, 18 files
 npm run build                                                 # cold build succeeds
-BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 21 HTTP checks (server must be running)
+BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 26 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment
-npm run test:e2e                                              # 53 e2e against the production build on :3100 (incl. the axe a11y sweeps — npx playwright install chromium first)
+npm run test:e2e                                              # 55 e2e against the production build on :3100 (incl. the axe a11y sweeps — npx playwright install chromium first)
 curl -s http://127.0.0.1:3000/api/health                      # {"ok":true} when the DB answers (SELECT 1)
 curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 274
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/no-such-page   # 404

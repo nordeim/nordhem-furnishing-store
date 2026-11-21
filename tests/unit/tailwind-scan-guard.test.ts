@@ -43,6 +43,52 @@ const POISON_TOKENS = [
   ["md", "aspect-[3/1]"].join(":"),
 ];
 
+/**
+ * Session-015 S15-L2: REQUIRED_EXCLUSIONS above is a fixed enumeration — it proves the KNOWN
+ * fences exist but says nothing about a NEW root file. The scanner incident class (hit twice:
+ * run-75 pre-rewrite, session-001 post-rewrite) is exactly "a root file nobody fenced" — so
+ * this census turns the arrival of any unfenced root file into a RED test instead of a broken
+ * build. Every root FILE must be either excluded in globals.css or in BENIGN_ROOT_EXTENSIONS
+ * (formats the oxide scanner reads but cannot extract class-shaped arbitrary values from:
+ * JSON/mjs/ts configs carry no prose). Root DIRECTORIES other than the fenced ones are also
+ * flagged — only the known trees may exist at the root.
+ */
+const FENCED_ROOT_DIRS = new Set(["docs", "skills", "tests", "scripts", "public", "src"]);
+const BENIGN_ROOT_EXTENSIONS = new Set([
+  ".json",
+  ".mjs",
+  ".ts",
+  ".example", // .env.example — prose comments only, no class-shaped values
+]);
+const IGNORED_ROOT_ENTRIES = new Set([
+  ".git",
+  ".next",
+  "node_modules",
+  ".env", // gitignored, never committed; scanner-wise treated as fenced by absence
+  ".gitignore", // gitignore patterns — no prose, no class-shaped values
+  "playwright-report",
+  "test-results",
+  "next-env.d.ts", // generated + gitignored
+]);
+
+// tsc incremental artifacts — *.tsbuildinfo is gitignored (*.tsbuildinfo in .gitignore)
+// and never committed; match by suffix.
+function isIgnored(entry: string): boolean {
+  if (IGNORED_ROOT_ENTRIES.has(entry)) return true;
+  return entry.endsWith(".tsbuildinfo");
+}
+
+function rootEntries(): { files: string[]; dirs: string[] } {
+  const files: string[] = [];
+  const dirs: string[] = [];
+  for (const entry of readdirSync(".")) {
+    if (isIgnored(entry)) continue;
+    if (statSync(entry).isDirectory()) dirs.push(entry);
+    else files.push(entry);
+  }
+  return { files, dirs };
+}
+
 function scanTreeFor(dir: string, token: string): string[] {
   const hits: string[] = [];
   for (const entry of readdirSync(dir)) {
@@ -82,6 +128,25 @@ describe("tailwind scan guard (globals.css)", () => {
     for (const token of POISON_TOKENS) {
       const hits = scanTreeFor("src", token);
       expect(hits, `${token} leaked into src/: ${hits.join(", ")}`).toEqual([]);
+    }
+  });
+
+  it("every root file is either scanner-excluded or of a scanner-benign extension (S15-L2 census)", () => {
+    const { files, dirs } = rootEntries();
+    // Every root directory must be a known fenced tree (the @source not list + the app's own
+    // scanned trees). An unexpected root directory is the same incident class as an
+    // unexpected root file — it is a whole tree the scanner sees unfenced.
+    for (const dir of dirs) {
+      expect(FENCED_ROOT_DIRS, `unexpected root directory '${dir}' — fence it in globals.css or explain it here`).toContain(dir);
+    }
+    for (const file of files) {
+      const excluded = REQUIRED_EXCLUSIONS.some((line) => line.includes(`/${file}"`));
+      const ext = file.slice(file.lastIndexOf("."));
+      const benign = BENIGN_ROOT_EXTENSIONS.has(ext);
+      expect(
+        excluded || benign,
+        `root file '${file}' is neither scanner-excluded in globals.css nor a benign extension — fence it (@source not "../../${file}") or add it to BENIGN_ROOT_EXTENSIONS with a reason`,
+      ).toBe(true);
     }
   });
 });

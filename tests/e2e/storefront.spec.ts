@@ -63,6 +63,36 @@ test("health endpoint responds ok", async ({ request }) => {
   expect(await response.json()).toEqual({ ok: true });
 });
 
+test("desktop Products mega-menu opens the panel and links category pages (session-015 S15-I3)", async ({ page }) => {
+  await page.goto("/");
+  // The desktop nav's Products button (the mobile hamburger is display:none at this
+  // viewport — mobile-navigation.spec.ts owns that state machine). This pins the DESKTOP
+  // conditional-mount: aria-expanded tracks the panel, and the panel carries real links.
+  const productsButton = page.getByRole("button", { name: /^Products/ }).first();
+  await productsButton.click();
+  const panel = page.locator("#products-panel");
+  await expect(panel).toBeVisible();
+  await expect(productsButton).toHaveAttribute("aria-expanded", "true");
+  const categoryLinks = panel.locator("a[href^='/cat/']");
+  await expect(categoryLinks.first()).toBeVisible();
+  expect(await categoryLinks.count()).toBeGreaterThan(5);
+});
+
+test("desktop Products mega-menu closes on outside pointerdown (session-015 S15-I3)", async ({ page }) => {
+  await page.goto("/");
+  const productsButton = page.getByRole("button", { name: /^Products/ }).first();
+  await productsButton.click();
+  await expect(page.locator("#products-panel")).toBeVisible();
+  // The open panel is absolutely positioned BELOW the sticky header and overlays the hero,
+  // so no hero element is clickable while it is open — a real click there lands ON the
+  // panel (inside <header>, which the guard ignores) and never closes it. Dispatch the
+  // pointerdown on <main> directly: it bubbles to the document listener exactly like a
+  // user pointerdown outside the header and is the only deterministic outside target.
+  await page.locator("main").first().dispatchEvent("pointerdown");
+  await expect(page.locator("#products-panel")).toHaveCount(0);
+  await expect(productsButton).toHaveAttribute("aria-expanded", "false");
+});
+
 test("hero hotspot buttons meet the 44px touch floor (session-009 S9-L5)", async ({ page }) => {
   await page.goto("/");
   const hotspot = page.getByRole("button", { name: /Product information:/ }).first();

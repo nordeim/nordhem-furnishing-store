@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.13.0
-last_updated: 2026-11-20
+version: 1.14.0
+last_updated: 2026-11-21
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.13.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.14.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 014): 112 unit tests / 53 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 015): 113 unit tests / 55 e2e / 26 smoke checks;; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -75,6 +75,12 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+
+## §23 Lessons (session 015)
+1. "Exit-code-checked" is a claim about a PAST run, not a property of the tree: lint had been red since session-012's own commit while three consecutive session records claimed "lint 0/0 · exit-code-checked" — the pinned toolchain never changed, the runs evidently were never exit-checked. Re-run the gate yourself before writing "verified"; the worklog's history is evidence, not proof.
+2. A setState-in-effect bug is fixed by deleting the effect, not hiding the call: folding the reset into the close() funnel (every leave path routes through it) is lint-clean AND simpler than the panel-watching effect it replaced — and the existing S12-I4 e2e still pins the semantics through the refactor.
+3. "Zero coverage in any tier" is a tier-independent audit dimension: the cart stepper (PATCH), Remove (DELETE) and un-favourite (DELETE) shipped for 14 sessions with no pin anywhere — grep all three tiers per surface, not per file.
+4. A fixed-list guard test gives false confidence: it proves the KNOWN fences exist, says nothing about the NEXT file. Enumerate the actual root in the test and the arrival of an unfenced root file becomes a RED test instead of a broken build.
 
 ## §22 Lessons (session 014)
 1. A JS breakpoint listener must use the same UNIT as the CSS breakpoint: Tailwind v4's `lg` is `64rem`, and media-query rem follows the user's default font size — `matchMedia("(min-width: 1024px)")` silently diverges from `lg:hidden` under any non-default root font.
