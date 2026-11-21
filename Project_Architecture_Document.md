@@ -2,7 +2,7 @@
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 013 — optionalDollars bound, DEPLOYMENT census, lg-breakpoint drawer close)
+**Last Updated:** 2026-11-21 (session 014 — rem-unit breakpoint query, logo focus at lg, total lenient schema)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,7 +111,7 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 17 files / 110 tests
+tests/unit/         # 18 files / 112 tests
 tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (53 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
@@ -186,7 +186,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 110 tests / 17 files | Vitest (node) | `tests/unit/` |
+| Unit | 112 tests / 18 files | Vitest (node) | `tests/unit/` |
 | E2E | 53 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.13.0 (2026-11-21, session 014)
+
+- `[A11Y]` **S14-L1: the drawer-close media query now uses `64rem`, not `1024px`.** Tailwind v4's `lg` is rem-based and media-query rem follows the user's *default font size* (a common accessibility setting); the hard-coded pixel value diverged from the CSS under any non-default root font, and in the divergence band the S13-L2 bug (hidden-but-mounted drawer with a live scroll lock and focus trap) recurred. Pinned by a declaration tripwire (`tests/unit/header-source.test.ts`, with a candid NOTE — the distinction cannot be exercised in Chromium because Playwright cannot emulate the browser's default font size); default-font behavior remains pinned by the S13-L2 e2e.
+- `[A11Y]` **S14-I1: focus no longer strands on `<body>` when the drawer closes via the breakpoint.** The hamburger is `display:none` at ≥lg, so the old `menuButton?.focus()` was a silent no-op; the close path now sends focus to the always-visible logo link. e2e-pinned via an activeElement poll (captured RED first).
+- `[QA]` **S14-L2: the S13-L2 e2e pin now proves the unmount, not just a11y-tree absence.** `getByRole("dialog")` count-0 also passes for a `display:none` subtree; the test additionally counts the `#mobile-drawer` DOM node itself, so a future refactor that keeps the drawer mounted at lg fails loudly.
+- `[QA]` **S14-I3: `optionalDollars` carries `.catch(undefined)`** — the schema's documented "bad values fall back to defaults instead of erroring" contract now holds for any input type (a number/null `min` used to throw on parse), matching the sibling `sort`/`page` fields. Unit-pinned (captured RED first).
+- `[DOC]` **S14-L3 / I2 / I4 / I5:** prune-script JSDoc points at DEPLOYMENT §9 (was §6); README's sitemap itemization names both static routes (home + IKEA Family — the old prose summed to 273); the docs-counts sweep test says "five docs" (DEPLOYMENT joined in session-013); DEPLOYMENT §1's HSTS parenthetical no longer mis-attributes the CSP's dev/prod split to HSTS.
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **112/112 (18 files)** · build cold ✓ · smoke 21/21 · e2e **53/53 ×3** · sitemap **274**.
 
 ## Revision Block — v2.12.0 (2026-11-21, session 013)
 

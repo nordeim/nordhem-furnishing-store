@@ -56,7 +56,11 @@ export function Header() {
   // reset above.
   useEffect(() => {
     if (panel !== "mobile") return;
-    const mq = window.matchMedia("(min-width: 1024px)");
+    // Session-014 S14-L1: 64rem, not 1024px — Tailwind v4's lg is rem-based, and
+    // media-query rem follows the user's default font size; a hard-coded pixel value
+    // diverges from the CSS under any non-default root font and the S13-L2 bug
+    // recurs in the divergence band.
+    const mq = window.matchMedia("(min-width: 64rem)");
     const closeIfDesktop = () => {
       if (mq.matches) setPanel(null);
     };
@@ -115,7 +119,14 @@ export function Header() {
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onTab, true);
-      menuButton?.focus();
+      // Session-014 S14-I1: when the drawer closed because the viewport crossed lg
+      // (S13-L2), the hamburger is display:none and .focus() is a silent no-op —
+      // focus would strand on <body>. Send it to the always-visible logo link instead.
+      if (window.matchMedia("(min-width: 64rem)").matches) {
+        headerRef.current?.querySelector<HTMLAnchorElement>('a[aria-label^="IKEA logotype"]')?.focus();
+      } else {
+        menuButton?.focus();
+      }
     };
   }, [panel]);
 

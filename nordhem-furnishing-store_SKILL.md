@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.12.0
+version: 1.13.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.12.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.13.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 013): 110 unit tests / 53 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 014): 112 unit tests / 53 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -74,6 +74,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+
+
+## §22 Lessons (session 014)
+1. A JS breakpoint listener must use the same UNIT as the CSS breakpoint: Tailwind v4's `lg` is `64rem`, and media-query rem follows the user's default font size — `matchMedia("(min-width: 1024px)")` silently diverges from `lg:hidden` under any non-default root font.
+2. Role locators cannot see `display:none`. To pin "unmounted" in an e2e, count the DOM node with a CSS locator — a role-locator count of 0 passes for both unmounted and merely hidden.
+3. A focus-restore target must be VISIBLE at the moment of restore. Closing a mobile drawer by crossing to desktop strands focus on `<body>` if you restore to the (now hidden) trigger — restore to an element that exists in both layouts.
+4. A "lenient" schema should be total: if the contract is "bad values fall back to defaults", add `.catch` so non-string inputs cannot throw when the schema is reused outside its original searchParams path.
+5. Section pointers inside operator scripts (`see docs/DEPLOYMENT.md §6`) are documentation too — they drift silently when sections are renumbered, and the docs-counts census cannot see them. Grep them when restructuring a doc.
 
 ## §21 Lessons (session 013)
 1. Validate the OUTPUT of a transform, not just its input: "finite dollars" said nothing about "roundable to a sane integer of cents". Infinity and int8-overflow live one multiplication away from every unit-converting Zod transform.

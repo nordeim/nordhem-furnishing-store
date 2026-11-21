@@ -37,8 +37,7 @@ posture (no static-catalog fallback).
   Referrer-Policy `strict-origin-when-cross-origin`, Permissions-Policy
   `camera=(), microphone=(), geolocation=(), payment=()`, and — since
   session-009 — `Strict-Transport-Security: max-age=31536000;
-  includeSubDomains` (HSTS; the dev/prod split is in §8) — all
-  e2e-pinned) and
+  includeSubDomains` (HSTS) — all e2e-pinned) and
   three 307 redirects (`/profile` → `/ikea-family`,
   `/customer-service/track-manage-order` → `/track-order`,
   `/ikea-family/:path+` → `/ikea-family`), and since session-007 a
@@ -285,7 +284,7 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 110 unit tests, 17 files
+npm test                                                      # Vitest: 112 unit tests, 18 files
 npm run build                                                 # cold build succeeds
 BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 21 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment

@@ -16,7 +16,7 @@
  *   MAX_AGE_DAYS=90 node scripts/prune-abandoned-carts.mjs --apply
  *
  * Reads DATABASE_URL from the environment (same source as the app). Intended for an
- * operator cron (see docs/DEPLOYMENT.md §6) — deliberately NOT wired into any request
+ * operator cron (see docs/DEPLOYMENT.md §9) — deliberately NOT wired into any request
  * path: a hot-path scan would couple checkout latency to table size.
  */
 import { Pool } from "pg";

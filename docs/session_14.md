@@ -1,3 +1,26 @@
+# Session 014 — the rem-unit breakpoint + focus-continuity + total-schema cycle
+
+**Environment:** workspace SURVIVED (no reset) — pulled `c5d7183` (operator doc-only: session_14.md, the session-013 raw record). PG 22/242 intact, node_modules, paramiko, chromium-1255, `.env` all present.
+
+**Baseline (all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 110/110 (17 files) · build cold ✓ · e2e 53/53 · smoke 21/21 · sitemap 274. Dev server verified live on both origins: the S12-I4 submenu reset holding, drawer navigation, and **the S13-L2 lg-closer holding live** (open + scroll-locked at 390px → unmounted + unlocked at 1440px). Desktop clean; no Tailwind v4 bug.
+
+## What was done
+
+**Audit** (read-only subagent; web-application + tdd methodology; deep pass over the session-013 changeset `808e783`): **0 CRITICAL · 0 HIGH · 0 MEDIUM · 3 LOW · 8 INFO** — all eight session-013 areas verified correct. Config instruction: documented no-op (seventh consecutive session). Deferred verdicts: migration journal do-later · CSP nonces do-later · Redis limiter never-until-multi-instance.
+
+**Remediation (TDD, plan-014, every behavioral fix captured RED first):**
+- **S14-L1** the drawer-close media query uses `(min-width: 64rem)` — Tailwind v4's `lg` is rem-based and media-query rem follows the *user's default font size*; the old `1024px` literal diverged from the CSS under any non-default root font, recreating the S13-L2 bug in the divergence band. Pinned by a declaration tripwire (new `tests/unit/header-source.test.ts`, candid NOTE: Playwright cannot emulate the browser's default font size).
+- **S14-I1** when the drawer closes via the breakpoint, focus lands on the always-visible logo link instead of silently stranding on `<body>` (the hamburger is `display:none` at ≥lg). e2e-pinned via an activeElement poll.
+- **S14-L2** the S13-L2 e2e now also counts `#mobile-drawer` DOM nodes — a role-locator count-0 cannot distinguish "unmounted" from "hidden by `lg:hidden`".
+- **S14-I3** `optionalDollars` carries `.catch(undefined)` — the "bad values fall back" contract now holds for non-string inputs too (a number/null `min` used to make `parse` throw).
+- **S14-L3 / I2 / I4 / I5** doc fixes: prune JSDoc §6→§9; README sitemap prose names both static routes (old itemization summed to 273); docs-counts sweep renamed "five docs"; DEPLOYMENT §1's HSTS parenthetical no longer mis-attributes the CSP dev/prod split.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 112/112 (18 files)** · build cold ✓ · smoke 21/21 · **e2e 53/53 ×3** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server.
+
+**Deferred (documented):** migration journal · CSP nonces · Redis limiter · checkout-lock tx-body extraction · pre-hydration image-failure fallback · allowedDevOrigins automated gate · docs-counts DOCS-regex duplication · info pages keeping the layout's og · e2e summary-bucket sharing · shields badges decorative (documented) · int4 order-total headroom (no action).
+
+---
+
 Session 013 of the standing instruction. Checking workspace state and pulling the operator's new commit (`docs/session_13.md`):
 Clone at `1bf5db8` (operator doc-only: session_13.md = my session-012 raw log). Browsers and PG data survived; node_modules and `.env` need recreation. Setting up the environment:
 npm install OK; PG setup failed silently. Running with full output to diagnose:

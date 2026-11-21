@@ -73,6 +73,16 @@ describe("listing query schema", () => {
     expect(listingQuerySchema.parse({ max: "21474836.48" }).max).toBeUndefined();
   });
 
+  it("non-string filter inputs fall back instead of throwing (session-014 S14-I3)", () => {
+    // searchParams always yield strings, but the schema's documented contract is
+    // "bad values fall back to defaults instead of erroring" — a schema reused outside
+    // the searchParams path should not throw on a number/null min. The sibling fields
+    // (sort, page) already carry .catch; min/max now do too.
+    const parsed = listingQuerySchema.parse({ min: 5, max: null });
+    expect(parsed.min).toBeUndefined();
+    expect(parsed.max).toBeUndefined();
+  });
+
   it("converts dollar bounds to cents", () => {
     const parsed = listingQuerySchema.parse({ sort: "price-asc", page: "3", min: "10.5", max: "99" });
     expect(parsed).toEqual({ sort: "price-asc", page: 3, min: 1050, max: 9900 });

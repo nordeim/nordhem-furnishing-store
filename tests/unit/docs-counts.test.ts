@@ -9,8 +9,8 @@ import { describe, expect, it } from "vitest";
  * Session-008 M-4: scope extended — SKILL + DEPLOYMENT joined the census, and the sitemap /
  * category counts are pinned too (both drifted in session 007: "276 locs", "23 categories").
  */
-const UNIT_TESTS = 110;
-const UNIT_FILES = 17;
+const UNIT_TESTS = 112;
+const UNIT_FILES = 18;
 const E2E_TESTS = 53;
 const SMOKE_CHECKS = 21;
 const TABLES = 7;
@@ -89,7 +89,7 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
     expect(Number(tables![1])).toBe(TABLES);
   });
 
-  it("no stale count patterns survive anywhere in the four docs", () => {
+  it("no stale count patterns survive anywhere in the five docs", () => {
     const stale: string[] = [];
     for (const [doc] of DOCS) {
       const s = read(doc);

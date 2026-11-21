@@ -124,9 +124,20 @@ test.describe("mobile navigation drawer", () => {
     // close through the normal path: unmounted, scroll unlocked.
     await page.setViewportSize({ width: 1280, height: 800 });
     await expect(drawer).toHaveCount(0);
+    // Session-014 S14-L2: a role locator cannot distinguish "unmounted" from
+    // "display:none" (lg:hidden removes the subtree from the a11y tree) — pin the
+    // DOM node itself so a future refactor that keeps the drawer mounted at lg
+    // fails here instead of silently passing.
+    await expect(page.locator("#mobile-drawer")).toHaveCount(0);
     await expect
       .poll(() => page.evaluate(() => document.body.style.overflow))
       .toBe("");
+    // Session-014 S14-I1: focus must not strand on <body> — the hamburger is
+    // display:none at lg, so the close path sends focus to the always-visible
+    // logo link instead.
+    await expect
+      .poll(() => page.evaluate(() => document.activeElement?.getAttribute("aria-label")))
+      .toBe("IKEA logotype, go to start page");
   });
 
   test("focus restores to the hamburger button after the drawer closes", async ({ page }) => {

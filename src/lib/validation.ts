@@ -59,7 +59,12 @@ const optionalDollars = z
     // falling back. int32-max cents ($21,474,836.47) is a comfortable ceiling.
     const cents = Math.round(parsed * 100);
     return Number.isSafeInteger(cents) && cents <= 2_147_483_647 ? cents : undefined;
-  });
+  })
+  // Session-014 S14-I3: searchParams always yield strings, but the documented
+  // contract is "bad values fall back to defaults instead of erroring" — a schema
+  // reused outside the searchParams path must not throw on a non-string min/max.
+  // The sibling fields (sort, page) already carry .catch.
+  .catch(undefined);
 
 /** Lenient parser for URL query strings: bad values fall back to defaults instead of erroring. */
 export const listingQuerySchema = z.object({
