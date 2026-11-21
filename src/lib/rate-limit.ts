@@ -49,8 +49,9 @@ export function createRateLimiter(options: { limit: number; windowMs: number; no
           // Still full of live buckets: evict the oldest-tracked key (insertion order) so
           // the map stays bounded. Never the caller's own key (S10-L1): deleting it here
           // would make its own lookup below miss and mint a fresh window — a blocked
-          // client unblocking itself. At capacity with one caller key, another victim
-          // always exists.
+          // client unblocking itself. When the caller's own key IS the oldest, eviction
+          // is simply skipped — safe, because the caller's key is already tracked and
+          // the set() below replaces it in place (the map stays at exactly MAX).
           const oldest = buckets.keys().next().value;
           if (oldest !== undefined && oldest !== key) buckets.delete(oldest);
         }
@@ -58,6 +59,11 @@ export function createRateLimiter(options: { limit: number; windowMs: number; no
 
       const existing = buckets.get(key);
       if (!existing || existing.resetAt <= current) {
+        // Fresh window (new or expired key). Delete first so a RETURNING key also moves
+        // to the back of the eviction queue (S11-I1) — Map.set on the still-present
+        // expired key would preserve its ancient insertion position, making a returning
+        // key the first victim under any flood despite its fresh window.
+        buckets.delete(key);
         buckets.set(key, { count: 1, resetAt: current + windowMs });
         return { ok: true, retryAfterMs: 0 };
       }

@@ -106,6 +106,11 @@ test("unknown content paths return a real 404, not a soft-200 (session-006 M-3)"
 
 test("product page exposes og:image and a twitter card (session-007 L-4)", async ({ page }) => {
   await page.goto("/p/billy-oxberg-bookcase-white-s69528344");
+  // Session-011 S11-M1: a page-level openGraph REPLACES the layout's (same bug class as
+  // S10-M1 on the home page) — the product page's partial block (title/description/images)
+  // silently dropped og:type and og:site_name. The full set is now pinned.
+  await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "website");
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "Nordhem Furnishing Store");
   await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
     "content",
     /ikea\.com|\/_next\//,
@@ -156,6 +161,16 @@ test("synthesized deep pages carry a unique description and fold into the prefix
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/customer-service$/);
   await page.goto("/planners/");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/planners$/);
+});
+
+test("category pages carry a page-specific openGraph set (session-011 S11-I2)", async ({ page }) => {
+  await page.goto("/cat/sofas-armchairs-700640");
+  // Same full-set rule as S10-M1/S11-M1: if a page defines openGraph it must repeat the
+  // whole block; category pages now do, with the category name as the og:title.
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute("content", "Sofas & armchairs");
+  await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "website");
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "Nordhem Furnishing Store");
+  await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", /\/cat\/sofas-armchairs-700640$/);
 });
 
 test("paginated category pages self-canonicalize (session-008 S8-L2)", async ({ page }) => {

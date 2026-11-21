@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.9.0
+version: 1.10.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.9.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.10.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 010): 105 unit tests / 50 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 011): 107 unit tests / 51 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -71,6 +71,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
 
 
+
+
+## §19 Lessons (session 011)
+1. When you fix a "this export silently replaces the parent's" bug on ONE page, grep for every OTHER page exporting the same partial shape the same day — the og:replace class existed on `/` AND `/p/*` AND (unexploited) `/cat/*`; one audit pass found the siblings immediately.
+2. A RED test proves the pin bites only if the fixture exercises the exact code path. Session-011's first fresh-window pin failed pre- AND post-fix — staggered clocks were needed so eviction (not prune) removes the victim; without the stagger, prune quietly ate the flood and the pin proved nothing either way.
+3. Re-reorder insight chain: insertion-order queues punish keys that return after absence, not just keys that never left. Any LRU-ish eviction over a Map needs delete+reinsert on EVERY path that refreshes a key's liveness (renewal AND fresh-window).
+4. A doc table can describe the intended posture more accurately than the code — when they drift, ask which one is right before "code-wins". Here the doc was right: the unauthenticated DB-touching read deserved the limiter all along.
+5. Fixed-delay test scaffolding is a hydration-speed bet: budget for CI-slow machines (2x the observed time), and say so in a comment so the next person knows the delay is load-bearing, not arbitrary.
 
 ## §18 Lessons (session 010)
 1. A page-level `openGraph` in Next's Metadata API REPLACES the layout's — only title/description/images are backfilled. Shipping a partial og block (`{ url }`) silently drops every other field. Repeat the full set at the page level, and pin og:type/og:site_name in e2e — the S9 pin asserted only og:url, so the regression shipped invisibly.

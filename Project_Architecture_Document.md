@@ -2,7 +2,7 @@
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 010 — og:merge repair, non-vacuous fallback pin, limiter eviction hardening)
+**Last Updated:** 2026-11-21 (session 011 — product/category og completion, cart GET limiter, limiter reorder completion)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,8 +111,8 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 16 files / 105 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (50 tests)
+tests/unit/         # 17 files / 107 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (51 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 105 tests / 16 files | Vitest (node) | `tests/unit/` |
-| E2E | 50 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 107 tests / 17 files | Vitest (node) | `tests/unit/` |
+| E2E | 51 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.10.0 (2026-11-21, session 011)
+
+- `[SEO]` **S11-M1: the og:replace bug class is closed.** Session-010 fixed the home page; the audit found the SAME bug on product pages — the partial page-level openGraph (title/description/images) REPLACED the layout's og, silently dropping `og:type`/`og:site_name` (and any explicit og:url) on every `/p/*` page. The product og block now carries the full set (`url`/`type`/`siteName` + title/description/images); e2e-pinned and live-verified.
+- `[SEO]` **S11-I2: category pages adopt the same full-set pattern** — og:title is now the category name ("Sofas & armchairs", not the store default), og:url follows the already-computed paginated canonical (never re-derived from the raw query param), type/siteName repeated. e2e-pinned. Info pages intentionally keep the layout's og (correct merge, low-traffic policy pages — recorded).
+- `[SEC]` **S11-L2: `GET /api/cart` is now rate-limited** (120/min, same limiter as the mutations). DEPLOYMENT.md's rate-limit table had always documented it; the code previously left an unauthenticated, DB-touching, unthrottled read surface. Pinned by the new `tests/unit/api-surface.test.ts` source-tripwire (checkout-lock pattern, honestly annotated).
+- `[SEC]` **S11-I1: the rate-limiter's returning-key path now reorders too.** A key whose window expired kept its ancient Map insertion position despite the fresh bucket — first eviction victim under any flood. The fresh-window branch now delete+reinserts (unit-pinned with staggered clocks so eviction — not prune — is exercised; pin-bite verified by reverting the reorder → RED). The eviction-guard comment now states the skip-is-safe semantics precisely (when the caller's own key is oldest at an all-live full map, eviction is skipped; the set() below replaces in place and the bound holds).
+- `[QA]` **S11-L1: the SmartImage e2e abort delay raised 2500→4500 ms** — the fixed delay must comfortably exceed hydration time on a slow CI runner or the eager image still fails pre-hydration and the poll false-fails (flake, not vacuity).
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **107/107 (17 files)** · build cold ✓ · smoke 21/21 · e2e **51/51 ×3** · sitemap **274**.
 
 ## Revision Block — v2.9.0 (2026-11-21, session 010)
 

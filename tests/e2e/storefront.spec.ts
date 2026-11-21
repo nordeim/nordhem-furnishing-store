@@ -82,7 +82,10 @@ test("SmartImage failure fallbacks keep decorative images silent (session-009 S9
   // non-vacuous (pin-bite verified by reverting the conditional -> RED).
   await page.route("**/*", async (route) => {
     if (route.request().resourceType() === "image") {
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      // 4500ms (session-011 S11-L1): the fixed delay must comfortably exceed hydration
+      // time on a slow CI runner, or the eager image still fails pre-hydration and the
+      // poll false-fails. Both fallback shapes appear by ~5-6s; the poll allows 15s.
+      await new Promise((resolve) => setTimeout(resolve, 4500));
       return route.abort();
     }
     return route.continue();

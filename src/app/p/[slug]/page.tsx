@@ -32,7 +32,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
     title: `${product.name} ${product.typeDesc}`,
     description: `${product.name}, ${product.typeDesc}. ${formatPrice(product.priceCents)} at IKEA Singapore.`,
     alternates: { canonical: `/p/${slug}` },
+    // Session-011 S11-M1: a page-level openGraph REPLACES the layout's (Next resolves og
+    // wholesale — only title/description/images are backfilled), so this block repeats
+    // the layout's type/siteName and states the url explicitly; the partial block that
+    // shipped before silently dropped og:type/og:site_name on every product page.
     openGraph: {
+      url: `/p/${slug}`,
+      type: "website",
+      siteName: "Nordhem Furnishing Store",
       title: `${product.name} ${product.typeDesc}`,
       description: `${product.name}, ${product.typeDesc}. ${formatPrice(product.priceCents)} at IKEA Singapore.`,
       images: [imageUrl(product.image, "l")],

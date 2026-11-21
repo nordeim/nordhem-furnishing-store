@@ -9,8 +9,15 @@ export const dynamic = "force-dynamic";
 
 const limiter = createRateLimiter({ limit: 120, windowMs: 60_000 });
 
-export function GET() {
-  return guard("api.cart.get", async () => json(await getCartSnapshot(await getSessionId())));
+// Session-011 S11-L2: GET is now limited too — it is an unauthenticated, DB-touching
+// read (the DEPLOYMENT rate-limit table has always documented 120/min for it; the code
+// previously only limited the mutations, leaving an unthrottled read surface).
+export function GET(request: Request) {
+  return guard("api.cart.get", async () => {
+    const limit = limiter.check(clientKey(request));
+    if (!limit.ok) return rateLimited(limit);
+    return json(await getCartSnapshot(await getSessionId()));
+  });
 }
 
 export function POST(request: Request) {

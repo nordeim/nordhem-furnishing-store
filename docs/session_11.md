@@ -1,3 +1,21 @@
+# Session 011 — the og-completion + limiter-reorder-completion cycle
+
+**Baseline (workspace survived; pulled `14dc8db` — operator doc-only, session_11.md; all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 105/105 (16 files) · build cold ✓ · e2e 50/50 · smoke 21/21 · sitemap 274 · DB 22/242 intact from the surviving PG data dir. Dev server re-verified live on both origins; no Tailwind v4 bug.
+
+## What was done
+
+**Audit (read-only subagent; web-application + tdd methodology; deep pass over the session-010 changeset f22a819):** 0 CRITICAL · 0 HIGH · **1 MEDIUM · 2 LOW · 4 INFO**. The MEDIUM: the SAME openGraph-replace bug class session-010 fixed on the home page — still live on **product pages** (the only other page-level og export in src/app): the partial block silently dropped `og:type`/`og:site_name`/`og:url` on every `/p/*` page (verified in the installed Next 16.4.2 and live). LOWs: the SmartImage e2e's fixed 2500 ms abort delay is a hydration-speed bet; DEPLOYMENT's rate-limit table claims `GET /api/cart` is limited while the code left it unthrottled (unauthenticated, DB-touching read). Deferred verdicts: migration journal do-later · CSP nonces never (threat model) · Redis limiter do-later. Config instruction: documented no-op (fourth consecutive session).
+
+**Browser verification (agent-browser):** dev drawer state machine all-pass on both origins (mount/dialog/scroll-lock → submenu → navigate→unmount → Escape/focus-restore/scroll-unlock), desktop clean (menu hidden, no overflow, 16 cards). Product-page og absence confirmed live (the M-1 RED evidence).
+
+**Remediation (TDD, plan-011):** S11-M1 product og full set — e2e RED (live-confirmed) → GREEN (og:url/og:type/og:site_name live on /p/*) · S11-I2 category pages adopt the same pattern (og:title = category name, og:url follows the paginated canonical) — e2e RED → GREEN · S11-I1 the rate-limiter's fresh-window branch now reorders insertion order too (a returning key kept its ancient queue position despite a fresh window) — first pin fixture was flawed twice over (reorder-while-only-key is a no-op; equal windows meant prune ate the flood), redesigned with staggered clocks; pin-bite verified by reverting the reorder → RED · S11-L2 `GET /api/cart` rate-limited 120/min (the documented posture was the right one) + api-surface.test.ts tripwire · S11-L1 abort delay 2500→4500 ms (CI-slow hydration margin). Info pages intentionally keep the layout's og — recorded.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 107/107 (17 files)** · build cold ✓ · smoke 21/21 · **e2e 51/51 ×3** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server.
+
+**Deferred (documented):** migration journal · CSP nonces (never, per threat model) · Redis limiter · checkout-lock tx-body extraction · pre-hydration image-failure fallback · allowedDevOrigins automated gate (manual probes + tripwire) · docs-counts DOCS table duplication (harmless).
+
+---
+
 I'll start executing this multi-stage task. Let me first check the workspace state and set up a task plan.
 I'm continuing session 010 of the standing instruction. Let me check the workspace state first — whether the repo survived, and whether the operator pushed a new commit (`docs/session_10.md`):
 The workspace survived session 009 and the operator pushed `c2063fa` (doc-only — session_10.md). Pulling and reviewing the new session record:

@@ -55,10 +55,21 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
   // clamped result the body renders (session-009 S9-M1) — never re-derived from the raw
   // query param, so out-of-range and non-integer ?page= values can't fork the canonical.
   const canonical = data.result.page > 1 ? `/cat/${slug}?page=${data.result.page}` : `/cat/${slug}`;
+  // Session-011 S11-I2: same full-set rule as S10-M1/S11-M1 — the og block repeats the
+  // layout's type/siteName and follows the already-computed paginated canonical (never
+  // re-derived from the raw query param), with the category name as og:title so a shared
+  // category link previews the category, not just the store name.
   return {
     title: data.category.name,
     description: `Shop ${data.category.name} at IKEA Singapore — affordable home furnishing with flat-pack prices.`,
     alternates: { canonical },
+    openGraph: {
+      url: canonical,
+      type: "website",
+      siteName: "Nordhem Furnishing Store",
+      title: data.category.name,
+      description: `Shop ${data.category.name} at IKEA Singapore — affordable home furnishing with flat-pack prices.`,
+    },
   };
 }
 

@@ -76,6 +76,28 @@ describe("rate limiter bounded eviction (session-009 S9-M2)", () => {
     expect(limiter.check("b1").ok).toBe(true);
   });
 
+  it("a returning key's fresh window refreshes insertion order too (session-011 S11-I1)", () => {
+    let t = 0;
+    const limiter = createRateLimiter({ limit: 2, windowMs: 600_000, now: () => t });
+    // Staggered clocks so EVICTION (not prune) is what removes a victim: 'a' is tracked
+    // first, other live traffic arrives later, then 'a' returns AFTER its own window
+    // expired but while the b-keys are still live. The fresh-window mint must move 'a'
+    // to the BACK of the eviction queue — Map.set on the still-present expired key would
+    // keep its ancient position, leaving the returning key first victim under any flood.
+    limiter.check("a"); // t=0, window [0, 600000)
+    t = 100_000;
+    for (let i = 1; i <= 4000; i++) limiter.check(`b${i}`); // live until t=700000
+    t = 600_001; // 'a' expired; every b-key still live
+    limiter.check("a"); // fresh window minted (count 1) — must reorder to the back
+    for (let i = 4001; i <= MAX_TRACKED_KEYS; i++) limiter.check(`b${i}`); // flood to cap + 1 eviction
+    expect(limiter.size()).toBe(MAX_TRACKED_KEYS);
+    // 'a' survived (b1 was the victim): count 1 -> 2 on this check...
+    expect(limiter.check("a").ok).toBe(true);
+    // ...and is therefore BLOCKED on the next. If 'a' had been the eviction victim, its
+    // bucket would have been re-minted fresh and this check would still be allowed.
+    expect(limiter.check("a").ok).toBe(false);
+  });
+
   it("normal window behavior is unchanged below the cap", () => {
     let t = 0;
     const limiter = createRateLimiter({ limit: 2, windowMs: 60_000, now: () => t });
