@@ -8,7 +8,7 @@ interface Bucket {
   resetAt: number;
 }
 
-const MAX_TRACKED_KEYS = 5000;
+export const MAX_TRACKED_KEYS = 5000;
 
 /**
  * Fixed-window in-memory limiter. Adequate for a single instance; a multi-instance deployment
@@ -16,11 +16,18 @@ const MAX_TRACKED_KEYS = 5000;
  *
  * Session-009 S9-M2: the map stays bounded under a live-key flood. The old guard only pruned
  * EXPIRED buckets once size exceeded the cap — a flood of live keys therefore grew the map
- * unbounded within the window AND made every `check()` rescan it (O(n) per request). Now the
- * cap gate prunes expired entries first, and if live keys still fill the map, the
- * oldest-tracked key (Map insertion order) is evicted — O(1), bounded memory. Tradeoff: an
- * evicted key's next check starts a fresh window (one extra allowance for one key), which is
- * strictly better than an unbounded map. `size()` exists so tests can pin the bound.
+ * unbounded within the window AND made every `check()` rescan it with no bound. Now the cap
+ * gate prunes expired entries first, and if live keys still fill the map, the
+ * oldest-tracked key (Map insertion order) is evicted — O(1) eviction, bounded memory.
+ * Honest complexity (session-010 S10-L2): under a SUSTAINED flood the map sits at exactly
+ * MAX_TRACKED_KEYS, so prune still scans all ≤5000 buckets per request — the guarantee is
+ * a BOUNDED O(MAX_TRACKED_KEYS) prune + O(1) eviction, not O(1) per request (microseconds;
+ * amortising would add complexity for no measurable win at this scale).
+ * Tradeoffs: an evicted key's next check starts a fresh window (one extra allowance for
+ * one key) — strictly better than an unbounded map. Session-010 S10-L1: the caller's own
+ * key is never the eviction victim (that would reset a blocked client's window mid-check),
+ * and window renewal refreshes insertion order so a steady consumer is not permanently the
+ * oldest victim. `size()` exists so tests can pin the bound.
  */
 export function createRateLimiter(options: { limit: number; windowMs: number; now?: () => number }) {
   const { limit, windowMs } = options;
@@ -40,9 +47,12 @@ export function createRateLimiter(options: { limit: number; windowMs: number; no
         prune(current);
         if (buckets.size >= MAX_TRACKED_KEYS) {
           // Still full of live buckets: evict the oldest-tracked key (insertion order) so
-          // the map stays bounded instead of degrading to O(n) scans on every request.
+          // the map stays bounded. Never the caller's own key (S10-L1): deleting it here
+          // would make its own lookup below miss and mint a fresh window — a blocked
+          // client unblocking itself. At capacity with one caller key, another victim
+          // always exists.
           const oldest = buckets.keys().next().value;
-          if (oldest !== undefined) buckets.delete(oldest);
+          if (oldest !== undefined && oldest !== key) buckets.delete(oldest);
         }
       }
 
@@ -55,6 +65,11 @@ export function createRateLimiter(options: { limit: number; windowMs: number; no
         return { ok: false, retryAfterMs: existing.resetAt - current };
       }
       existing.count += 1;
+      // Refresh insertion order (S10-L1): Map.set on an existing key keeps its ORIGINAL
+      // position, so without this delete+reinsert a steadily-renewed key would stay at the
+      // front of the eviction queue forever — always the first victim under any flood.
+      buckets.delete(key);
+      buckets.set(key, existing);
       return { ok: true, retryAfterMs: 0 };
     },
     size(): number {

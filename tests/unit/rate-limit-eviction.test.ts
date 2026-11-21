@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createRateLimiter } from "@/lib/rate-limit";
+import { createRateLimiter, MAX_TRACKED_KEYS } from "@/lib/rate-limit";
 
 /**
  * Session-009 S9-M2: once more than MAX_TRACKED_KEYS live keys existed, the old guard
@@ -10,8 +10,6 @@ import { createRateLimiter } from "@/lib/rate-limit";
  * the observability seam that makes the bound assertable.
  */
 describe("rate limiter bounded eviction (session-009 S9-M2)", () => {
-  // Must mirror src/lib/rate-limit.ts MAX_TRACKED_KEYS.
-  const MAX_TRACKED_KEYS = 5000;
 
   it("memory stays bounded at MAX_TRACKED_KEYS under a live-key flood", () => {
     let t = 0;
@@ -40,6 +38,42 @@ describe("rate limiter bounded eviction (session-009 S9-M2)", () => {
     limiter.check("other-1");
     limiter.check("other-1");
     expect(limiter.check("other-1").ok).toBe(false);
+  });
+
+  it("never evicts the caller's own key mid-check (session-010 S10-L1)", () => {
+    let t = 0;
+    const limiter = createRateLimiter({ limit: 2, windowMs: 60_000, now: () => t });
+    // Exhaust 'a'; fill the map to exactly the cap with 4999 other live keys (no eviction
+    // has fired yet — each insert entered below the cap).
+    limiter.check("a");
+    limiter.check("a");
+    expect(limiter.check("a").ok).toBe(false);
+    for (let i = 1; i < MAX_TRACKED_KEYS; i++) limiter.check(`b${i}`);
+    expect(limiter.size()).toBe(MAX_TRACKED_KEYS);
+    // 'a' is the oldest-tracked key AND the caller. The old code deleted it right here,
+    // read its own bucket as absent and minted a fresh window — a blocked client
+    // unblocking itself with one more request. It must stay blocked.
+    expect(limiter.check("a").ok).toBe(false);
+  });
+
+  it("window renewal refreshes insertion order — steady consumers are not permanent eviction victims (session-010 S10-L1)", () => {
+    let t = 0;
+    const limiter = createRateLimiter({ limit: 5, windowMs: 60_000, now: () => t });
+    // 'a' starts using its allowance, other traffic arrives, then 'a' comes back and
+    // renews — the renewal (an allowed check) must move it to the BACK of the eviction
+    // queue. Map.set on an existing key preserves its ORIGINAL position, so the old code
+    // left 'a' at the front: first victim under any flood, window reset.
+    for (let i = 0; i < 4; i++) limiter.check("a");
+    for (let i = 1; i <= 4000; i++) limiter.check(`b${i}`);
+    limiter.check("a"); // count 4 -> 5 (allowed: renews + reorders)
+    // Fill to exactly the cap (no eviction yet), then one more key forces one eviction.
+    for (let i = 4001; i <= 4999; i++) limiter.check(`b${i}`);
+    limiter.check("b5000");
+    expect(limiter.size()).toBe(MAX_TRACKED_KEYS);
+    // 'a' was NOT the eviction victim: its bucket survived, count still at the limit.
+    expect(limiter.check("a").ok).toBe(false);
+    // b1 WAS the victim: its next check mints a fresh window (the documented tradeoff).
+    expect(limiter.check("b1").ok).toBe(true);
   });
 
   it("normal window behavior is unchanged below the cap", () => {

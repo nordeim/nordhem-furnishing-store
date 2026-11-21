@@ -12,11 +12,20 @@ import { getFeaturedProducts, type Product } from "@/lib/catalog";
 export const dynamic = "force-dynamic";
 
 // Session-009 S9-L1: every other indexable page declares a canonical; the home page now
-// does too, so ?utm_* / ?any=param variants consolidate to the bare origin. og:url rides
-// along (Next resolves both against metadataBase from the layout).
+// does too, so ?utm_* / ?any=param variants consolidate to the bare origin.
+// Session-010 S10-M1: a page-level openGraph REPLACES the layout's (Next resolves og
+// wholesale — only title/description/images are backfilled), so this block repeats the
+// layout's fields; shipping { url } alone silently dropped og:type and og:site_name from
+// the site's most-shared page.
 export const metadata: Metadata = {
   alternates: { canonical: "/" },
-  openGraph: { url: "/" },
+  openGraph: {
+    url: "/",
+    type: "website",
+    siteName: "Nordhem Furnishing Store",
+    title: "Nordhem Furnishing Store",
+    description: "Affordable furniture and home furnishing — storage, sofas, mattresses and more.",
+  },
 };
 
 /** Hotspot coordinates (percent of image box) measured from the live shoppable carousel. */

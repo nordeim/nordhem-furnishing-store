@@ -22,7 +22,10 @@ function validSegments(slug: string[]): string[] | null {
 
 export async function generateMetadata({ params }: InfoPageProps): Promise<Metadata> {
   const segments = validSegments((await params).slug);
-  if (!segments) return { title: "Page not found" };
+  if (!segments || !isKnownInfoPath(segments)) return { title: "Page not found" };
+  // Session-010 S10-I4: gate on isKnownInfoPath exactly like the body, so a ruleless
+  // path's 404 can never carry a synthesized canonical (Next 16 already suppresses
+  // metadata flushing on notFound() — this makes the two paths agree by construction).
   // Session-008 S8-M2: unique description + canonical that folds the synthesized long tail
   // into the prefix root (exact prefixes keep their self-canonical) — kills the thin-content
   // surface the broad prefixes opened (every page previously carried the layout-default

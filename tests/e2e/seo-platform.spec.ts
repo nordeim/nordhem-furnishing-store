@@ -188,4 +188,17 @@ test("home page carries a canonical and og:url (session-009 S9-L1)", async ({ pa
   const ogUrl = await page.locator('meta[property="og:url"]').getAttribute("content");
   expect(ogUrl, "og:url must exist on the home page").toBeTruthy();
   expect(ogUrl!).toMatch(/^[a-z]+:\/\/[^/]+\/?$/);
+  // Session-010 S10-M1: a page-level openGraph REPLACES the layout's (Next merges og
+  // wholesale — only title/description/images are backfilled), so the home page's block
+  // must carry the full set: og:type and og:site_name were silently dropped by the
+  // session-009 { url } export.
+  await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "website");
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "Nordhem Furnishing Store");
+});
+
+test("unknown content paths return a 404 with no canonical (session-010 S10-I4)", async ({ request }) => {
+  const response = await request.get("/totally-unknown-page-xyz");
+  expect(response.status()).toBe(404);
+  const body = await response.text();
+  expect(body, "a 404 must not advertise a canonical for a nonexistent URL").not.toContain('rel="canonical"');
 });

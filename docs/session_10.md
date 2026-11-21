@@ -1,3 +1,21 @@
+# Session 010 — the og:merge repair + non-vacuous fallback pin cycle
+
+**Baseline (workspace SURVIVED; pulled c2063fa — operator doc-only, session_10.md record; all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 102/102 · build cold ✓ · e2e 49/49 · smoke 21/21 · sitemap 274 · HSTS live · DB 22/242 intact from the surviving data dir. All session-009 fixes re-verified live, including the dev server on BOTH origins.
+
+## What was done
+
+**Audit (read-only subagent; web-application + tdd methodology; deep pass over the session-009 changeset):** 0 CRITICAL · 0 HIGH · **2 MEDIUM · 4 LOW · 4 INFO**. Both MEDIUMs were IN the session-009 changeset: (M-1) the home page's `openGraph: { url }` REPLACES the layout's og wholesale (verified in Next 16.4.2 mergeMetadata) — og:type and og:site_name silently dropped from the site's most-shared URL; (M-2) the SmartImage fallback e2e could pass vacuously (negative-only assertion). Deferred verdicts unchanged; test-config instruction a documented no-op (third consecutive session).
+
+**Browser verification (agent-browser):** dev drawer state machine all-pass on both origins (127.0.0.1 + localhost), Escape/focus-restore, desktop clean, combobox typeahead, search API correct (billy → results; malm → correctly empty — 0 MALM in the corpus). No Tailwind v4 bug. Commerce round-trip machine-verified by smoke + e2e.
+
+**Remediation (TDD, plan-010):** S10-M1 og block repaired + e2e-pinned (og:type=website + og:site_name restored live) · S10-M2 the fallback pin reworked into a positive pin — diagnostic finding: Chrome's lazy-load margin requests every image at load, so immediate aborts fire pre-hydration and no fallback renders; the test delays aborts past hydration and asserts BOTH fallback shapes; pin-bite proven by conditional-revert → RED · S10-L1 eviction hardened (never the caller's own key — the old code could let a blocked client unblock itself mid-check; renewal refreshes insertion order; isolated RED ×2, one fixture-sequence bug caught) · S10-L2 complexity claim corrected · S10-L4 sitemap degrade contract pinned directly (exported route lists) · S10-L3 tripwire annotations · S10-I3 constant exported · S10-I4 catch-all metadata gated on isKnownInfoPath · S10-I1 .env BASE row · S10-I2 DEPLOYMENT NODE_ENV warning.
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 105/105 (16 files)** · build cold ✓ · smoke 21/21 · **e2e 50/50 ×3** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server.
+
+**Deferred (documented):** migration journal · CSP nonces · Redis limiter · checkout-lock tx-body extraction · pre-hydration image-failure fallback (now documented precisely: Chrome's lazy margin defeats immediate-abort tests).
+
+---
+
 I'll start by setting up a plan and checking the current workspace state.
 Repo cloned. Let me read the rest of the uploaded instructions and explore the repo structure.
 Instructions internalized. Now let me explore the cloned repo structure and review the key documentation.

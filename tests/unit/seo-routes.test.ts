@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { INFO_SITEMAP_ROUTES, STATIC_SITEMAP_ROUTES } from "@/app/sitemap";
 
 /**
  * Pins the sitemap/robots route contracts WITHOUT a database: the route modules are read as
@@ -54,6 +55,20 @@ describe("sitemap route contract (src/app/sitemap.ts)", () => {
 
   it("survives a database outage at build time (static routes still emitted)", () => {
     expect(SITEMAP_SRC).toMatch(/try\s*{[\s\S]*catch/);
+  });
+
+  it("degrades to exactly the static + info route set (session-010 S10-L4)", () => {
+    // The old pin was a try/catch regex — a degrade path returning [] would pass. The
+    // route lists that feed the fallback are now exported and asserted directly.
+    const degrade = [...STATIC_SITEMAP_ROUTES, ...INFO_SITEMAP_ROUTES];
+    expect(degrade).toHaveLength(10);
+    expect(degrade).toContain("/");
+    expect(degrade).toContain("/ikea-family");
+    expect(degrade).toContain("/campaigns");
+    expect(degrade).toContain("/customer-service");
+    for (const route of PRIVATE_ROUTES) {
+      expect(degrade, `degrade set must not expose ${route}`).not.toContain(route);
+    }
   });
 
   it("includes every public route family", () => {

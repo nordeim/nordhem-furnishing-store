@@ -60,6 +60,12 @@ describe("buildSecurityHeaders (session-009 S9-H1 + HSTS)", () => {
     }
   });
 
+  // NOTE (session-010 S10-L3): the two next.config.ts assertions below are source-text
+  // tripwires, NOT behavior tests — they break on import-style/formatting refactors and
+  // cannot see a competing headers() override. Behavior is covered by the production-CSP
+  // e2e pin and the live dev-server probes; these exist so the declarations cannot be
+  // silently dropped.
+
   it("next.config.ts consumes the seam (no inline header list drifts back)", () => {
     const config = readFileSync("next.config.ts", "utf8");
     expect(config).toContain('from "./src/lib/security-headers"');

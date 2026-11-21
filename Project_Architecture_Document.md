@@ -2,7 +2,7 @@
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 009 — dev-server hydration fix, canonical-render alignment, bounded limiter, HSTS)
+**Last Updated:** 2026-11-21 (session 010 — og:merge repair, non-vacuous fallback pin, limiter eviction hardening)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,8 +111,8 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 16 files / 102 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (49 tests)
+tests/unit/         # 16 files / 105 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (50 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 102 tests / 16 files | Vitest (node) | `tests/unit/` |
-| E2E | 49 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 105 tests / 16 files | Vitest (node) | `tests/unit/` |
+| E2E | 50 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -239,6 +239,16 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.9.0 (2026-11-21, session 010)
+
+- `[SEO]` **S10-M1: the home page's openGraph block is whole again.** Session-009's `openGraph: { url: "/" }` silently REPLACED the layout's og (Next resolves a page-level og wholesale — only title/description/images are backfilled; verified in Next 16.4.2 `mergeMetadata`), dropping `og:type="website"` and `og:site_name` from the site's most-shared URL. The page now repeats the full set (url/type/siteName/title/description); e2e-pinned (`og:type=website`, `og:site_name=Nordhem Furnishing Store` on `/`).
+- `[QA]` **S10-M2: the SmartImage fallback pin can no longer pass vacuously.** Diagnostic finding: Chrome's lazy-load margin requests EVERY image on the product page at initial load, so immediate route-aborts all fail pre-hydration and no fallback renders — the old pin asserted only the absence of nameless `role="img"` and proved nothing. The reworked test DELAYS image aborts past hydration and positively asserts both fallback shapes (named `role="img"` for the main image; `aria-hidden` for decorative thumbnails); pin-bite verified by reverting the conditional → RED → restore → GREEN.
+- `[SEC]` **S10-L1: rate-limiter eviction hardened.** The eviction victim is never the caller's own key (the old code could delete it mid-check, miss its own lookup and mint a fresh window — a blocked client unblocking itself; unit-pinned) and window renewal now refreshes Map insertion order (a steady consumer is no longer permanently the oldest eviction victim; unit-pinned). **S10-L2:** the complexity claim corrected — the guarantee is a bounded O(MAX_TRACKED_KEYS) prune + O(1) eviction, not O(1) per request.
+- `[QA]` **S10-L4:** the sitemap degrade contract is pinned directly — `STATIC_SITEMAP_ROUTES` + `INFO_SITEMAP_ROUTES` are exported and asserted (10 routes, no private surfaces) instead of a try/catch regex. **S10-L3:** the next.config.ts source-text pins annotated as tripwires (behavior lives in the e2e CSP pin). **S10-I3:** `MAX_TRACKED_KEYS` exported and imported by the test (no mirrored literal).
+- `[SEO]` **S10-I4:** catch-all `generateMetadata` gates on `isKnownInfoPath` exactly like the body — a ruleless 404 can never carry a synthesized canonical (Next 16 already suppresses metadata on notFound(); defense in depth; e2e-pinned 404 + no canonical).
+- `[DOCS]` **S10-I1/I2:** `.env.example` documents `BASE` (screenshot origin override); DEPLOYMENT.md warns never to set `NODE_ENV` manually (an explicit `NODE_ENV=development next build` would bake the dev CSP into production — respected by Next with only a warning; the e2e CSP pin backstops it).
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **105/105 (16 files)** · build cold ✓ · smoke 21/21 · e2e **50/50 ×3** · sitemap **274**.
 
 ## Revision Block — v2.8.0 (2026-11-21, session 009)
 

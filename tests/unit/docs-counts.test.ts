@@ -9,9 +9,9 @@ import { describe, expect, it } from "vitest";
  * Session-008 M-4: scope extended — SKILL + DEPLOYMENT joined the census, and the sitemap /
  * category counts are pinned too (both drifted in session 007: "276 locs", "23 categories").
  */
-const UNIT_TESTS = 102;
+const UNIT_TESTS = 105;
 const UNIT_FILES = 16;
-const E2E_TESTS = 49;
+const E2E_TESTS = 50;
 const SMOKE_CHECKS = 21;
 const TABLES = 7;
 const SITEMAP_URLS = 274;

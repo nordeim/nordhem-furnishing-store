@@ -235,6 +235,12 @@ NEXT_PUBLIC_SITE_URL="https://your-origin" npm run build
   requires eval); production stays strict. `allowedDevOrigins: ["127.0.0.1"]` lets the dev
   server be browsed via the loopback IP (Next 16 blocks cross-origin dev resources by
   default — without it, hydration silently dies on 127.0.0.1).
+- **Never set `NODE_ENV` manually.** The security-header seam keys off it: an explicit
+  `NODE_ENV=development next build` is RESPECTED by Next (with a warning) and would bake
+  the dev-only `unsafe-eval` CSP into a production build; symmetrically
+  `NODE_ENV=production npm run dev` re-breaks dev hydration. Plain `next dev` /
+  `next build` / `next start` set the right value themselves, and the e2e pin (production
+  CSP must not contain unsafe-eval) backstops a polluted build.
 - **Error posture**: fail loud. A database outage returns 500 via `guard()`
   and the error boundary — only the sitemap degrades (static routes) so a
   build never dies on a DB hiccup. Success responses are raw JSON payloads;

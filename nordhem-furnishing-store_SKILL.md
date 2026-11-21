@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.8.0
+version: 1.9.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.8.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.9.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 009): 102 unit tests / 49 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 010): 105 unit tests / 50 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -70,6 +70,15 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
 
+
+
+## §18 Lessons (session 010)
+1. A page-level `openGraph` in Next's Metadata API REPLACES the layout's — only title/description/images are backfilled. Shipping a partial og block (`{ url }`) silently drops every other field. Repeat the full set at the page level, and pin og:type/og:site_name in e2e — the S9 pin asserted only og:url, so the regression shipped invisibly.
+2. A negative-only test ("no X exists") passes when nothing happens at all — the S9 SmartImage pin could not distinguish "conditional fallback works" from "no fallback ever rendered". Positive pins need the behavior to actually FIRE.
+3. To e2e-test an image-failure fallback you must defeat the pre-hydration gap: Chrome's lazy-load margin requests everything at load, so immediate aborts fire before React attaches onError. Delay the aborts past hydration (route handler sleep) and both fallback shapes become observable.
+4. A renewal path that only mutates a Map value never refreshes insertion order — the key stays at the front of any oldest-first eviction queue forever. Delete+reinsert on renewal.
+5. When choosing an eviction victim, exclude the caller's own key: otherwise a blocked client at capacity deletes its own bucket mid-check, misses its own lookup and mints itself a fresh window.
+6. Renewal-before-the-flood doesn't reorder a key behind keys that do not exist yet — sequence test fixtures so the renewal happens while the competing keys are already tracked (the first version of the pin was vacuously wrong in the other direction).
 
 ## §17 Lessons (session 009)
 1. "Works on the production build" is not "works": the e2e suite ran 44/44 green while `npm run dev` was completely inert — the gate never looks at the dev server. Browser-verify BOTH servers after any header/config change.

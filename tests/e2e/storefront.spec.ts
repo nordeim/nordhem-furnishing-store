@@ -73,21 +73,31 @@ test("hero hotspot buttons meet the 44px touch floor (session-009 S9-L5)", async
   expect(box!.height).toBeGreaterThanOrEqual(44);
 });
 
-test("SmartImage failure fallbacks keep decorative images silent (session-009 S9-L6)", async ({ page }) => {
-  // Abort by RESOURCE TYPE — host-agnostic (the CDN host may differ per asset).
-  await page.route("**/*", (route) => {
-    if (route.request().resourceType() === "image") return route.abort();
+test("SmartImage failure fallbacks keep decorative images silent (session-009 S9-L6, reworked session-010)", async ({ page }) => {
+  // Abort by RESOURCE TYPE — host-agnostic — but DELAY the aborts past hydration.
+  // Diagnostic finding (session-010): Chrome's lazy-load margin requests every image on
+  // this page at initial load, so immediate aborts all fire BEFORE React attaches
+  // onError and no fallback ever renders (the documented pre-hydration gap). Delaying
+  // the failures makes both fallback shapes observable, which is what makes this pin
+  // non-vacuous (pin-bite verified by reverting the conditional -> RED).
+  await page.route("**/*", async (route) => {
+    if (route.request().resourceType() === "image") {
+      await new Promise((resolve) => setTimeout(resolve, 2500));
+      return route.abort();
+    }
     return route.continue();
   });
-  await page.goto("/p/billy-oxberg-bookcase-white-s69528344");
-  // The product image (non-empty alt) falls back to a NAMED role="img"; decorative
-  // alt="" images (related-product thumbnails) fall back to aria-hidden divs. The
-  // S9-L6 regression pin: never a NAMELESS role="img" (axe role-img-alt, serious).
-  await page.waitForTimeout(800);
+  await page.goto("/p/billy-oxberg-bookcase-white-s69528344", { waitUntil: "domcontentloaded" });
+  // POSITIVE pins — both fallback shapes must actually render:
+  // (1) the main product image (non-empty alt) -> a NAMED role="img" fallback;
+  await expect
+    .poll(async () => page.locator('div[role="img"][aria-label*="BILLY"]').count(), { timeout: 15_000 })
+    .toBeGreaterThan(0);
+  // (2) decorative alt="" images (product-card thumbnails) -> aria-hidden fallbacks.
+  await expect
+    .poll(async () => page.locator('div[aria-hidden="true"].bg-surface').count(), { timeout: 15_000 })
+    .toBeGreaterThan(0);
   // The S9-L6 regression pin: never a NAMELESS role="img" (axe role-img-alt, serious).
-  // NOTE (observed live this session): images that fail BEFORE hydration completes fire
-  // their error event before React attaches onError, so the fallback div may not render
-  // for those — the pin asserts the DOM contract that no nameless role="img" can appear.
   const namelessImgRoles = await page.locator('div[role="img"]:not([aria-label])').count();
   expect(namelessImgRoles).toBe(0);
 });
