@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.15.0
+version: 1.16.0
 last_updated: 2026-11-21
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.15.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.16.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 016): 113 unit tests / 55 e2e / 26 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 017): 115 unit tests / 55 e2e / 26 smoke checks; sitemap 274 locs (canonical roots only); CHECK-constraint SQL is DDL-legal (sql.raw constants — fresh-clone `db:setup` verified on an empty DB); every live-tense count shape in every doc is regex-pinned (prose, tables, tree comments, badges); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -75,6 +75,13 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+
+## §24 Lessons (session 017)
+1. A drizzle `sql` template binds every interpolated JS primitive as `$N` — legal in DML, ILLEGAL in the DDL that `drizzle-kit push` emits for CHECK constraints/defaults. Constants that must reach DDL use `sql.raw(String(…))`. The bug shipped invisibly because warm-DB pushes SKIP same-name altered checks — only a fresh empty database exercises the CREATE path.
+2. "Generated SQL verified unchanged" must mean the emitted TEXT, not the bound value: S15-L3 verified `params:[99]` and called it `between 1 and 99`. Serialize through the same dialect the tool uses (`PgDialect.sqlToQuery`) and pin the TEXT in a unit test — a DDL-legality invariant belongs in the suite, not in a one-off manual check.
+3. A warm database is a mask, not a verification: every tier ran green for two sessions against a PG data dir that predated the regression. Any claim that "bootstrap works" needs an empty-DB run — the fresh-clone path is its own gate, distinct from the warm-path gate.
+4. The count-shape sweep is finished only when the BADGES are counted too: README's shields.io labels (`Vitest-113_passing`) were count claims no regex could see, and the e2e table row sat stale at 53 through a "counts swept" commit. Enumerate count sites from the DOC's perspective (every place a number appears), not the test's.
+5. Dead test scaffolding implies coverage that does not exist: the per-doc regex arrays in docs-counts were never executed, and two of them were exactly the shapes that had drifted. When a guard's data structure says one thing and its consumer does another, the guard lies — delete or wire it.
 
 ## §23 Lessons (session 015)
 1. "Exit-code-checked" is a claim about a PAST run, not a property of the tree: lint had been red since session-012's own commit while three consecutive session records claimed "lint 0/0 · exit-code-checked" — the pinned toolchain never changed, the runs evidently were never exit-checked. Re-run the gate yourself before writing "verified"; the worklog's history is evidence, not proof.

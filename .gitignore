@@ -2,7 +2,10 @@ node_modules
 .next
 next-env.d.ts
 *.tsbuildinfo
-.env
+# all env files stay local (Next loads .env.local/.env.development/.env.production too);
+# only the tracked template is re-included (session-017 S17-04)
+.env*
+!.env.example
 playwright-report/
 test-results/
 

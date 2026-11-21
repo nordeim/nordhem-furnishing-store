@@ -66,8 +66,16 @@ export const cartItems = pgTable(
     uniqueIndex("cart_items_session_product_uq").on(t.sessionId, t.productId),
     // Session-015 S15-L3: MAX_LINE_QUANTITY is the single authority (cart-math.ts) — the
     // check interpolated the literal 99, so changing the constant would silently diverge
-    // the DB constraint while unit tests stayed green. Same generated SQL today (99).
-    check("cart_items_qty_range", sql`${t.quantity} between 1 and ${MAX_LINE_QUANTITY}`),
+    // the DB constraint while unit tests stayed green. Same emitted SQL (99).
+    // Session-017 S17-01: the constant must reach DDL as sql.raw, NOT template interpolation —
+    // a plain `${…}` binds it as $1, which is illegal inside the CREATE TABLE that
+    // drizzle-kit push emits (fresh-clone `npm run db:setup` died on `there is no
+    // parameter $1`). Raw is safe here: a module constant, never user input. Pinned by
+    // tests/unit/schema-ddl.test.ts (zero params + the literal text).
+    check(
+      "cart_items_qty_range",
+      sql`${t.quantity} between 1 and ${sql.raw(String(MAX_LINE_QUANTITY))}`,
+    ),
   ],
 );
 

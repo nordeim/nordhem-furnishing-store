@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.15.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.16.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 016 — count-shape sweep, census filename allowlist)
+**Last Updated:** 2026-11-21 (session 017 — DDL-param bootstrap fix, count-shape completion, env-file ignore gap)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,7 +111,7 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 18 files / 113 tests
+tests/unit/         # 19 files / 115 tests
 tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (55 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (26 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
@@ -186,7 +186,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 113 tests / 18 files | Vitest (node) | `tests/unit/` |
+| Unit | 115 tests / 19 files | Vitest (node) | `tests/unit/` |
 | E2E | 55 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 26 checks | bash | `scripts/smoke.sh` |
 
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.16.0 (2026-11-21, session 017)
+
+- `[FIX]` **S17-01: fresh-clone bootstrap repaired — the `cart_items` CHECK constraint no longer binds a query parameter.** Session-015's S15-L3 wrote `sql`${t.quantity} between 1 and ${MAX_LINE_QUANTITY}``; drizzle's template turns the JS number into `$1` + `params:[99]`, which runtime DML tolerates but `drizzle-kit push` embeds verbatim in `CREATE TABLE` DDL where a bind placeholder is illegal → `there is no parameter $1` → **`npm run db:setup` died on every empty database** (reproduced this session on the fresh clone; `--verbose` showed `CHECK (… between 1 and $1)`). The regression was invisible for two sessions because warm-DB pushes skip same-name altered checks and the S15-L3 verification checked the bound VALUE, not the emitted TEXT — no tier pinned the check SQL. Fix: `sql.raw(String(MAX_LINE_QUANTITY))` (safe — a module constant, never user input). New `tests/unit/schema-ddl.test.ts` serializes every CHECK on every schema table through `PgDialect.sqlToQuery()` (drizzle-kit's own serializer) and asserts zero params/no `$` + the literal `between 1 and 99` text — RED first, GREEN after; `db:setup` then exit-0'd on the empty DB and `pg_get_constraintdef` confirmed the literal 99 landed (22/242 seeded).
+- `[QA]` **S17-02: the count-shape sweep is completed — ten more live-tense shapes (plus the two README badges) are pinned.** The audit found README's testing-table e2e row still saying **53 tests** (stale since session-015's 53→55 growth — the exact S16-L1 class surviving ANOTHER "counts swept" commit) plus seven more correct-but-unpinned shapes (README overview/badge/table rows, CLAUDE's E2E/Smoke strategy rows, PAD's e2e tree row, §7 tier table, §11 key-file row). All are now regex-pinned to their constants; the new sweep went RED on exactly the stale 53 line before the fix, and a corruption probe (one site per new shape → all eight named → restore) proved every new pin bites.
+- `[QA]` **S17-03: the dead per-doc regex arrays in docs-counts.test.ts are gone.** The `DOCS: Array<[string, RegExp[]]>` carried patterns the consumer never executed — implied coverage that did not exist (two of the dead patterns were precisely the S17-02 gaps). `DOCS` is now a plain doc-name list; every shape runs in the shared sweep.
+- `[SEC]` **S17-04: `.gitignore` covers all Next env files** — `.env*` + `!.env.example` (was: `.env` only; `.env.local`/`.env.development`/`.env.production` were stageable by a plain `git add .`). `git check-ignore` verified on all four variants; `.env.example` stays tracked.
+- **Count lockstep:** unit 113→**115** (18→**19 files** — the two schema-ddl pins), e2e 55, smoke 26, sitemap 274 unchanged; all count sites (prose, tables, tree comments, badges, SKILL state line, DEPLOYMENT §10) swept in-commit.
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **115/115 (19 files)** · build cold ✓ · smoke **26/26** · e2e **55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server. Config instruction (vitest/playwright): audited sound — documented no-op, 11th consecutive session.
 
 ## Revision Block — v2.15.0 (2026-11-21, session 016)
 

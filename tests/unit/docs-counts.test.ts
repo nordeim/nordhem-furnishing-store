@@ -9,9 +9,10 @@ import { describe, expect, it } from "vitest";
  * Session-008 M-4: scope extended — SKILL + DEPLOYMENT joined the census, and the sitemap /
  * category counts are pinned too (both drifted in session 007: "276 locs", "23 categories").
  */
-const UNIT_TESTS = 113;
-const UNIT_FILES = 18;
+const UNIT_TESTS = 115;
+const UNIT_FILES = 19;
 const E2E_TESTS = 55;
+const E2E_SPECS = 5;
 const SMOKE_CHECKS = 26;
 // Session-016 S16-L1: the per-spec pin note in PAD's §3 ("mobile-navigation.spec.ts (N tests)")
 // — a stale 8 sat there through session-015's sweep because no regex covered the shape.
@@ -20,12 +21,16 @@ const TABLES = 7;
 const SITEMAP_URLS = 274;
 const CATEGORIES = 22;
 
-const DOCS: Array<[string, RegExp[]]> = [
-  ["README.md", [/\b(\d+) unit tests?/i, /\b(\d+) e2e tests?/i]],
-  ["AGENTS.md", [/\((\d+) tests?, (\d+) files?\)/, /Playwright \((\d+) tests\)/, /\((\d+) tests?, (\d+) files?\)/]],
-  ["CLAUDE.md", [/Vitest \((\d+) unit tests?\)/, /Playwright, (\d+) tests\)/]],
-  ["Project_Architecture_Document.md", [/\((\d+) tests? \/ (\d+) files?\)/, /(\d+) tests \/ \d+ specs/, /(\d+)-table Drizzle schema/]],
-  ["docs/DEPLOYMENT.md", [/Vitest: (\d+) unit tests, (\d+) files/, /(\d+) e2e against the production build/]],
+// Session-017 S17-03: this was Array<[string, RegExp[]]> but the consumer only ever read the
+// doc name — the per-doc regexes were dead code implying coverage the sweep did not provide
+// (two of them were exactly the shapes S17-02 found unpinned). All shapes now live in the
+// shared stale-pattern sweep below; per-doc canonical forms stay in the per-doc `it` blocks.
+const DOCS = [
+  "README.md",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "Project_Architecture_Document.md",
+  "docs/DEPLOYMENT.md",
 ];
 
 function read(doc: string): string {
@@ -94,7 +99,7 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
 
   it("no stale count patterns survive anywhere in the five docs", () => {
     const stale: string[] = [];
-    for (const [doc] of DOCS) {
+    for (const doc of DOCS) {
       const s = read(doc);
       // Any "N unit tests / N files" or "N e2e" pattern that disagrees with the constants.
       for (const m of s.matchAll(/\b(\d+)\s+(?:unit|e2e)\s+tests?/gi)) {
@@ -119,6 +124,43 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
       }
       for (const m of s.matchAll(/spec\.ts`? \((\d+) tests\)/g)) {
         if (Number(m[1]) !== MOBILE_NAV_E2E) stale.push(`${doc}: ${m[0]}`);
+      }
+      // Session-017 S17-02: eight more live-tense shapes the sweep could not see — the
+      // README testing-table rows (one of them, "E2E (Chromium, 53 tests)", had sat STALE
+      // since session-015's 53→55 e2e growth), the README overview "N smoke checks" line,
+      // CLAUDE's E2E/Smoke strategy rows, PAD's §3 e2e tree row, PAD's §7 tier table, and
+      // PAD's §11/AGENTS "-check HTTP …" key-file rows. Each is now pinned to its constant.
+      for (const m of s.matchAll(/\((\d+) tests?, (\d+) files?\)/g)) {
+        if (Number(m[1]) !== UNIT_TESTS || Number(m[2]) !== UNIT_FILES) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/E2E \((?:Playwright|Chromium), (\d+) tests?\)/g)) {
+        if (Number(m[1]) !== E2E_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/^tests\/e2e\/[^\n]*\((\d+) tests\)/gm)) {
+        if (Number(m[1]) !== E2E_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/\| E2E \| (\d+) tests \/ (\d+) specs \|/g)) {
+        if (Number(m[1]) !== E2E_TESTS || Number(m[2]) !== E2E_SPECS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/\| Smoke \| (\d+) checks \|/g)) {
+        if (Number(m[1]) !== SMOKE_CHECKS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/Smoke \((\d+) checks?\)/g)) {
+        if (Number(m[1]) !== SMOKE_CHECKS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/(\d+) smoke checks/g)) {
+        if (Number(m[1]) !== SMOKE_CHECKS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/(\d+)-check HTTP (?:contract|smoke)/g)) {
+        if (Number(m[1]) !== SMOKE_CHECKS) stale.push(`${doc}: ${m[0]}`);
+      }
+      // The README shields.io badges are count claims too (they sat unpinned through
+      // the same sweeps as the prose lines).
+      for (const m of s.matchAll(/Vitest-(\d+)_passing/g)) {
+        if (Number(m[1]) !== UNIT_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/Playwright-(\d+)_passing/g)) {
+        if (Number(m[1]) !== E2E_TESTS) stale.push(`${doc}: ${m[0]}`);
       }
     }
     expect(stale, `stale counts: ${stale.join("; ")}`).toEqual([]);

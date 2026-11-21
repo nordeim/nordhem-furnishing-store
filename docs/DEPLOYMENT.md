@@ -284,7 +284,7 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 113 unit tests, 18 files
+npm test                                                      # Vitest: 115 unit tests, 19 files
 npm run build                                                 # cold build succeeds
 BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 26 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment
