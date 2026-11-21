@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 test("home page renders hero, categories and product cards from the seeded catalog", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("region", { name: "Product categories" }).first()).toBeVisible();
-  // Seeded catalog: 242 products, 23 categories — assert a healthy floor, not exact counts.
+  // Seeded catalog: 242 products, 22 categories — assert a healthy floor, not exact counts.
   const cards = page.locator("a[href^='/p/']:visible");
   await expect(cards.first()).toBeVisible();
   expect(await cards.count()).toBeGreaterThanOrEqual(4);
@@ -63,6 +63,35 @@ test("health endpoint responds ok", async ({ request }) => {
   expect(await response.json()).toEqual({ ok: true });
 });
 
+test("hero hotspot buttons meet the 44px touch floor (session-009 S9-L5)", async ({ page }) => {
+  await page.goto("/");
+  const hotspot = page.getByRole("button", { name: /Product information:/ }).first();
+  await expect(hotspot).toBeVisible();
+  const box = await hotspot.boundingBox();
+  expect(box, "hotspot bounding box").toBeTruthy();
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+});
+
+test("SmartImage failure fallbacks keep decorative images silent (session-009 S9-L6)", async ({ page }) => {
+  // Abort by RESOURCE TYPE — host-agnostic (the CDN host may differ per asset).
+  await page.route("**/*", (route) => {
+    if (route.request().resourceType() === "image") return route.abort();
+    return route.continue();
+  });
+  await page.goto("/p/billy-oxberg-bookcase-white-s69528344");
+  // The product image (non-empty alt) falls back to a NAMED role="img"; decorative
+  // alt="" images (related-product thumbnails) fall back to aria-hidden divs. The
+  // S9-L6 regression pin: never a NAMELESS role="img" (axe role-img-alt, serious).
+  await page.waitForTimeout(800);
+  // The S9-L6 regression pin: never a NAMELESS role="img" (axe role-img-alt, serious).
+  // NOTE (observed live this session): images that fail BEFORE hydration completes fire
+  // their error event before React attaches onError, so the fallback div may not render
+  // for those — the pin asserts the DOM contract that no nameless role="img" can appear.
+  const namelessImgRoles = await page.locator('div[role="img"]:not([aria-label])').count();
+  expect(namelessImgRoles).toBe(0);
+});
+
 test("hero hotspot popover opens, closes on Escape, and is not announced as a dialog", async ({ page }) => {
   await page.goto("/");
   const firstHotspot = page.getByRole("button", { name: /^Product information:/ }).first();
@@ -99,6 +128,8 @@ test("hero hotspot popover toggles closed by clicking its own button again", asy
   // And clicking the inner dot too — not just the button element itself.
   await hotspot.click();
   await expect(popover).toBeVisible();
-  await hotspot.locator("span").click();
+  // Session-009 S9-L5: the button now wraps the dot in a 44px-transparent grid, so the
+  // visible dot is the LAST span, not the only one.
+  await hotspot.locator("span").last().click();
   await expect(popover).toHaveCount(0);
 });

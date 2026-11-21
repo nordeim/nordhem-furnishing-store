@@ -69,7 +69,10 @@ test.describe("accessibility of dynamic states (axe, serious+critical)", () => {
     // The panel is the combobox's aria-controls target (a plain div, not role=listbox).
     const panelId = await search.getAttribute("aria-controls");
     const panel = page.locator(`#${panelId}`);
-    await expect(panel.locator("a[href]")).toHaveCount(1, { timeout: 10_000 });
+    // Session-009 S9-L9: count-independent (a catalog refresh may add BILLY-matches);
+    // the contract is "at least one suggestion, first one matches the query".
+    await expect(panel.locator("a[href]").first()).toBeVisible({ timeout: 10_000 });
+    await expect(panel.locator("a[href]").first()).toContainText(/billy/i);
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();

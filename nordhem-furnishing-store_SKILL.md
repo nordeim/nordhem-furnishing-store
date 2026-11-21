@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.7.0
+version: 1.8.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.7.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.8.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 008): 90 unit tests / 44 e2e / 21 smoke checks; sitemap 275 locs; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 009): 102 unit tests / 49 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -69,6 +69,15 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 3. `expect.poll` + `page.evaluate(activeElement …)` beats counting Tabs when pinning a focus trap — the wrap point is "focus never leaves the drawer", and the exact focusable count is an implementation detail (the Products submenu changes it).
 4. e2e `reuseExistingServer` silently tests a STALE build after source edits — kill the server (or rebuild) before trusting a post-fix green run; a focus-trap "pass" against the old bundle is meaningless.
 5. A DEPLOYMENT.md from a previous product lifetime (SQLite/Prisma/Stripe/admin references) is worse than no doc: every operator instruction in it is false. When a repo is rewritten, deployment docs belong in the rewrite's definition of done.
+
+
+## §17 Lessons (session 009)
+1. "Works on the production build" is not "works": the e2e suite ran 44/44 green while `npm run dev` was completely inert — the gate never looks at the dev server. Browser-verify BOTH servers after any header/config change.
+2. A dev-server hydration death had TWO stacked causes and the obvious one (CSP blocks eval) was only the noisy half: React logged 8 eval errors yet still hydrated. The real killer (Next 16 blocking 127.0.0.1 as a cross-origin dev origin) was silent. Verify the fix, not the theory — the experiment (strict CSP + localhost origin) isolated the actual cause.
+3. A stale :3100 server strikes again: `pkill -f "next start"` matches NOTHING (the process is `next-server`) — "e2e fails on a page you did not change" after a rebuild means the OLD server still owns the port. Kill by PID from `ss -tlnp`.
+4. Metadata that re-derives a value the body computes is a divergence waiting to happen: the canonical clamped `?page` its own way while the listing pipeline clamped another. Share ONE cached loader between generateMetadata and the page (primitive cache keys — both callers hold different searchParams objects).
+5. An a11y pin that asserts an exact count (`toHaveCount(1)`) is a catalog-refresh time bomb; pin "at least one + first matches the query".
+6. Images that fail BEFORE hydration fire onError before React attaches it — the SmartImage fallback never renders for them (observed live, documented); pin the DOM contract, not the failure path.
 
 ## §16 Lessons (session 008)
 1. Scan STATES, not just pages: the favourite pressed-state violation survived seven sessions because every axe run analyzed freshly-loaded pages. Any interactive component with state-dependent labels/roles needs a scan per state (pressed, open, loaded-with-data).

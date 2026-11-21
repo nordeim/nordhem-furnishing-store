@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductPurchase } from "@/components/shop/product-actions";
@@ -19,9 +20,13 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
+// Session-009 S9-L3: generateMetadata and the page body share one per-request cache
+// entry, so the product row is fetched once per request instead of twice.
+const loadProduct = cache((slug: string) => getProductBySlug(slug));
+
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const product = await loadProduct(slug);
   if (!product) return { title: "Product not found" };
   return {
     title: `${product.name} ${product.typeDesc}`,
@@ -37,7 +42,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductBySlug((await params).slug);
+  const product = await loadProduct((await params).slug);
   if (!product) notFound();
 
   const [category, related] = await Promise.all([getCategory(product.categorySlug), getRelatedProducts(product)]);

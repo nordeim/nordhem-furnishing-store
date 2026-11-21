@@ -17,16 +17,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Indexable long-tail content routes (linked from nav/footer) — session-005 L-7: they were
-  // absent from the sitemap, leaving 9 discoverable pages invisible to crawlers.
+  // absent from the sitemap, leaving discoverable pages invisible to crawlers.
+  // Session-009 S9-L2: only CANONICAL roots are listed. The deep footer URLs
+  // (/campaigns/christmas, /customer-service/services, …/return-policy) canonicalize to
+  // their prefix roots (session-008 S8-M2 folding), so sitemapping them advertised
+  // non-canonical URLs while their canonical targets were absent from the map.
   const infoRoutes: MetadataRoute.Sitemap = [
     "/offers",
     "/rooms",
     "/stores",
     "/ideas",
     "/new",
-    "/campaigns/christmas",
-    "/customer-service/services",
-    "/customer-service/returns-claims/return-policy",
+    "/campaigns",
+    "/customer-service",
     "/product-guides/sustainable-products",
   ].map((path) => ({ url: base + path, changeFrequency: "weekly" as const, priority: 0.4 }));
 

@@ -28,6 +28,7 @@ const REQUIRED_EXCLUSIONS = [
   '@source not "../../scripts"',
   '@source not "../../package-lock.json"',
     '@source not "../../docker-compose.yml"',
+  '@source not "../../nordhem-furnishing-store_SKILL.md"',
   '@source not "../content"',
 ];
 
@@ -70,6 +71,11 @@ describe("tailwind scan guard (globals.css)", () => {
 
   it("still imports tailwindcss (the guard never replaces the import)", () => {
     expect(css).toContain('@import "tailwindcss"');
+  });
+
+  it("base layer gives every button a pointer cursor (v4 preflight trap, session-009 S9-L4)", () => {
+    expect(css).toMatch(/@layer base\s*{[\s\S]*?button,\s*\n?\s*\[role="button"\]\s*{\s*cursor:\s*pointer;\s*}/);
+    expect(css).toMatch(/button:disabled\s*{\s*cursor:\s*not-allowed;\s*}/);
   });
 
   it("poison prose tokens never appear inside src/ (all of src/ is scanned by design)", () => {

@@ -1,6 +1,8 @@
 "use client";
 
-export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
+export default function ErrorPage({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  // Client-side record of the boundary hit (the server route already logged via guard()).
+  console.error(error);
   return (
     <div className="page-x mx-auto max-w-2xl py-24 text-center">
       <h1 className="text-3xl font-bold">Something went wrong</h1>

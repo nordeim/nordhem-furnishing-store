@@ -227,11 +227,20 @@ NEXT_PUBLIC_SITE_URL="https://your-origin" npm run build
   across all users** (family 5/min, track 10/min). Fine for a single-user
   demo; for real traffic put a proxy in front and set
   `TRUSTED_PROXY_DEPTH=1`.
+- **Security headers** (next.config.ts via the tested `src/lib/security-headers.ts` seam):
+  `Strict-Transport-Security: max-age=31536000; includeSubDomains` (HSTS — browsers ignore
+  it over plain HTTP, so local dev is unaffected), `X-Frame-Options: DENY`, `nosniff`,
+  strict referrer policy, restrictive Permissions-Policy, and the CSP allowlist. The CSP
+  gains `script-src 'unsafe-eval'` ONLY when `NODE_ENV=development` (React's dev runtime
+  requires eval); production stays strict. `allowedDevOrigins: ["127.0.0.1"]` lets the dev
+  server be browsed via the loopback IP (Next 16 blocks cross-origin dev resources by
+  default — without it, hydration silently dies on 127.0.0.1).
 - **Error posture**: fail loud. A database outage returns 500 via `guard()`
   and the error boundary — only the sitemap degrades (static routes) so a
   build never dies on a DB hiccup. Success responses are raw JSON payloads;
   failures are `{ error: { code, message, details? } }`.
-- **SEO**: `/sitemap.xml` (275 URLs: 2 static + 9 info routes + 22
+- **SEO**: `/sitemap.xml` (274 URLs: 2 static + 8 info routes — canonical
+  roots only, deep pages fold into their prefix canonicals — + 22
   categories/collections + 242 products), `/robots.txt` disallows private
   session surfaces (`/cart`, `/checkout`, `/orders/`, `/track-order`,
   `/favourites`, `/search`, `/api/`), canonical links on `/cat/*` and
@@ -272,7 +281,7 @@ BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 21 HTTP checks (
 npx playwright install chromium                               # once per environment
 npm run test:e2e                                              # 44 e2e against the production build on :3100 (incl. the axe a11y sweeps — npx playwright install chromium first)
 curl -s http://127.0.0.1:3000/api/health                      # {"ok":true} when the DB answers (SELECT 1)
-curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 275
+curl -s http://127.0.0.1:3000/sitemap.xml | grep -c "<url>"   # 274
 curl -s -o /dev/null -w "%{http_code}\n" http://127.0.0.1:3000/no-such-page   # 404
 curl -s "http://127.0.0.1:3000/api/search?q=billy" | head -c 200              # live suggestions
 ```

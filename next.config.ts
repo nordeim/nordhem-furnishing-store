@@ -1,25 +1,20 @@
 import type { NextConfig } from "next";
+import { buildSecurityHeaders } from "./src/lib/security-headers";
 
-const securityHeaders = [
-  { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
-  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
-  // Session-007 CSP, tightened session-008 S8-I1 (the data: allowance was unused — every
-  // image is self-hosted or on the IKEA CDN; the SmartImage fallback is a plain <div>):
-  // no inline event handlers exist; inline content is limited to the two JSON-LD blocks,
-  // Next's RSC bootstrap pushes and a handful of style attributes — hence 'unsafe-inline'
-  // for style, and 'unsafe-inline' for script only because the RSC bootstrap uses inline
-  // pushes (nonce middleware is the later tightening step).
-  {
-    key: "Content-Security-Policy",
-    value:
-      "default-src 'self'; img-src 'self' https://www.ikea.com; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
-  },
-];
+// Session-009 S9-H1: headers come from the tested seam (src/lib/security-headers.ts) —
+// dev gains script-src 'unsafe-eval' (React's dev runtime needs eval; shipping the strict
+// production CSP in `next dev` killed hydration and every client island), production stays
+// byte-identical to the session-007/008 policy. HSTS joined the set this session.
+const securityHeaders = buildSecurityHeaders(process.env.NODE_ENV);
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  // Session-009 S9-H1 (the hydration half): Next 16 blocks cross-origin requests to dev
+  // resources by default — browsing `npm run dev` via 127.0.0.1 (vs localhost) 403'd the
+  // dev-resource requests and React never hydrated (live-verified: zero fiber keys, every
+  // client island inert). Declaring the loopback IP as an allowed dev origin fixes the
+  // loopback access path; production is unaffected (dev-only config).
+  allowedDevOrigins: ["127.0.0.1"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

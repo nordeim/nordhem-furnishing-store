@@ -49,6 +49,16 @@
   html {
     scroll-behavior: smooth;
   }
+  /* Tailwind v4 preflight sets no cursor: pointer on buttons — the .btn utility family
+     carries its own, but every other button (header nav/menu/panel, carousel arrows,
+     hotspot dots, steppers, toaster dismiss) needs it from the base layer. */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
   body {
     font-family: var(--font-sans);
     color: var(--color-ink);

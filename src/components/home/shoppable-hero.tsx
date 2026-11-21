@@ -67,9 +67,13 @@ export function ShoppableHero({ slides }: { slides: HeroSlide[] }) {
                   aria-expanded={isOpen}
                   aria-label={`Product information: ${spot.name}`}
                   onClick={() => setOpenKey(isOpen ? null : key)}
-                  className="grid size-8 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white/90 shadow-md hover:scale-110"
+                  /* Session-009 S9-L5: 44px hit area (WCAG 2.5.8 floor) — the button is a
+                     transparent size-11 grid; the visible 32px white dot is the inner span. */
+                  className="grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full"
                 >
-                  <span className="size-3 rounded-full bg-ink" />
+                  <span className="grid size-8 place-items-center rounded-full bg-white/90 shadow-md hover:scale-110">
+                    <span className="size-3 rounded-full bg-ink" />
+                  </span>
                 </button>
                 {isOpen && (
                   <div

@@ -1,7 +1,7 @@
 import { chromium, devices } from "@playwright/test";
 
 /** Capture the remediated storefront from the production build on :3100 into docs/screenshots/. */
-const BASE = "http://127.0.0.1:3100";
+const BASE = process.env.BASE ?? "http://127.0.0.1:3100"; // session-009: BASE override (dev server shots double as live proof of the S9-H1 fix)
 const OUT = "docs/screenshots";
 
 const shots = [

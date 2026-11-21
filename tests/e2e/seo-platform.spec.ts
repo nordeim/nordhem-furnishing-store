@@ -83,6 +83,16 @@ test("Content-Security-Policy is set with the app's source allowlist (session-00
   expect(csp).toContain("img-src 'self' https://www.ikea.com");
   expect(csp).toContain("object-src 'none'");
   expect(csp).toContain("frame-ancestors 'none'");
+  // Session-009 S9-H1: the production build must NOT carry the dev-only unsafe-eval.
+  expect(csp).not.toContain("unsafe-eval");
+});
+
+test("HSTS is set on every response (session-009)", async ({ request }) => {
+  const response = await request.get("/");
+  const hsts = response.headers()["strict-transport-security"];
+  expect(hsts).toBeDefined();
+  expect(hsts).toContain("max-age=31536000");
+  expect(hsts).toContain("includeSubDomains");
 });
 
 test("unknown content paths return a real 404, not a soft-200 (session-006 M-3)", async ({ request }) => {
@@ -153,4 +163,29 @@ test("paginated category pages self-canonicalize (session-008 S8-L2)", async ({ 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price\?page=2$/);
   await page.goto("/cat/lowest-price");
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price$/);
+});
+
+test("out-of-range page params canonicalize to the page actually rendered (session-009 S9-M1)", async ({ page }) => {
+  // lowest-price spans 6 pages: ?page=7 renders page 6 (listProducts clamps to pageCount),
+  // so the canonical must say ?page=6 — not ?page=7 (a second URL for page-6 content).
+  await page.goto("/cat/lowest-price?page=7");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price\?page=6$/);
+  // The listing schema (.max(500).catch(1)) falls back to page 1 for ?page=999, so the
+  // canonical must be the bare category URL — never ?page=500 (different content entirely).
+  await page.goto("/cat/lowest-price?page=999");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price$/);
+  // Non-integer input behaves like the schema: 2.7 is not an int → catch → page 1 → bare.
+  await page.goto("/cat/lowest-price?page=2.7");
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/cat\/lowest-price$/);
+});
+
+test("home page carries a canonical and og:url (session-009 S9-L1)", async ({ page }) => {
+  await page.goto("/");
+  // Next resolves alternates.canonical "/" against metadataBase, stripping the trailing
+  // slash — the assertion pins "origin root, no path or query", which is what consolidates
+  // ?utm_* variants.
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /^[a-z]+:\/\/[^/]+\/?$/);
+  const ogUrl = await page.locator('meta[property="og:url"]').getAttribute("content");
+  expect(ogUrl, "og:url must exist on the home page").toBeTruthy();
+  expect(ogUrl!).toMatch(/^[a-z]+:\/\/[^/]+\/?$/);
 });

@@ -1,3 +1,21 @@
+# Session 009 — the dev-server hydration fix + canonical-render alignment cycle
+
+**Baseline (fresh re-clone at aba07e4 after a workspace reset, all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit 90/90 · build cold ✓ · smoke 21/21 · e2e 44/44 · sitemap 275. PostgreSQL: fresh rootless install via docs/setup_pg_z.sh; 22 categories / 242 products seeded. All session-008 fixes re-verified holding live.
+
+## What was done
+
+**Audit (read-only subagent + live probes; web-application + tdd skill methodology):** 0 CRITICAL · 0 HIGH · 2 MEDIUM · 10 LOW · 7 INFO, plus verdicts on every deferred item (HSTS do-now; migration journal + CSP nonces do-later; Redis limiter / setCartQuantity LWW / vitest isolate:false never) and a deliberate no-op verdict on the standing "modify the vitest/playwright configs" instruction — both configs audited sound (session-007 §15.6 precedent).
+
+**Browser verification (agent-browser):** production :3100 — the mobile drawer state machine fully passes (open, Products submenu, navigate→unmount, Escape, close+focus-restore+scroll-lock), combobox ArrowDown, full cart→checkout→order→track round-trip (wrong email → single generic error), desktop 1440×900 clean. **No Tailwind v4 display-utility bug.** THE session finding: **`npm run dev` was inert** — React never hydrated on :3000 (zero fiber keys; every client island dead). Isolated by experiment: (a) the CSP lacked `unsafe-eval` (React dev runtime — noisy, 8 console errors, not fatal); (b) the hydration killer — Next 16 blocks `127.0.0.1` as a cross-origin dev origin (`allowedDevOrigins`), silently 403ing dev resources.
+
+**Remediation (TDD, plan-009, each RED→GREEN):** S9-H1 (dev-CSP seam + allowedDevOrigins + HSTS, live re-verified: drawer mounts via 127.0.0.1, 0 eval errors) · S9-M1+L3 (one cached loader per page; canonical from the page actually rendered; e2e-pinned) · S9-L1 (home canonical + og:url) · S9-M2 (bounded rate-limiter eviction + size() seam) · S9-L2 (sitemap canonical roots only, 275→274) · S9-L4 (button cursor base rule) · S9-L5 (hotspot 44px hit area) · S9-L6 (SmartImage decorative-fallback aria-hidden) · S9-L9 (count-independent a11y pin) · S9-L7 (scan-guard SKILL.md pin) · S9-L8 (.env.example MAX_AGE_DAYS) · S9-L10 (smoke.sh mode bit) · S9-I4 (error.tsx logging).
+
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · **unit 102/102 (16 files)** · build cold ✓ · smoke 21/21 · **e2e 49/49 ×3** · sitemap **274** · screenshots **12/12** PIL-valid, captured from the **dev server** (:3000) — the interactive shots double as live proof of the S9-H1 fix.
+
+**Deferred (documented):** migration journal · CSP nonces · Redis limiter · setCartQuantity LWW · pre-hydration image-failure fallback (onError attaches after the error fires).
+
+---
+
 我将继续执行任务。首先检查工作区当前状态，然后刷新代码库。
 I'll start by checking the workspace state — whether it survived, whether there's a new `docs/session_8.md` from the operator, and the PostgreSQL/server status:
 The repo directory is empty — need to re-clone. The pg data dir survived (so I can restore the DB as in session 006). Cloning now:

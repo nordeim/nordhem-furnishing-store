@@ -17,7 +17,13 @@ export function SmartImage({ src, alt, size = "m", className, priority = false }
   const [failed, setFailed] = useState(false);
 
   if (failed) {
-    return <div role="img" aria-label={alt} className={cn("bg-surface", className)} />;
+    // Session-009 S9-L6: alt="" (decorative — cart thumbnails, tiles, suggestions) must not
+    // produce a nameless role="img" (axe role-img-alt); it renders aria-hidden instead.
+    return alt ? (
+      <div role="img" aria-label={alt} className={cn("bg-surface", className)} />
+    ) : (
+      <div aria-hidden="true" className={cn("bg-surface", className)} />
+    );
   }
   return (
     // eslint-disable-next-line @next/next/no-img-element

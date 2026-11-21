@@ -2,7 +2,7 @@
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-20 (session 008 — thin-content collapse, dynamic-state a11y gate, census existence checks)
+**Last Updated:** 2026-11-21 (session 009 — dev-server hydration fix, canonical-render alignment, bounded limiter, HSTS)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,8 +111,8 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 14 files / 90 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (44 tests)
+tests/unit/         # 16 files / 102 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (49 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 90 tests / 14 files | Vitest (node) | `tests/unit/` |
-| E2E | 44 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 102 tests / 16 files | Vitest (node) | `tests/unit/` |
+| E2E | 49 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -239,6 +239,17 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.8.0 (2026-11-21, session 009)
+
+- `[DEV]` **S9-H1: `npm run dev` was inert — fixed.** Two stacked causes, live-verified with agent-browser: (1) the session-007 CSP shipped identical in dev, where React's dev runtime needs `eval()` (8 console errors per load; hydration survived but with broken component stacks); (2) the hydration killer — Next 16 blocks cross-origin dev-resource requests by default, so browsing the dev server as `127.0.0.1` (vs `localhost`) 403'd dev resources and React never attached (zero fiber keys, every client island dead). Fix: `buildSecurityHeaders()` seam (`src/lib/security-headers.ts`) adds `script-src 'unsafe-eval'` in development only (production byte-identical — e2e-pinned) + `allowedDevOrigins: ["127.0.0.1"]`. Re-verified live: drawer mounts via 127.0.0.1, 0 eval errors.
+- `[SEO]` **S9-M1: the paginated canonical now derives from the page actually rendered.** The metadata path hand-rolled its own clamp: `?page=7` canonicalized to `?page=7` while the body rendered page 6 (pageCount clamp), `?page=999` canonicalized to `?page=500` while the schema fell back to page 1. Both callers now share one `React.cache()`d loader (primitive keys) and the canonical comes from `result.page`; e2e-pinned (`?page=7` → `?page=6`, `?page=999`/`?page=2.7` → bare). Also halves the per-request queries (S9-L3; the product page `getProductBySlug` is cached the same way).
+- `[SEC]` **S9-M2: the rate limiter is bounded under flood.** The old guard pruned only EXPIRED buckets and only above the cap — a live-key flood grew the map unbounded within the window and made every `check()` O(n). Now: prune, then evict the oldest-tracked key when still at capacity (O(1)); an evicted key mints a fresh window (documented under-limit tradeoff for one key). `size()` seam added; 3 unit pins.
+- `[SEO]` **S9-L1: home canonical + og:url** (`/` — consolidates `?utm_*` variants; e2e-pinned). **S9-L2: the sitemap lists only canonical info URLs** — the 3 deep entries (campaigns/christmas, customer-service/services, …/return-policy) folded into their prefix roots per S8-M2, so advertising them was advertising non-canonical URLs; swapped for `/campaigns` + `/customer-service` (275→**274**).
+- `[A11Y]` **S9-L4:** `@layer base` gives every button a pointer cursor (v4 preflight sets none; only the `.btn` family carried it). **S9-L5:** hero hotspot hit areas are 44px (WCAG 2.5.8 floor; the 32px white dot is now the inner span of a transparent size-11 button — e2e box-pinned). **S9-L6:** SmartImage failure fallbacks with `alt=""` render `aria-hidden` divs, never a nameless `role="img"` (axe role-img-alt).
+- `[SEC]` **HSTS live** (max-age=31536000; includeSubDomains) — homenest parity, the one residual header missing from the register; e2e-pinned.
+- `[QA]` **S9-L9:** the suggestions a11y-state pin is count-independent (a catalog refresh can no longer break it); **S9-L7:** the scan-guard now pins the SKILL.md exclusion (verified the pin bites by dropping the CSS line → RED → restore); **S9-L8:** `.env.example` documents `MAX_AGE_DAYS` (prune cron); **S9-L10:** `scripts/smoke.sh` executable bit committed; **S9-I4:** `error.tsx` logs the boundary error. Test-config instruction: vitest/playwright configs audited sound — deliberate no-op (session-007 §15.6 precedent).
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **102/102 (16 files)** · build cold ✓ · smoke 21/21 · e2e **49/49 ×3** · sitemap **274**.
 
 ## Revision Block — v2.7.0 (2026-11-20, session 008)
 

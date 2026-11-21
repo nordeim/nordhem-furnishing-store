@@ -21,15 +21,25 @@ const PUBLIC_ROUTES = [
   "/cat/",
   "/p/",
   // Indexable long-tail info routes (session-005 L-7): linked from nav/footer, 200-status.
+  // Session-009 S9-L2: only CANONICAL roots are listed — the deep entries
+  // (/campaigns/christmas, /customer-service/services, …/return-policy) canonicalize to
+  // /campaigns and /customer-service (session-008 S8-M2 folding), so advertising them in
+  // the sitemap meant advertising non-canonical URLs whose canonical targets were absent.
   "/offers",
   "/rooms",
   "/stores",
   "/ideas",
   "/new",
+  "/campaigns",
+  "/customer-service",
+  "/product-guides/sustainable-products",
+];
+
+/** Deep info URLs whose canonical folds to a prefix root — must NOT be sitemapped. */
+const NON_CANONICAL_ROUTES = [
   "/campaigns/christmas",
   "/customer-service/services",
   "/customer-service/returns-claims/return-policy",
-  "/product-guides/sustainable-products",
 ];
 
 describe("sitemap route contract (src/app/sitemap.ts)", () => {
@@ -49,6 +59,12 @@ describe("sitemap route contract (src/app/sitemap.ts)", () => {
   it("includes every public route family", () => {
     for (const route of PUBLIC_ROUTES) {
       expect(SITEMAP_SRC, `sitemap must cover ${route}`).toContain(`"${route}`);
+    }
+  });
+
+  it("lists only canonical info URLs (deep pages fold into their prefix roots)", () => {
+    for (const route of NON_CANONICAL_ROUTES) {
+      expect(SITEMAP_SRC, `sitemap must not advertise non-canonical ${route}`).not.toContain(`"${route}`);
     }
   });
 

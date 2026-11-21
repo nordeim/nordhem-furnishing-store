@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { IdeasGrid, type IdeaCard } from "@/components/home/ideas-grid";
 import { MediaCard, Section } from "@/components/home/blocks";
 import { ShoppableHero, type HeroSlide } from "@/components/home/shoppable-hero";
@@ -9,6 +10,14 @@ import home from "@/content/home.json";
 import { getFeaturedProducts, type Product } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
+
+// Session-009 S9-L1: every other indexable page declares a canonical; the home page now
+// does too, so ?utm_* / ?any=param variants consolidate to the bare origin. og:url rides
+// along (Next resolves both against metadataBase from the layout).
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+  openGraph: { url: "/" },
+};
 
 /** Hotspot coordinates (percent of image box) measured from the live shoppable carousel. */
 const HOTSPOT_COORDINATES: { x: number; y: number }[][] = [
