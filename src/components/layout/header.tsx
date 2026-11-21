@@ -41,6 +41,14 @@ export function Header() {
 
   useEffect(() => ensureSummaryLoaded(), []);
 
+  // Session-012 S12-I4: the drawer unmounts on close but the submenu flag lives here,
+  // so it survived a close/reopen round-trip and the drawer came back pre-expanded.
+  // Reset it on every path that leaves the mobile panel (Escape, outside click, the
+  // close button, and link navigation all funnel through panel leaving "mobile").
+  useEffect(() => {
+    if (panel !== "mobile") setMobileProductsOpen(false);
+  }, [panel]);
+
   useEffect(() => {
     if (!panel) return;
     function onKeyDown(event: KeyboardEvent) {

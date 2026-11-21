@@ -94,6 +94,26 @@ test.describe("mobile navigation drawer", () => {
     await expect(drawer.getByRole("button", { name: "Close menu" })).toBeFocused();
   });
 
+  test("drawer reopens with the Products submenu collapsed (session-012 S12-I4)", async ({ page }) => {
+    await page.goto("/");
+    const hamburger = page.getByRole("button", { name: "Menu", exact: true });
+    await hamburger.click();
+    const drawer = page.getByRole("dialog", { name: "Menu" });
+    const productsToggle = drawer.getByRole("button", { name: "Products", exact: true });
+    await productsToggle.click();
+    await expect(productsToggle).toHaveAttribute("aria-expanded", "true");
+    await page.keyboard.press("Escape");
+    await expect(drawer).toHaveCount(0);
+    // Reopening must present a FRESH drawer: the submenu flag lives in the parent while
+    // the drawer unmounts, so without an explicit reset it survives the round-trip.
+    await hamburger.click();
+    await expect(drawer).toBeVisible();
+    await expect(drawer.getByRole("button", { name: "Products", exact: true })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+  });
+
   test("focus restores to the hamburger button after the drawer closes", async ({ page }) => {
     await page.goto("/");
     const hamburger = page.getByRole("button", { name: "Menu", exact: true });

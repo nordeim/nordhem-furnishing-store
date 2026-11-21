@@ -51,7 +51,8 @@ export function createRateLimiter(options: { limit: number; windowMs: number; no
           // would make its own lookup below miss and mint a fresh window — a blocked
           // client unblocking itself. When the caller's own key IS the oldest, eviction
           // is simply skipped — safe, because the caller's key is already tracked and
-          // the set() below replaces it in place (the map stays at exactly MAX).
+          // the set() below replaces it in place, or the check returns blocked without
+          // inserting (the map stays at exactly MAX either way).
           const oldest = buckets.keys().next().value;
           if (oldest !== undefined && oldest !== key) buckets.delete(oldest);
         }

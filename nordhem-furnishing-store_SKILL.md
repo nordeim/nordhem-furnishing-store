@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.10.0
+version: 1.11.0
 last_updated: 2026-11-20
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.10.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.11.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 011): 107 unit tests / 51 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 012): 108 unit tests / 52 e2e / 21 smoke checks; sitemap 274 locs (canonical roots only); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -72,6 +72,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+
+
+## §20 Lessons (session 012)
+1. "Probe" is a load-bearing word in a rate-limit table: a select-1 health check and a cookie-keyed two-query read are both GETs, but only one deserves "unlimited". Audit doc tables for posture words, not just numbers.
+2. A source-text tripwire is only as good as its slice boundary. Regexes that stop at "the first \n}" are betting on formatting; indexOf-to-next-declaration bounds the pin structurally — the assertion then bites under any refactor.
+3. State that survives a conditional mount is invisible to the unmount: the drawer unmounted cleanly, the aria attrs stayed truthful, and the bug only appeared on the SECOND open. Always test the reopen, not just the open and the close.
+4. og:image must never be an empty string — scrapers treat "" as a broken preview. When the underlying column is nullable (1/22 categories), make the key conditional, not the value.
+5. When you verify a limiter live, remember the window budget is shared across everything that ran before you from the same key (the e2e suite's own calls). 78+42=120 was the correct answer, not a flake.
 
 ## §19 Lessons (session 011)
 1. When you fix a "this export silently replaces the parent's" bug on ONE page, grep for every OTHER page exporting the same partial shape the same day — the og:replace class existed on `/` AND `/p/*` AND (unexploited) `/cat/*`; one audit pass found the siblings immediately.

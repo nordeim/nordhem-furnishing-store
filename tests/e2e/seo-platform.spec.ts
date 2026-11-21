@@ -171,6 +171,10 @@ test("category pages carry a page-specific openGraph set (session-011 S11-I2)", 
   await expect(page.locator('meta[property="og:type"]')).toHaveAttribute("content", "website");
   await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "Nordhem Furnishing Store");
   await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", /\/cat\/sofas-armchairs-700640$/);
+  // Session-012 S12-I2: categories carry nav-tile art (categories.image, 21/22 seeded
+  // non-null) — the og block mirrors it so /cat/* link previews are not text-only.
+  await expect(page.locator('meta[property="og:image"]')).toHaveCount(1);
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /ikea\.com/i);
 });
 
 test("paginated category pages self-canonicalize (session-008 S8-L2)", async ({ page }) => {

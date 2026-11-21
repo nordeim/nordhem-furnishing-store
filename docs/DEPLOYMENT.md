@@ -204,13 +204,14 @@ NEXT_PUBLIC_SITE_URL="https://your-origin" npm run build
 
   | Route | Methods | Limit |
   |---|---|---|
-  | `/api/cart` | GET/POST/PATCH/DELETE | 120/min |
+  | `/api/cart` | GET/POST/PATCH/DELETE | 120/min combined across methods, per client |
   | `/api/favourites` | POST/DELETE | 120/min |
   | `/api/search` | GET | 90/min |
   | `/api/checkout` | POST | 10/min |
   | `/api/orders/track` | POST | 10/min |
   | `/api/family` | POST | 5/min |
-  | `/api/health`, `/api/summary` | GET | unlimited (probe/read paths) |
+  | `/api/health` | GET | unlimited (select-1 probe, orchestrator path) |
+  | `/api/summary` | GET | 120/min (runs DB queries — not a probe; session-012 S12-L1) |
 
 - **Rate-limit keying**: `clientKey()` in `src/lib/http.ts`. With **no proxy
   trust declared** (`TRUSTED_PROXY_DEPTH` unset/garbage — the default),

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ListingView, parseListingParams } from "@/components/shop/listing-view";
 import { getCategory, listProducts } from "@/lib/catalog";
+import { imageUrl } from "@/lib/images";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,10 @@ export async function generateMetadata({ params, searchParams }: CategoryPagePro
       siteName: "Nordhem Furnishing Store",
       title: data.category.name,
       description: `Shop ${data.category.name} at IKEA Singapore — affordable home furnishing with flat-pack prices.`,
+      // Session-012 S12-I2: mirror the category's nav-tile art when it exists (21/22
+      // seeded categories carry one; lowest-price is the deliberate exception — og
+      // images must never be an empty string, so the key is simply omitted).
+      ...(data.category.image ? { images: [imageUrl(data.category.image, "l")] } : {}),
     },
   };
 }

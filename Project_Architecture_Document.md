@@ -2,7 +2,7 @@
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 011 — product/category og completion, cart GET limiter, limiter reorder completion)
+**Last Updated:** 2026-11-21 (session 012 — summary GET throttle, api-surface hardening, category og:image, drawer submenu reset)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,8 +111,8 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 17 files / 107 tests
-tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (51 tests)
+tests/unit/         # 17 files / 108 tests
+tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (52 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
@@ -186,8 +186,8 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 107 tests / 17 files | Vitest (node) | `tests/unit/` |
-| E2E | 51 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
+| Unit | 108 tests / 17 files | Vitest (node) | `tests/unit/` |
+| E2E | 52 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 21 checks | bash | `scripts/smoke.sh` |
 
 Coverage philosophy: pure seams unit-tested (TDD); user-visible surfaces e2e-pinned; the full HTTP contract smoke-checked. The gate: `lint → typecheck → typecheck:tests → test → build → smoke → test:e2e`.
@@ -239,6 +239,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.11.0 (2026-11-21, session 012)
+
+- `[SEC]` **S12-L1: `GET /api/summary` is throttled (120/min).** The last unthrottled, unauthenticated, DB-touching read — each call runs two indexed queries keyed on a client-supplied cookie; health (a select-1 probe) stays unlimited for orchestrators, summary no longer pretends to be one. DEPLOYMENT's table now splits the two rows. Live-verified: 78×200 then 429s as the shared 120/min window budget (consumed partly by the e2e run moments before) filled exactly.
+- `[QA]` **S12-L2: the api-surface tripwire is now structurally bounded.** The GET slice is taken from `indexOf("export function GET")` to the next `export function` (end-of-file fallback) instead of a formatting-dependent lazy regex — a one-line handler refactor can no longer make the match span into the next handler and pass vacuously. Pinned for both `/api/cart` and `/api/summary` GET.
+- `[SEO]` **S12-I2: category pages mirror their nav-tile art in og:image.** `/cat/*` link previews are no longer text-only; the block is conditional because `lowest-price` deliberately carries no image (og images must never be an empty string). e2e-pinned (sofas carries `ikea.com/...range-categorisation...`; lowest-price omits the key entirely — live-verified).
+- `[UX]` **S12-I4: the mobile drawer reopens with the Products submenu collapsed.** The submenu flag lived in the parent while the drawer unmounts, so it survived close/reopen (live-confirmed `aria-expanded="true"` after Escape + reopen). A `panel !== "mobile"` effect now resets it on every close path. e2e-pinned + live-verified post-fix (`"false"` on reopen).
+- `[DOC]` **S12-I6/I3/I5:** DEPLOYMENT clarifies `/api/cart`'s cap is combined across methods per client; the rate-limiter's skip-eviction comment now covers the blocked path ("...or the check returns blocked without inserting"); `.gitignore` gains `*.log`.
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **108/108 (17 files)** · build cold ✓ · smoke 21/21 · e2e **52/52 ×3** · sitemap **274**.
 
 ## Revision Block — v2.10.0 (2026-11-21, session 011)
 
