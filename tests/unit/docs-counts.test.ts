@@ -13,6 +13,9 @@ const UNIT_TESTS = 113;
 const UNIT_FILES = 18;
 const E2E_TESTS = 55;
 const SMOKE_CHECKS = 26;
+// Session-016 S16-L1: the per-spec pin note in PAD's §3 ("mobile-navigation.spec.ts (N tests)")
+// — a stale 8 sat there through session-015's sweep because no regex covered the shape.
+const MOBILE_NAV_E2E = 10;
 const TABLES = 7;
 const SITEMAP_URLS = 274;
 const CATEGORIES = 22;
@@ -100,6 +103,22 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
       }
       for (const m of s.matchAll(/\bUnit \(Vitest, (\d+) tests\)/g)) {
         if (Number(m[1]) !== UNIT_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      // Session-016 S16-L1: four live-tense shapes the canonical sweep could not see —
+      // the CLAUDE command-table row, PAD's tree comments, PAD's per-spec pin note, and
+      // the smoke.sh checks line. Each shape sat stale through an entire "counts swept"
+      // commit because no regex covered it; each is now pinned to its constant.
+      for (const m of s.matchAll(/\((\d+) tests?, build first\)/g)) {
+        if (Number(m[1]) !== E2E_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/# (\d+) files \/ (\d+) tests/g)) {
+        if (Number(m[1]) !== UNIT_FILES || Number(m[2]) !== UNIT_TESTS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/smoke\.sh \((\d+) checks\)/g)) {
+        if (Number(m[1]) !== SMOKE_CHECKS) stale.push(`${doc}: ${m[0]}`);
+      }
+      for (const m of s.matchAll(/spec\.ts`? \((\d+) tests\)/g)) {
+        if (Number(m[1]) !== MOBILE_NAV_E2E) stale.push(`${doc}: ${m[0]}`);
       }
     }
     expect(stale, `stale counts: ${stale.join("; ")}`).toEqual([]);

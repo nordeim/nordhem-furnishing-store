@@ -271,3 +271,16 @@ Stage Summary: the lint gate is green for the first time since session-012 intro
 Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.
 
 ---
+Task ID: 134
+Agent: session-016 executor (the count-shape sweep + census filename-allowlist cycle)
+Task: The operator's standing instruction (refresh → review session_16.md → baseline → audit → browser-verify → plan-016 → TDD remediation → gate → screenshots → docs → push via SSH wrapper). Pulled f226d9a (operator doc-only: session_16.md = session-015 raw record). Environment survived the recycle intact (node_modules, PG 22/242, .env, chromium-1255, paramiko).
+Work Log:
+- Baseline (exit-code-checked): lint 0/0 · typecheck ✓✓ · unit 113/113 (18) · build cold ✓ · smoke 26/26 · e2e 55/55 · sitemap 274. Dev server live-verified: S12-I4 submenu reset holding through the S15-H1 funnel, Escape + focus restore, scroll lock, S13-L2/S14-L1 lg-crossing + logo focus, desktop mega-menu open + outside-close, zero console errors, no overflow. No Tailwind v4 display-utility bug.
+- Audit (read-only subagent, web-application + tdd + tailwind-patterns methodology, deep pass over ddde429): 0 CRITICAL · 0 HIGH · 0 MEDIUM · 2 LOW · 1 INFO. Close-funnel traced COMPLETE by code path (every leave path routes through close(); the sole remaining setPanel(null) is the desktop Products toggle, unreachable with the drawer mounted); smoke ordering checkout-safe (~10x rate-limit margin); census non-vacuous (NOTES.md fails it); no import cycle (cart-math is a leaf); the <main> dispatchEvent e2e genuinely exercises the document listener. Findings: L1 four stale count shapes the docs-counts regexes could not see; L2 census .ts/.mjs/.json extension-blanket not scanner-inherently-benign; I1 SKILL double-semicolon typo. Config instruction: documented no-op (10th consecutive session).
+- Remediation (plan-016, TDD): S16-L1 RED first — the docs-counts sweep gained the four missing shapes and failed on exactly the four stale lines (CLAUDE 53 e2e; PAD 112 unit / 21 smoke / 8 drawer tests) → GREEN after the sweep (55 / 113 / 26 / 10); MOBILE_NAV_E2E=10 constant added. S16-L2 BENIGN_ROOT_EXTENSIONS → BENIGN_ROOT_FILES filename allowlist (the ten actual root configs, each reasoned; exhaustiveness probe-verified). S16-I1 typo fixed.
+- Verification (exit-code-checked): lint 0/0 · typecheck ✓✓ · unit 113/113 (18 files) · build cold ✓ · smoke 26/26 · e2e 55/55 · sitemap 274 · screenshots 12/12 PIL-valid from the dev server. .env.example re-verified (5 vars, no env changes).
+- Docs: PAD v2.15.0, SKILL v1.15.0, session_16.md record, plan-016, docs-counts constants + extended sweep. No new lesson class (S16-L1's "count-shape" lesson folded into the existing docs-counts mechanism).
+Stage Summary: every count claim in every doc is now regex-pinned in ALL its written shapes; the scanner fence census matches the oxide scanner's real behavior (filename allowlist, no extension blankets); unit 113/18, e2e 55, smoke 26, sitemap 274 unchanged; DB untouched.
+Pushed: main @ <this commit> via docs/ssh_git_wrapper_v3.py (paramiko shim), remote verified.
+
+---

@@ -48,17 +48,31 @@ const POISON_TOKENS = [
  * fences exist but says nothing about a NEW root file. The scanner incident class (hit twice:
  * run-75 pre-rewrite, session-001 post-rewrite) is exactly "a root file nobody fenced" — so
  * this census turns the arrival of any unfenced root file into a RED test instead of a broken
- * build. Every root FILE must be either excluded in globals.css or in BENIGN_ROOT_EXTENSIONS
- * (formats the oxide scanner reads but cannot extract class-shaped arbitrary values from:
- * JSON/mjs/ts configs carry no prose). Root DIRECTORIES other than the fenced ones are also
- * flagged — only the known trees may exist at the root.
+ * build. Root DIRECTORIES other than the fenced ones are also flagged — only the known trees
+ * may exist at the root.
+ *
+ * Session-016 S16-L2: the original census whitelisted whole EXTENSIONS (.ts/.mjs/.json) as
+ * scanner-benign — but the oxide scanner DOES scan .ts files for class candidates, so a future
+ * prose-bearing root .ts (scratch notes with class-shaped comments) would slip both this census
+ * AND the poison scan (src-only). The blanket is replaced by an explicit root-config FILENAME
+ * allowlist: today's root .ts/.mjs/.json files are pure configs (no prose, no class-shaped
+ * strings), and a NEW root file of ANY extension now fails exactly like NOTES.md would.
+ * When you legitimately add a root config, add its name here with a reason.
  */
 const FENCED_ROOT_DIRS = new Set(["docs", "skills", "tests", "scripts", "public", "src"]);
-const BENIGN_ROOT_EXTENSIONS = new Set([
-  ".json",
-  ".mjs",
-  ".ts",
-  ".example", // .env.example — prose comments only, no class-shaped values
+const BENIGN_ROOT_FILES = new Set([
+  // Tool configs — pure key/value directives, no prose comments carrying class-shaped tokens.
+  "next.config.ts",
+  "playwright.config.ts",
+  "vitest.config.ts",
+  "eslint.config.mjs",
+  "postcss.config.mjs",
+  "drizzle.config.json",
+  "tsconfig.json",
+  "tsconfig.tests.json",
+  "package.json",
+  // Env template — prose comments only, and values are URLs/flags, never class-shaped.
+  ".env.example",
 ]);
 const IGNORED_ROOT_ENTRIES = new Set([
   ".git",
@@ -131,7 +145,7 @@ describe("tailwind scan guard (globals.css)", () => {
     }
   });
 
-  it("every root file is either scanner-excluded or of a scanner-benign extension (S15-L2 census)", () => {
+  it("every root file is either scanner-excluded or an allowlisted root config (S15-L2 census, S16-L2 hardened)", () => {
     const { files, dirs } = rootEntries();
     // Every root directory must be a known fenced tree (the @source not list + the app's own
     // scanned trees). An unexpected root directory is the same incident class as an
@@ -141,11 +155,10 @@ describe("tailwind scan guard (globals.css)", () => {
     }
     for (const file of files) {
       const excluded = REQUIRED_EXCLUSIONS.some((line) => line.includes(`/${file}"`));
-      const ext = file.slice(file.lastIndexOf("."));
-      const benign = BENIGN_ROOT_EXTENSIONS.has(ext);
+      const benign = BENIGN_ROOT_FILES.has(file);
       expect(
         excluded || benign,
-        `root file '${file}' is neither scanner-excluded in globals.css nor a benign extension — fence it (@source not "../../${file}") or add it to BENIGN_ROOT_EXTENSIONS with a reason`,
+        `root file '${file}' is neither scanner-excluded in globals.css nor an allowlisted root config — fence it (@source not "../../${file}") or add it to BENIGN_ROOT_FILES with a reason (extension blankets are NOT scanner-benign: oxide scans .ts for class candidates)`,
       ).toBe(true);
     }
   });

@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.14.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.15.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 015 — lint-gate repair, mutation-surface smoke probes, root-census scan guard)
+**Last Updated:** 2026-11-21 (session 016 — count-shape sweep, census filename allowlist)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -111,9 +111,9 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 18 files / 112 tests
+tests/unit/         # 18 files / 113 tests
 tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (55 tests)
-scripts/            # seed-cli.ts (dotenv-first), smoke.sh (21 checks), prune-abandoned-carts.mjs,
+scripts/            # seed-cli.ts (dotenv-first), smoke.sh (26 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
 docs/               # plans/, screenshots/, setup_pg_z.sh, ssh_git_wrapper_v3.py, how-tos
 ```
@@ -134,7 +134,7 @@ export function POST(request: Request) {
 ```
 Why: every mutation shares the same validation/rate/CSRF/error shape; a new route cannot forget a guard.
 
-**The conditional-mount drawer** (`src/components/layout/header.tsx`): `{panel === "mobile" && (<div id="mobile-drawer" role="dialog" aria-modal …>)}` — no `classList`, no `hidden`-toggle (the Tailwind v4 display-utility bug class). Escape/pointerdown close, body scroll lock, focus move to the close button. Pinned by `tests/e2e/mobile-navigation.spec.ts` (8 tests).
+**The conditional-mount drawer** (`src/components/layout/header.tsx`): `{panel === "mobile" && (<div id="mobile-drawer" role="dialog" aria-modal …>)}` — no `classList`, no `hidden`-toggle (the Tailwind v4 display-utility bug class). Escape/pointerdown close, body scroll lock, focus move to the close button. Pinned by `tests/e2e/mobile-navigation.spec.ts` (10 tests).
 
 **The scanner guard** (`src/app/globals.css`): `@source not "../../AGENTS.md"; … "@source not "../../skills"; …` — **paths relative to the CSS file**, root targets need `../../`. A bare `"docs"` matches nothing; the poison classes compile; the build dies with `CssSyntaxError: Missed semicolon` at a ~100KB offset. Pinned by `tests/unit/tailwind-scan-guard.test.ts`.
 
@@ -239,6 +239,13 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.15.0 (2026-11-21, session 016)
+
+- `[QA]` **S16-L1: four stale live-tense count lines survived the session-015 "counts swept" commit** — `CLAUDE.md`'s command-table e2e row, PAD §3's two tree-comment rows (unit files/tests, smoke checks) and the drawer pin note's per-spec test count (a stale 8 where the spec has 10). The docs-counts census passed anyway: its regexes pinned only the canonical table forms, so these shapes were invisible to the sweep. All four fixed (current: 55 / 113 / 26 / 10) AND the sweep gained the four missing shapes — each now pinned to its constant, so the next drift of ANY shape fails the suite. RED first: the extended sweep failed on exactly the four lines before the fix.
+- `[QA]` **S16-L2: the root census replaces its extension blanket with a filename allowlist.** The S15-L2 census whitelisted `.ts`/`.mjs`/`.json` as scanner-benign by extension — but the oxide scanner DOES scan `.ts` for class candidates, so a future prose-bearing root `.ts` would slip both the census and the src-only poison scan, recreating the run-75 incident invisibly. `BENIGN_ROOT_FILES` now names the ten actual root configs (each with a reason); any NEW root file of ANY extension fails exactly like `NOTES.md` would. Exhaustiveness probe-verified against the real root; census 6/6 green.
+- `[DOC]` **S16-I1:** SKILL state-line double-semicolon typo fixed.
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **113/113 (18 files)** · build cold ✓ · smoke **26/26** · e2e **55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server. Counts unchanged this session (113/18, 55, 26) — the four stale lines are now the CORRECT numbers in one more place each.
 
 ## Revision Block — v2.14.0 (2026-11-21, session 015)
 

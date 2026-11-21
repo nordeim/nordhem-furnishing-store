@@ -72,7 +72,7 @@ npm run dev
 | `npm run lint` | ESLint |
 | `npm run typecheck` / `typecheck:tests` | tsc for app / tests |
 | `npm test` | Vitest (113 unit tests) |
-| `npm run test:e2e` | Playwright (53 tests, build first) |
+| `npm run test:e2e` | Playwright (55 tests, build first) |
 | `npm run db:setup` | Schema push + seed |
 
 ## Testing Strategy
