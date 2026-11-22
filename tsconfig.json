@@ -41,7 +41,7 @@
     "skills",
     "docs",
     "tests",
-    "playwright.config.ts",
-    "vitest.config.ts"
+    "playwright.config.mts",
+    "vitest.config.mts"
   ]
 }

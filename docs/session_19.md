@@ -1,80 +1,22 @@
-I'll continue this multi-phase task. Let me start by checking the workspace state and setting up the repository.
-Starting the **session 018** cycle. Let me check the new pasted instructions and the workspace state:
-Instructions identical to the internalized set; workspace survived at `04b7707` with a clean tree. Setting up the session-018 plan and pulling the operator's update:
-Pulled `23553be` — the operator's doc-only commit adding `docs/session_18.md` (the raw record of session 017). Let me review it:
-`session_18.md` is the raw transcript of session 017 (my prior work) — consistent with the polished record. This is the **session 018 cycle**: baseline → audit the session-017 changeset `04b7707` → browser-verify → plan-018 → TDD → gate → docs → push. Let me check what survived the recycle:
-Environment fully intact (node_modules, `.env`, PG 17 up, chromium-1255, paramiko, shim). Verifying DB state and running the baseline gate:
-**Baseline fully green on the pulled tree**: lint 0/0 · typechecks ✓✓ · unit 115/115 (19 files) · build cold ✓ — every session-017 fix holds, DB intact. Now launching the audit subagent over the session-017 changeset:
-Audit complete: **0 CRITICAL · 0 HIGH · 0 MEDIUM · 5 LOW · 4 INFO** — all session-017 claims verified, `src/` clean of new MEDIUM+ issues; the findings concentrate in the docs-integrity guard machinery itself. Let me spot-verify the load-bearing claims before planning:
-All claims verified. Now let me check the seed's content sources for the constant derivation:
-The seed derivation is clear (21 nav rows + 1 synthetic = 22 categories; catalog filtered by known categories = 242 products). Let me verify the DEPLOYMENT structural claims for derivability:
-Only one match is suspicious — let me look at the actual route export style:
-11 methods counted vs DEPLOYMENT's claimed 12 — let me read the exact claims:
-`orders/route.ts` doesn't exist — orders must be a subroute. Let me recount methods per file including async exports:
-12 methods confirmed — DEPLOYMENT's claims are all current and derivable. One last check for the derivation design — whether `sitemap.ts` is unit-importable:
-`seo-routes.test.ts` already imports the sitemap constants — the derivation path is proven. All design decisions validated. Writing plan-018:
-Plan-018 written. Executing TDD — **S18-03 RED first**: reproduce the `.env.local` false-RED:
-**RED captured** — the standard Next convention breaks the unit gate. Now the GREEN fix — let me read the census implementation:
-**S18-03 verified**: `.env.local` → GREEN; `NOTES.md` probe → still RED (true-positive class intact); clean tree → GREEN. Now **S18-02** — the derivation block. Reading the current head of docs-counts:
-The route-literal regex derivation for SITEMAP_URLS is fragile (misses `/`, mishandles nested paths). The exported arrays are the true source — `seo-routes.test.ts` already imports them. Fixing:
-**Born-GREEN** — every derived constant equals the documented value. Now the pin-bite probe (corrupt one derivation → RED → restore):
-**S18-02 pin-bite verified** — corrupted derivation → RED on PAD's table row → restored → GREEN. Now **S18-01** — pre-checking all new shapes for exact matches and false positives:
-Two expected sites didn't match — let me check them directly:
-The DEPLOYMENT seed sentence wraps across lines (`**22\ncategories**`), and the rate-table grep needs retesting. Let me verify the raw rows:
-The paths are backtick-wrapped and the sentences wrap across lines — I have the exact shapes now. Let me read the sweep section to place the additions:
-Now adding the S18-01 shapes to the sweep:
-Now the dedicated rate-table `it` and the SKILL state-line extension. Let me read the state-line block:
-The `242-product catalog` phrase sits outside the extracted state segment. Let me check the extraction:
-The product phrase lives in §1 prose, outside the state capture. Pinning from the full file instead:
-GREEN 9/9 — all new shapes born-GREEN. Now the pin-bite probe across all 14 new shape families:
-10 named so far — let me confirm the remaining 4 (page routes, API files, methods, rate table):
-All 14 corrupted families named — every new shape bites. Restoring:
-Restored — GREEN 9/9, diff is exactly the two test files. Now **S18-04** — the unique-headings pin (RED on today's dup):
-**RED captured** — the pin names the exact duplicate. Now the GREEN fix — delete the second §16 block:
-**S18-04 GREEN** — 10/10, §16 unique. Now **S18-05** — the accurate state line:
-S18-05 done. Now **S18-06/07** — the PAD doctrine paragraphs. Locating the anchors:
-Both anchors located. Making the S18-06/07 edits:
-S18-06/07 done. Now **S18-08** — the smoke.sh failure paths:
-Wrapping the five assignment sites with labeled failure handling:
-Now the S18-09 typo fix:
-Typo fixed, smoke.sh syntax valid. Now the z-scale note — finding the PAD's toaster anchor:
-All findings remediated. Running the full gate — DB-independent steps first:
-117/117 — the count grew by the 2 new pins, so the lockstep sweep lands now:
-Sweep GREEN. Now the production server for smoke + e2e:
-Smoke 26/26 and check-rows label correctly — but the pipe ate the exit code on the probe. Re-running it properly:
-S18-08 verified end-to-end: labeled prerequisite + exit 1. Now e2e:
-**Full gate GREEN** — lint 0/0 · typechecks ✓✓ · unit 117/117 · build cold ✓ · smoke 26/26 · e2e 55/55. Now the live sitemap/SEO check:
-All holding — 274 locs now unit-derived. Now the dev server + browser verification of the mobile navigation:
-Now the full drawer state machine sequence:
-Browser verification complete — the full drawer state machine holds with zero console errors and **no Tailwind v4 display-utility bug** (conditional mount intact through open/Escape/reopen/lg-crossing/mega-menu). Now the screenshots from the dev server:
-12/12 PIL-valid. Now the documentation phase — PAD v2.17.0 header and revision block:
-Now the v2.17.0 revision block:
-Now SKILL v1.17.0 — version bump and §25 lessons:
-Same trap as last session — let me verify the §24 heading survived:
-The §24 heading was consumed again. Restoring it before the session-017 lessons:
-Section order restored (§25 → §24 → §23). Now worklog Task 136 and the session record:
-Now the final verification pass — unit suite (census re-reads all changed docs), root cleanliness, and git status:
-117/117 GREEN, root clean, 15 files ready. Killing the servers and committing:
-Committed `fe17059`. Now the push — key materialization and dry-run:
-Session 018 complete — pushed and verified. Saving the session summary:
-Session 018 is complete. **Pushed `fe17059` to `main` on `nordeim/nordhem-furnishing-store` via the SSH wrapper — remote ref verified, deploy key shredded, no new branches, working tree clean.**
+# Session 019 — the ESM-config + PAD-revision-dup + app-path-derivation cycle
 
-## What was done
+**Environment:** fresh clone at `20a7bdd` (operator doc-only: `docs/session_19.md`, the session-018 raw record). Environment built cold: npm install (334 pkgs, lockfile clean), rootless PG 17.12 via `docs/setup_pg_z.sh`, `npm run db:setup` → 22 categories / 242 products / 7 tables (the literal-99 `cart_items_qty_range` included). The first e2e run failed on a missing `chromium_headless_shell-1255` (the sandbox recycle had pruned the browser cache — environmental, not a regression); `npx playwright install chromium --only-shell` restored it and the suite ran 55/55.
 
-**Refresh & baseline (Verified)** — Pulled `23553be` (operator's `docs/session_18.md`, the session-017 raw record); environment survived intact (PG 17.12 with 22/242 and the literal-99 constraint, chromium, shim). Baseline green: lint 0/0 · typechecks ✓✓ · unit 115/115 · build cold ✓.
+**Baseline (all exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **117/117 (19 files)** · build cold ✓ — every session-018 fix holds on the pulled tree.
 
-**Audit (Verified)** — Read-only subagent over the session-017 changeset + fresh-eye over scripts/configs: **0 CRITICAL · 0 HIGH · 0 MEDIUM · 5 LOW · 4 INFO** — all session-017 claims held, `src/` clean of new issues; the findings concentrated in the docs-integrity guard machinery. Every load-bearing claim was spot-verified before planning.
+**Audit** (read-only subagent; web-application + tdd + tailwind-patterns methodology; deep pass over the session-018 changeset `fe17059`, standing anchors, and a fresh-eye pass over scripts/configs): **0 CRITICAL · 0 HIGH · 0 MEDIUM · 1 LOW · 6 INFO.** All session-018 claims verified — the docs-counts derivation block mirrors the runtime sources (recomputed independently: every constant equals reality), no tautological or vacuous pins (every regex family matched ≥ 1 live site), the `git check-ignore` census derivation is sound including the tracked-file edge, smoke.sh's failure paths label correctly, and the SKILL unique-headings pin passes. Standing anchors all hold (zero `classList`, conditional-mount drawer, complete `@source not` fence, integer cents, mutation pipeline order on all 8 routes, scoped checkout lock, lenient parsers, rate literals, cookie flags, 274-loc sitemap, 5 env vars, no PII, CSP). **Operator doc review found one more LOW the subagent missed: the PAD's byte-identical duplicated `## Revision Block — v2.7.0 (2026-11-20, session 008)`** — the exact S18-04 class, surviving session-018's own SKILL-dedup fix because that pin covers only SKILL headings. The findings: S19-01 vitest configLoader deprecation warning (LOW), S19-05 DEPLOYMENT's stale "25 app-path routes" (LOW once re-derived), S19-08 the PAD dup (LOW), plus INFOs (drizzle.config.json URL asymmetry, tests lint scope, MOBILE_NAV_E2E literal-count limitation, the CONDITIONITIONALLY typo, screenshot-script sleeps — the last two actions/deferrals recorded in plan-019). vitest/playwright config content audited sound for the 13th session — but the standing "modify the configs" instruction finally had a genuine delta: the `.mts` rename.
 
-**Remediation (plan-018, TDD):**
-- **S18-01/02** — the docs-counts census now **derives its constants from the tree itself** (specs, files, smoke checks, categories/products via the seed's own arithmetic, tables, sitemap, page/API routes, methods, rate-limit literals); 14 more count-shape families pinned — including the PRODUCTS count, which had **no constant at all** — and DEPLOYMENT's rate-limit table pinned both directions. All 14 corruption probes went RED by name before restore.
-- **S18-03** — root census and `.gitignore` now share one policy via `git check-ignore` (the oxide scanner's own behavior): `cp .env.example .env.local` no longer false-REDs the gate (reproduced live → fixed → probe matrix), while the NOTES.md class stays RED.
-- **S18-04/05** — the SKILL's nine-session-old byte-identical §16 duplicate deleted behind a new unique-headings pin; the state-line overclaim reworded to the truth.
-- **S18-06–09** — PAD records the `x-forwarded-proto` exception and `joinFamily` upsert semantics; smoke.sh failures now label themselves (negative probe: labeled + exit 1); typo + z-index note fixed.
+**Remediation (plan-019, TDD):**
+- **S19-08 — the PAD's nine-session duplicate removed.** New pin: PAD `## Revision Block` headings must be unique — **RED** naming "Revision Block — v2.7.0 (2026-11-20, session 008)" → second block deleted → **GREEN**. Both doc families (SKILL sections, PAD revisions) now carry uniqueness pins.
+- **S19-05 — the app-path route claim is tree-derived and true.** `APP_PATH_ROUTES` = PAGE_ROUTES (11) + API_ROUTES (8) + the 5 framework-generated special routes (`not-found.tsx` → `/_not-found`, `icon.svg`, `manifest.ts`, `robots.ts`, `sitemap.ts`) = **24**, verified against the actual `next build` route table. The pin went **RED** on DEPLOYMENT's stale "25" — after the regex learned to ride the doc's "app-path\nroutes" line wrap (the §25 lesson in action) — then **GREEN** at 24. Session-018's "build-output-derived, not unit-derivable" deferral is resolved: the build output is a function of the tree.
+- **S19-01 — the test-runner configs are ESM-native (.mts).** vitest 5.1 (Vite 8.3.8) warned on every `npm test` ("configLoader: 'native' … planned to become the default"). `vitest.config.ts` → `vitest.config.mts` (`__dirname` → `fileURLToPath(new URL("./src", import.meta.url))` — portable across the whole Node ≥ 20 contract), `playwright.config.ts` → `playwright.config.mts`. The tsconfig excludes, tsconfig.tests includes and the root-census `BENIGN_ROOT_FILES` allowlist updated in the same commit (a root-file rename is a root-file event for the census). Verified: the warning is **gone** from `npm test` output; both typechecks ✓; e2e 55/55 through the renamed config. Supersedes session-001's `.mts`→`.ts` homenest stylistic alignment — new information wins.
+- **Count lockstep:** unit 117→**119** (the two new pins); the census RED named all 9 doc sites (README badge + 3 prose sites, AGENTS, CLAUDE ×2, PAD ×2, DEPLOYMENT, SKILL state line) → swept → GREEN.
+- **S19-06/04/02 — small fixes:** the "CONDITIONITIONALLY" typo; the MOBILE_NAV_E2E literal-`test(` limitation documented in the census; `.env.example` documents the drizzle.config.json push/seed URL asymmetry (push reads the hardcoded config URL; app + seed read `DATABASE_URL`).
 
-**Mobile menu / Tailwind v4 (Verified, your key concern)** — the full drawer state machine holds live on the dev server: open/close/Escape+focus-restore, submenu reset on reopen, scroll lock, lg-crossing with logo focus, mega-menu with 21 links and outside-close — zero console errors, no overflow. **No Tailwind v4 display-utility bug.**
+**Browser verification (agent-browser, dev server on 127.0.0.1:3000):** the full drawer state machine end-to-end — open (mounted, `role=dialog`, `aria-modal`, scroll lock), submenu expand (21 category links), Escape → **unmounted** + lock release + focus restored to the hamburger, **reopen → submenu collapsed (S12-I4)**, **lg-crossing → 0 `#mobile-drawer` DOM nodes + logo focus (S13-L2/S14-L1/S14-I1)**, desktop mega-menu opens with 21 category links and outside-pointerdown-closes (S15-I3); zero console errors; no horizontal overflow at 390/1440 on home, product and cart pages. **No Tailwind v4 display-utility bug — the conditional-mount pattern holds.** (Tooling note for the next session: agent-browser's `--viewport` flag on `open` does not stick — `set viewport W H` after opening; a 1280px default makes the hamburger correctly invisible and the S13-L2 lg-closer immediately re-closes the drawer, which looks like a bug but is the design working.)
 
-**Final gate (all exit-code-checked):** lint 0/0 · typechecks ✓✓ · unit **117/117 (19 files)** · build cold ✓ · smoke **26/26** · e2e **55/55** · sitemap **274** (now unit-derived) · screenshots **12/12** PIL-valid. vitest/playwright configs audited sound — documented no-op, 12th session. `.env.example` verified (all 5 vars read by code; tracked, unchanged).
+**Verification — all exit-code-checked:** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **119/119 (19 files)** — warning-free after the `.mts` rename · build cold ✓ · smoke **26/26** (re-run unpiped for the true exit code) · e2e **55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server. Sitemap/SEO verified live: 274 canonical locs, 7 robots disallows, manifest 200, 2 JSON-LD blocks on home, canonical present, private pages noindex.
 
-**Docs:** PAD v2.17.0, SKILL v1.17.0 (§25 lessons), worklog Task 136, session record, plan-018; counts swept 115→117 everywhere.
+**Count lockstep:** unit 117→**119** (the PAD-revision-uniqueness + app-path-route pins), e2e 55, smoke 26, sitemap 274, 22/242, 7 tables, 11 pages / 8 API files / 12 methods unchanged; **24 app-path routes** newly pinned.
 
-Key files: [session-018 summary](/home/z/my-project/download/session-018_summary.md) · [plan-018](/home/z/my-project/nordhem-furnishing-store/docs/plans/2026-11-21_session-018_remediation-plan.md) · [session_18.md](/home/z/my-project/nordhem-furnishing-store/docs/session_18.md) · [docs-counts.test.ts](/home/z/my-project/nordhem-furnishing-store/tests/unit/docs-counts.test.ts) · [tailwind-scan-guard.test.ts](/home/z/my-project/nordhem-furnishing-store/tests/unit/tailwind-scan-guard.test.ts)
+**Deferred (documented):** migration journal · CSP nonces · Redis limiter (multi-instance) · `z.string().email()` soft-deprecation · capture-screenshots.mjs fixed sleeps (doc artifact, not a gate member) · tests/** lint scope (deliberate app-boundary posture).

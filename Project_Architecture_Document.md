@@ -1,8 +1,8 @@
-# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.17.0
+# Nordhem Furnishing Store — Master Project Architecture Document (PAD) v2.18.0
 
 **Classification:** Internal Engineering Reference
 **Status:** DEFINITIVE, PRODUCTION-LOCKED BLUEPRINT
-**Last Updated:** 2026-11-21 (session 018 — census constants derived from the tree, gitignore-census reconciliation, SKILL dedup)
+**Last Updated:** 2026-11-22 (session 019 — ESM-native test configs, PAD revision-dup removal, app-path route derivation)
 **Audience:** Senior Engineers, Tech Leads, DevOps, and Onboarding Engineers
 **Rule:** Every architectural decision in this document traces to a specific rationale. Nothing is here "because it's popular."
 
@@ -114,7 +114,7 @@ src/components/     # layout (header+drawer, footer, search-box, toaster), shop,
 src/lib/            # pure seams (see Layer 1) — every one unit-tested
 src/db/             # schema.ts (7 tables), index.ts (Pool), seed.ts (advisory-lock idempotent)
 src/content/        # catalog.json (242 products), home.json, nav.ts, pages.ts
-tests/unit/         # 19 files / 117 tests
+tests/unit/         # 19 files / 119 tests
 tests/e2e/          # mobile-navigation, storefront, seo-platform, accessibility, accessibility-states (55 tests)
 scripts/            # seed-cli.ts (dotenv-first), smoke.sh (26 checks), prune-abandoned-carts.mjs,
                     # capture-screenshots.mjs
@@ -189,7 +189,7 @@ Tokens measured from ikea.com/sg (`globals.css` `@theme inline`, literal hex): i
 
 | Tier | Count | Runner | Location |
 |---|---|---|---|
-| Unit | 117 tests / 19 files | Vitest (node) | `tests/unit/` |
+| Unit | 119 tests / 19 files | Vitest (node) | `tests/unit/` |
 | E2E | 55 tests / 5 specs | Playwright (Chromium, prod build :3100) | `tests/e2e/` |
 | Smoke | 26 checks | bash | `scripts/smoke.sh` |
 
@@ -243,6 +243,15 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 | tests/e2e/mobile-navigation.spec.ts | The drawer state-machine pin |
 
 ---
+
+## Revision Block — v2.18.0 (2026-11-22, session 019)
+
+- `[QA]` **S19-08: the PAD's own byte-identical duplicated v2.7.0 (session 008) revision block removed** — the exact S18-04 class: a copy-paste dup shipped in session-008's own commit and survived every doc sweep, INCLUDING session-018's SKILL-dedup fix, whose unique-headings pin covers only SKILL `## §N` headings. New pin: PAD `## Revision Block` headings must be unique — RED on the dup (named "Revision Block — v2.7.0 (2026-11-20, session 008)"), GREEN after deleting the second copy. Found during operator doc review; the audit subagent's fresh-eye pass missed it because nothing re-reads old revision blocks — now a shape pin does.
+- `[FIX]` **S19-01: the test-runner configs are ESM-native (.mts)** — vitest 5.1 (Vite 8.3.8) warned on every `npm test` run ("features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite" — a `.ts` config loaded as CommonJS). `vitest.config.ts` → `vitest.config.mts` (`__dirname` → `fileURLToPath(new URL("./src", import.meta.url))`, portable across the whole Node ≥ 20 contract), `playwright.config.ts` → `playwright.config.mts` (content unchanged). The tsconfig excludes, tsconfig.tests includes and the root-census `BENIGN_ROOT_FILES` allowlist updated in the same commit (the S16-L2 census design: a root-file rename must update the census). Verified: the warning is gone from `npm test` output; unit **119/119 warning-free**; both typechecks ✓; e2e **55/55** through the renamed config. Supersedes session-001's `.mts`→`.ts` alignment — that verdict was stylistic homenest parity, this one is forward-compatibility with new information. The 13th-session "config no-op" verdict finally had a real delta.
+- `[QA]` **S19-05: DEPLOYMENT's "compiles 25 app-path routes" corrected to 24 — and the claim is now tree-derived.** Session-018 deferred pinning it as "build-output-derived, not unit-derivable"; that verdict was wrong: the build's route table is fully predictable from `src/app` (11 `page.tsx` + 8 `route.ts` + the 5 framework-generated special routes: `not-found.tsx` → `/_not-found`, `icon.svg`, `manifest.ts` → `/manifest.webmanifest`, `robots.ts` → `/robots.txt`, `sitemap.ts` → `/sitemap.xml` = 24, verified against the actual route table). `APP_PATH_ROUTES` is derived in the census and pinned both directions — RED on the stale 25 first (the wrap-aware regex rides the doc's "app-path\nroutes" line break, per the §25 lesson).
+- `[DOC]` **S19-02/04/06:** `.env.example` documents the drizzle.config.json push/seed URL asymmetry (push reads the hardcoded config URL; app + seed read `DATABASE_URL` — change both when moving databases); the `MOBILE_NAV_E2E` derivation documents its literal-`test(` limitation (loop-generated tests would undercount — accessibility.spec.ts generates 8 via a loop); the "CONDITIONITIONALLY" typo in mobile-navigation.spec.ts fixed (the S18-09 class).
+- **Count lockstep:** unit 117→**119** (the PAD-revision-uniqueness + app-path-route pins), e2e 55, smoke 26, sitemap 274, 22/242, 7 tables, **24 app-path routes (newly pinned)**, 11 pages / 8 API files / 12 methods unchanged; every count site swept in-commit.
+- **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **119/119 (19 files)** (configLoader warning gone post-rename) · build cold ✓ · smoke **26/26** · e2e **55/55** · sitemap **274** · screenshots **12/12** PIL-valid from the dev server.
 
 ## Revision Block — v2.17.0 (2026-11-21, session 018)
 
@@ -340,17 +349,6 @@ See AGENTS.md (commands + traps) and README.md (quickstart). Conventional Commit
 - `[SEC]` **HSTS live** (max-age=31536000; includeSubDomains) — homenest parity, the one residual header missing from the register; e2e-pinned.
 - `[QA]` **S9-L9:** the suggestions a11y-state pin is count-independent (a catalog refresh can no longer break it); **S9-L7:** the scan-guard now pins the SKILL.md exclusion (verified the pin bites by dropping the CSS line → RED → restore); **S9-L8:** `.env.example` documents `MAX_AGE_DAYS` (prune cron); **S9-L10:** `scripts/smoke.sh` executable bit committed; **S9-I4:** `error.tsx` logs the boundary error. Test-config instruction: vitest/playwright configs audited sound — deliberate no-op (session-007 §15.6 precedent).
 - **Gate (exit-code-checked):** lint 0/0 · typecheck ✓ · typecheck:tests ✓ · unit **102/102 (16 files)** · build cold ✓ · smoke 21/21 · e2e **49/49 ×3** · sitemap **274**.
-
-## Revision Block — v2.7.0 (2026-11-20, session 008)
-
-- `[SEO]` **S8-M2: the synthesized long tail collapsed.** The broad RULES prefixes (session-007 M-2) had re-opened an unbounded indexable thin-content surface — any ≤6-segment path under a known prefix rendered 200 with the layout-default description and NO canonical. `resolveInfoPage` now emits a unique per-page `description` (title + rule lead + "part of" context) and a `canonicalPath` that folds deep pages into the prefix root (exact prefixes keep self-canonicals); the catch-all `generateMetadata` wires both. Live-verified: `/customer-service/faq` and even garbage-under-prefix now carry unique descriptions + prefix canonicals; `/totally-unknown-page-xyz` still 404s.
-- `[QA]` **S8-M1+L4: dynamic-state a11y gate.** New `tests/e2e/accessibility-states.spec.ts` scans four STATES, not just pages: favourited product (pressed), mobile drawer open, cart with a line item, search-suggestions panel open. It immediately caught two real bugs the static sweeps missed for seven sessions: the favourite button's pressed state still violated Label-in-Name (visible "Saved … to shopping list" vs aria-label "Remove … from shopping list" — now aligned) and the cart thumbnail link was nameless (decorative alt="" inside a link; now carries `aria-label`). 
-- `[SEO]` **S8-L2: paginated self-canonicals.** `/cat/*?page=N` canonicalized to page 1, risking tail deindexing (lowest-price spans 6 pages); page > 1 now self-canonicalizes.
-- `[QA]` **S8-L1: link census verifies existence.** The census now resolves every censused `/cat/` and `/p/` href against the catalog + seed derivation — a typo'd slug can no longer pass the prefix check and 404 live.
-- `[QA]` **S8-L5: collection rails scoped to exact prefixes.** `/new/new-products` no longer inherits the Christmas rail (rule collections render only on the rule's landing page).
-- `[SEC]` **S8-I1 + SearchAction parity.** The unused CSP `img-src data:` allowance dropped (every image is self or IKEA CDN); the WebSite JSON-LD SearchAction removed — it advertised a sitelinks searchbox targeting `/search`, which robots.txt disallows.
-- `[QA]` **S8-M4+M3: doc-drift guard extended.** `docs-counts.test.ts` now pins the sitemap (275) and category (22) counts and covers SKILL.md + DEPLOYMENT.md; it went RED on exactly the sites session-007's sweep missed (SKILL "276 locs", DEPLOYMENT "23 categories", four "No CSP yet" claims, README seed count) before the GREEN sweep.
-- `[DEP]` **S8-L3:** unused devDependency `@vitejs/plugin-react` removed.
 
 ## Revision Block — v2.7.0 (2026-11-20, session 008)
 

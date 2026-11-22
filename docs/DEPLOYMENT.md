@@ -19,7 +19,7 @@ posture (no static-catalog fallback).
 - One Next.js 16 App Router app: 11 page routes (home, catch-all content
   pages, cart, category, checkout, favourites/shopping list, IKEA Family,
   order confirmation, product, search, track-order) + 8 API route files
-  (12 methods) under `src/app/`. The current build compiles 25 app-path
+  (12 methods) under `src/app/`. The current build compiles 24 app-path
   routes including `sitemap.xml`, `robots.txt` and `manifest.webmanifest`.
 - One PostgreSQL database: **7 tables** — `categories`, `products`,
   `cart_items`, `favourites`, `orders`, `order_items`, `family_members`.
@@ -284,7 +284,7 @@ would couple checkout latency to table size.
 
 ```bash
 npm run lint && npm run typecheck && npm run typecheck:tests   # 0 problems (app + tests + configs)
-npm test                                                      # Vitest: 117 unit tests, 19 files
+npm test                                                      # Vitest: 119 unit tests, 19 files
 npm run build                                                 # cold build succeeds
 BASE_URL=http://127.0.0.1:3100 scripts/smoke.sh               # 26 HTTP checks (server must be running)
 npx playwright install chromium                               # once per environment

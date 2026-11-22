@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 /**
  * Mobile navigation — the repo's signature Tailwind v4 risk surface.
  *
- * The drawer is CONDITIONITIONALLY MOUNTED via React state (never a JS-toggled `hidden`
+ * The drawer is CONDITIONALLY MOUNTED via React state (never a JS-toggled `hidden`
  * class fighting a `flex` utility — the tailwindcss#15884/#18653 bug class). These tests pin
  * that state machine: open → submenu → navigate → unmount, close → reopen (proves the toggle
  * is state-driven, not a one-shot class flip), and the body scroll lock.

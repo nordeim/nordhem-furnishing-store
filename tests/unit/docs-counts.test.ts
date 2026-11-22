@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { INFO_SITEMAP_ROUTES, STATIC_SITEMAP_ROUTES } from "@/app/sitemap";
 
@@ -17,7 +17,7 @@ import { INFO_SITEMAP_ROUTES, STATIC_SITEMAP_ROUTES } from "@/app/sitemap";
  * (UNIT_TESTS, E2E_TESTS — they need a suite run, not a readdir). A derived constant can
  * never drift from the tree; a doc can never drift from a derived constant.
  */
-const UNIT_TESTS = 117; // run-derived: `npm test` tally — sweep every doc when this moves
+const UNIT_TESTS = 119; // run-derived: `npm test` tally — sweep every doc when this moves
 const E2E_TESTS = 55; // run-derived: `npm run test:e2e` tally — sweep every doc when this moves
 const E2E_SPECS = readdirSync("tests/e2e").filter((f) => f.endsWith(".spec.ts")).length;
 const UNIT_FILES = readdirSync("tests/unit").filter((f) => f.endsWith(".test.ts")).length;
@@ -43,6 +43,9 @@ const PRODUCTS = CATALOG.filter((entry) => KNOWN_CATEGORY_SLUGS.has(entry.catego
 const TABLES = (readFileSync("src/db/schema.ts", "utf8").match(/= pgTable\(/g) ?? []).length;
 // Session-016 S16-L1: the per-spec pin note in PAD's §3 ("mobile-navigation.spec.ts (N tests)")
 // — a stale 8 sat there through session-015's sweep because no regex covered the shape.
+// Session-019 S19-04 note: this counts LITERAL `test(` declarations only — accessibility.spec.ts
+// generates 8 of its tests via a for-loop; if that pattern entered mobile-navigation.spec.ts
+// this constant would undercount and the PAD pin would drift. Keep that spec literal-declared.
 const MOBILE_NAV_E2E =
   readFileSync("tests/e2e/mobile-navigation.spec.ts", "utf8").match(/^\s*test\(/gm)?.length ?? 0;
 // The sitemap's own arithmetic: static + info routes (exported by src/app/sitemap.ts —
@@ -74,6 +77,16 @@ for (const f of API_ROUTE_FILES) {
   const m = readFileSync(f, "utf8").match(/createRateLimiter\(\{ limit: (\d+)/);
   if (m) RATE_LIMITS[`/api/${f.replace(/^src\/app\/api\/|\/route\.ts$/g, "")}`] = Number(m[1]);
 }
+// Session-019 S19-05: the build's app-path route count, tree-derived. Session-018 left
+// DEPLOYMENT's claim unpinned as "build-output-derived" — but the build's route table is
+// fully predictable from src/app: every page.tsx + every route.ts + the framework-generated
+// routes for the five special files (not-found.tsx → /_not-found, icon.svg, manifest.ts →
+// /manifest.webmanifest, robots.ts → /robots.txt, sitemap.ts → /sitemap.xml). Verified
+// against the actual `next build` route table (24 = 11 + 8 + 5).
+const SPECIAL_ROUTE_FILES = ["not-found.tsx", "icon.svg", "manifest.ts", "robots.ts", "sitemap.ts"].filter(
+  (f) => existsSync(`src/app/${f}`),
+);
+const APP_PATH_ROUTES = PAGE_ROUTES + API_ROUTES + SPECIAL_ROUTE_FILES.length;
 
 // Session-017 S17-03: this was Array<[string, RegExp[]]> but the consumer only ever read the
 // doc name — the per-doc regexes were dead code implying coverage the sweep did not provide
@@ -315,6 +328,30 @@ describe("docs stay in lockstep with the suites (session-007 M-3)", () => {
     expect(headings.length, "SKILL must carry its lesson sections").toBeGreaterThan(10);
     const dupes = headings.filter((h, i) => headings.indexOf(h) !== i);
     expect(dupes, `duplicated SKILL section headings: ${dupes.join("; ")}`).toEqual([]);
+  });
+
+  it("PAD revision blocks are unique (session-019 S19-08)", () => {
+    // A byte-identical duplicated "## Revision Block — v2.7.0 … (session 008)" shipped in
+    // session-008's own commit and survived every doc sweep — including session-018's own
+    // SKILL-dedup fix, whose unique-headings pin covers only SKILL "## §N" headings. The
+    // same shape pin over the PAD's revision blocks closes the class where it actually bit.
+    const s = read("Project_Architecture_Document.md");
+    const blocks = [...s.matchAll(/^## (Revision Block — .+)$/gm)].map((m) => m[1]);
+    expect(blocks.length, "PAD must carry its revision history").toBeGreaterThan(10);
+    const dupes = blocks.filter((b, i) => blocks.indexOf(b) !== i);
+    expect(dupes, `duplicated PAD revision blocks: ${dupes.join("; ")}`).toEqual([]);
+  });
+
+  it("DEPLOYMENT app-path route claim matches the tree (session-019 S19-05)", () => {
+    // "The current build compiles N app-path routes" — sat stale at 25 through session-018
+    // (which deferred pinning it as "build-output-derived, not unit-derivable"). The count
+    // is tree-derived (see APP_PATH_ROUTES above) and now pinned both directions: a route
+    // file added/removed OR a doc edit drifts this RED. The phrase wraps mid-word-pair in
+    // the doc ("app-path\nroutes") — \s+ rides the wrap (the §25 lesson).
+    const s = read("docs/DEPLOYMENT.md");
+    const m = s.match(/compiles (\d+) app-path\s+routes/);
+    expect(m, "DEPLOYMENT must state the app-path route count").not.toBeNull();
+    expect(Number(m![1]), "app-path routes = pages + API + special files").toBe(APP_PATH_ROUTES);
   });
 
   it("docs cite the current sitemap and category counts (session-008 M-4)", () => {

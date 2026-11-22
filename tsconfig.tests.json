@@ -5,8 +5,8 @@
   },
   "include": [
     "tests/**/*.ts",
-    "playwright.config.ts",
-    "vitest.config.ts",
+    "playwright.config.mts",
+    "vitest.config.mts",
     "scripts/**/*.ts"
   ],
   "exclude": ["node_modules"]

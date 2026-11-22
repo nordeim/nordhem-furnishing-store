@@ -1,14 +1,14 @@
 ---
 name: nordhem-furnishing-store
 description: Complete engineering skill for the Nordhem Furnishing Store codebase (IKEA Singapore re-creation) — Next.js 16 App Router, React 19, TS strict, Tailwind v4 CSS-first, Drizzle/PostgreSQL, Zod, Vitest/Playwright. Use when extending, debugging, auditing or replicating this storefront.
-version: 1.17.0
-last_updated: 2026-11-21
+version: 1.18.0
+last_updated: 2026-11-22
 ---
 
-# Nordhem Furnishing Store — Engineering Skill (v1.17.0)
+# Nordhem Furnishing Store — Engineering Skill (v1.18.0)
 
 ## §1 Project Identity & Design Philosophy
-Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 018): 117 unit tests / 55 e2e / 26 smoke checks; sitemap 274 locs (canonical roots only); CHECK-constraint SQL is DDL-legal (sql.raw constants — fresh-clone `db:setup` verified on an empty DB); the docs-counts census derives its constants from the tree itself (specs, files, smoke checks, categories, products, tables, sitemap, page/API routes, rate-limit literals) and pins every count shape it knows — prose, tables, tree comments, badges, the rate-limit table; the tailwind root census treats gitignored local files as scanner-benign (the oxide scanner's own .gitignore behavior); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
+Independent educational re-creation of ikea.com/sg with working commerce (242-product catalog, search, cart, favourites, checkout, tracking, Family sign-up). One Next.js app + PostgreSQL; server-authoritative; degrade-never-fail; pure seams tested; superset of the marketing reference. **Project state (session 019): 119 unit tests / 55 e2e / 26 smoke checks; sitemap 274 locs (canonical roots only); CHECK-constraint SQL is DDL-legal (sql.raw constants — fresh-clone `db:setup` verified on an empty DB); the docs-counts census derives its constants from the tree itself (specs, files, smoke checks, categories, products, tables, sitemap, page/API/app-path routes, rate-limit literals) and pins every count shape it knows — prose, tables, tree comments, badges, the rate-limit table, plus shape pins for SKILL section-headings and PAD revision-block uniqueness; the test-runner configs are ESM-native (.mts — vitest 5.1's configLoader warning closed); the tailwind root census treats gitignored local files as scanner-benign (the oxide scanner's own .gitignore behavior); dev server hydrates via 127.0.0.1 (allowedDevOrigins + dev-only CSP unsafe-eval); HSTS live; paginated canonicals derive from the rendered page; synthesized deep pages carry unique descriptions and fold into prefix-root canonicals; paginated /cat pages self-canonicalize; collection rails render only on exact rule prefixes; axe-core serious/critical gate on 8 static surfaces + 4 dynamic states; link census verifies /cat/ and /p/ existence; CSP without the unused data: allowance; no SearchAction (robots parity); checkout locks only the session's cart rows (FOR UPDATE OF cartItems); unknown content paths 404; production build clean.**
 
 ## §2 Tech Stack (locked)
 Next.js ^16.4.2 · React ^19.2.6 · TypeScript ^5.9.3 strict · Tailwind ^4.1.17 (CSS-first) · Drizzle ^0.45.2 · PostgreSQL 17 · Zod ^4.6.7 · Vitest ^5.1.0 · @playwright/test ^1.65.1 · @fontsource/noto-sans ^5.3.0. Node ≥ 20, npm ≥ 10, one lockfile.
@@ -75,6 +75,14 @@ Gate chain green (all seven steps) · changed surfaces at 390/768/1440 · `git s
 
 
 
+
+## §26 Lessons (session 019)
+1. A uniqueness pin covers only the document it reads: session-018's heading-uniqueness fix pinned SKILL `## §N` headings while the PAD carried the same byte-dup class in its revision blocks for one more session. Shape pins must enumerate every doc that can carry the shape — the S13-I2 census-coverage lesson, restated for structure.
+2. "Not unit-derivable" is a hypothesis, not a verdict: the app-path route count sat unpinned for a session because it looked build-only — until the route table was read as arithmetic (pages + API files + the five special files). Before deferring a claim as underivable, ask what the build output is a FUNCTION of.
+3. A config-deprecation warning is gate debt with a due date: twelve sessions of "configs sound, documented no-op" were correct until the day vitest 5.1 warned; the thirteenth no-op would have been a lie. Re-audit the no-op verdict itself every session — verdicts expire, configs drift.
+4. The wrap-aware regex lesson generalizes to any claim that wraps: the app-path pin matched nothing until the pattern rode DEPLOYMENT's "app-path\nroutes" line break. Test a pin against the file's raw bytes, not against the sentence you meant to write.
+5. A root-file RENAME is a root-file event for the census: `.ts` → `.mts` had to update the tsconfig excludes, the tests tsconfig includes AND `BENIGN_ROOT_FILES` in the same commit — the S16-L2 allowlist is the scanner-fence contract; renames are just arrivals plus departures.
+6. An audit's fresh eye is only as fresh as its coverage list: the subagent verified every S18 claim and missed the PAD dup because nothing re-reads old revision blocks. Keep a second reader for prose surfaces the guards don't shape.
 
 ## §25 Lessons (session 018)
 1. A count guard's weakest link is upstream of the guard: comparing docs to hand-set constants verifies nothing about the constants. Derive what is derivable (readdir, source grep, the seed's own content arithmetic) and the guard's inputs become unfalsifiable — only the two run-derived totals stay hand-set.

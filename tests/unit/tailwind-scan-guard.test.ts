@@ -63,9 +63,13 @@ const POISON_TOKENS = [
 const FENCED_ROOT_DIRS = new Set(["docs", "skills", "tests", "scripts", "public", "src"]);
 const BENIGN_ROOT_FILES = new Set([
   // Tool configs — pure key/value directives, no prose comments carrying class-shaped tokens.
+  // The two test-runner configs are .mts since session-019 (S19-01: ESM-native configs —
+  // vitest 5.1 warns on loading a .ts config as CommonJS under the planned Vite native
+  // configLoader default). vitest.config.mts carries only URL/alias literals in its
+  // comments; the rename keeps the filenames here in lockstep with the root listing.
   "next.config.ts",
-  "playwright.config.ts",
-  "vitest.config.ts",
+  "playwright.config.mts",
+  "vitest.config.mts",
   "eslint.config.mjs",
   "postcss.config.mjs",
   "drizzle.config.json",
